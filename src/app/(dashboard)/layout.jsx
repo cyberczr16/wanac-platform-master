@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   FaUser,
@@ -105,6 +106,23 @@ export default function DashboardLayout({ children }) {
         } fixed md:static md:translate-x-0 z-40 w-64 bg-white shadow-lg h-screen transition-transform duration-300 ease-in-out`}
       >
         <div className="flex flex-col h-full p-6">
+          {/* Company Logo Section */}
+          <div className="flex justify-center mb-6 border-b pb-4">
+            <div className="text-center">
+              <Link href="/dashboard" className="inline-block">
+                <Image 
+                  src="/WANAC N 8 Old Glory.png" 
+                  alt="WANAC Logo" 
+                  width={200} 
+                  height={80} 
+                  className="mx-auto"
+                  priority
+                />
+              </Link>
+            </div>
+          </div>
+          
+          {/* User Profile Section */}
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-blue-700 text-white rounded-full p-2">
               <FaUser />

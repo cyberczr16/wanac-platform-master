@@ -26,9 +26,9 @@ export default function ClientDashboard() {
             </h2>
             <p className="text-brand-blue text-sm">Coach: Sarah Smith</p>
             <p className="text-brand-blue text-sm">Date: Apr 6, 2025 – 11:00AM</p>
-            <button className="mt-4 bg-brand-orange text-white px-4 py-2 rounded hover:bg-orange-500 transition">
-              View Session
-            </button>
+            <button className="mt-4 bg-[#002147] text-white px-4 py-2 rounded hover:bg-orange-500 transition">
+  View Sessions
+</button>
           </div>
 
           {/* Journal Entry */}
@@ -37,7 +37,7 @@ export default function ClientDashboard() {
               <FaPenFancy /> Journal
             </h2>
             <p className="text-brand-blue text-sm mb-4">Reflect on your thoughts and progress.</p>
-            <button className="bg-brand-navy text-white px-4 py-2 rounded hover:bg-blue-800 transition">
+            <button className="mt-4 bg-[#002147] text-white px-4 py-2 rounded hover:bg-orange-500 transition">
               Write Now
             </button>
           </div>
@@ -48,7 +48,7 @@ export default function ClientDashboard() {
               <FaBrain /> AI Assistant
             </h2>
             <p className="italic text-brand-blue">"Take a moment to list 3 things you're grateful for today."</p>
-            <button className="mt-3 text-sm text-brand-orange hover:underline">
+            <button className="mt-4 bg-[#002147] text-white px-4 py-2 rounded hover:bg-orange-500 transition">
               Ask More
             </button>
           </div>
@@ -59,7 +59,7 @@ export default function ClientDashboard() {
               <FaChartLine /> Life Score
             </h2>
             <p className="text-brand-blue text-sm mb-2">Track your weekly well-being and growth.</p>
-            <button className="bg-brand-orange text-white px-4 py-2 rounded hover:bg-orange-500 transition">
+            <button className="mt-4 bg-[#002147] text-white px-4 py-2 rounded hover:bg-orange-500 transition">
               View Life Score
             </button>
           </div>
@@ -70,7 +70,7 @@ export default function ClientDashboard() {
               <FaBookOpen /> Library
             </h2>
             <p className="text-brand-blue text-sm mb-2">Read guides and watch videos from your coach.</p>
-            <button className="bg-brand-navy text-white px-4 py-2 rounded hover:bg-blue-800 transition">
+            <button className="mt-4 bg-[#002147] text-white px-4 py-2 rounded hover:bg-orange-500 transition">
               Explore Library
             </button>
           </div>
@@ -81,7 +81,7 @@ export default function ClientDashboard() {
               <FaHandsHelping /> My Coach
             </h2>
             <p className="text-brand-blue text-sm mb-2">Get in touch or learn more about your coach.</p>
-            <button className="bg-brand-orange text-white px-4 py-2 rounded hover:bg-orange-500 transition">
+            <button className="mt-4 bg-[#002147] text-white px-4 py-2 rounded hover:bg-orange-500 transition">
               View Coach Profile
             </button>
           </div>
@@ -92,7 +92,7 @@ export default function ClientDashboard() {
               <FaUsers /> Community
             </h2>
             <p className="text-brand-blue text-sm mb-2">Connect with other clients on the platform.</p>
-            <button className="bg-brand-navy text-white px-4 py-2 rounded hover:bg-blue-800 transition">
+            <button className="mt-4 bg-[#002147] text-white px-4 py-2 rounded hover:bg-orange-500 transition">
               Join Discussion
             </button>
           </div>
@@ -103,7 +103,7 @@ export default function ClientDashboard() {
               <FaEnvelopeOpenText /> Messages
             </h2>
             <p className="text-brand-blue text-sm mb-2">Check your messages from your coach or community.</p>
-            <button className="bg-brand-orange text-white px-4 py-2 rounded hover:bg-orange-500 transition">
+            <button className="mt-4 bg-[#002147] text-white px-4 py-2 rounded hover:bg-orange-500 transition">
               Open Inbox
             </button>
           </div>

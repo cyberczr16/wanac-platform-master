@@ -15,6 +15,13 @@ export default function Footer({ hideFooter = false }) {
     '/client',
     '/coach',
     '/admin',
+    '/settings',
+    '/appointments',
+    '/messages',
+    '/community',
+    '/journal',
+    '/aichatbot',
+    '/lifescore'
     
   ];
   
