@@ -4,12 +4,35 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown, Menu } from "lucide-react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
-export default function Navbar() {
+export default function Navbar({ hideNavbar = false }) {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navRef = useRef(null);
+  const pathname = usePathname();
+  
+  // List of paths where the navbar should be hidden
+  const navbarExcludedPaths = [
+    '/dashboard',
+    '/login',
+    '/signup',
+    '/signin',
+    '/register',
+    '/client',
+    '/coach',
+    '/admin',
+    '/appointments',
+  ];
+  
+  // Check if current path starts with any of the excluded paths
+  const shouldHideNavbar = 
+    hideNavbar || 
+    navbarExcludedPaths.some(path => pathname?.startsWith(path));
+  
+  // If the navbar should be hidden, don't render it
+  if (shouldHideNavbar) return null;
 
   const toggleDropdown = (menu) => {
     setActiveDropdown(activeDropdown === menu ? null : menu);
