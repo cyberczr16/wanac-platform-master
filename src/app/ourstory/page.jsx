@@ -9,9 +9,33 @@ const OurStory = () => {
         image: "path-to-image.jpg",
         bio: "Founder and Executive Chairman"
       },
+      {
+        name: "Jason B.A. Van Camp",
+        title: "Chairman of the Board",
+        image: "path-to-image.jpg",
+        bio: "Founder and Executive Chairman"
+      },
+      {
+        name: "Jason B.A. Van Camp",
+        title: "Chairman of the Board",
+        image: "path-to-image.jpg",
+        bio: "Founder and Executive Chairman"
+      },
       // Add more board members
     ],
     advisoryBoard: [
+      {
+        name: "John Smith",
+        title: "Strategic Advisor",
+        expertise: "Veteran Affairs & Business Development",
+        image: "path-to-image.jpg"
+      },
+      {
+        name: "John Smith",
+        title: "Strategic Advisor",
+        expertise: "Veteran Affairs & Business Development",
+        image: "path-to-image.jpg"
+      },
       {
         name: "John Smith",
         title: "Strategic Advisor",
@@ -27,10 +51,35 @@ const OurStory = () => {
         service: "U.S. Marine Corps",
         expertise: "Entrepreneurship",
         image: "path-to-image.jpg"
+      },{
+        name: "Sarah Johnson",
+        title: "Veteran Advisor",
+        service: "U.S. Marine Corps",
+        expertise: "Entrepreneurship",
+        image: "path-to-image.jpg"
+      },
+      {
+        name: "Sarah Johnson",
+        title: "Veteran Advisor",
+        service: "U.S. Marine Corps",
+        expertise: "Entrepreneurship",
+        image: "path-to-image.jpg"
       },
       // Add more veteran advisors
     ],
     executiveStaff: [
+      {
+        name: "Ken Vance",
+        title: "Chief Executive Officer",
+        image: "path-to-image.jpg",
+        bio: "Leading operations and strategic initiatives"
+      },
+      {
+        name: "Ken Vance",
+        title: "Chief Executive Officer",
+        image: "path-to-image.jpg",
+        bio: "Leading operations and strategic initiatives"
+      },
       {
         name: "Ken Vance",
         title: "Chief Executive Officer",
@@ -125,14 +174,14 @@ const OurStory = () => {
         />
 
         {/* Call to Action */}
-        <section className="bg-blue-900 text-white rounded-xl p-8 mt-12 text-center">
+        <section className="bg-[#002147] text-white rounded-xl p-8 mt-12 text-center">
           <h2 className="text-3xl font-bold mb-4">Join Our Mission</h2>
           <p className="text-lg mb-6">
             Support veteran entrepreneurs and help build the next generation of business leaders.
           </p>
           <div className="space-x-4">
             <a
-              href="https://www.warriorrising.org/donate/"
+              href="/donate"
               className="inline-block bg-white text-blue-900 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
               target="_blank"
               rel="noreferrer"
@@ -140,7 +189,7 @@ const OurStory = () => {
               Donate Today
             </a>
             <a
-              href="https://www.warriorrising.org/volunteer/"
+              href="/volunteer"
               className="inline-block border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-900 transition"
               target="_blank"
               rel="noreferrer"

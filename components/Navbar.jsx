@@ -29,7 +29,6 @@ export default function Navbar({ hideNavbar = false }) {
     '/journal',
     '/aichatbot',
     '/lifescore',
-    '/settings',
   ];
   
   // Check if current path starts with any of the excluded paths

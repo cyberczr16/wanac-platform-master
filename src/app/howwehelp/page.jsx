@@ -4,28 +4,28 @@ export default function HowWeHelp() {
       id: 1,
       title: "Personal Growth Assessment",
       description: "Take our comprehensive Life Score Assessment to identify your strengths and areas for development in your transition journey.",
-      icon: "📊",
+      icon: "",
       features: ["Personalized insights", "Progress tracking", "Action recommendations"]
     },
     {
       id: 2,
       title: "Transition Coaching",
       description: "Work one-on-one with experienced coaches who understand the unique challenges of military transition.",
-      icon: "🎯",
+      icon: "",
       features: ["Customized coaching plans", "Goal setting", "Career guidance"]
     },
     {
       id: 3,
       title: "Reflective Journaling",
       description: "Document your journey and insights with our structured journaling platform designed for personal growth.",
-      icon: "📝",
+      icon: "",
       features: ["Guided prompts", "Progress tracking", "Private space for reflection"]
     },
     {
       id: 4,
       title: "Veteran Community",
       description: "Connect with fellow veterans who understand your journey and share experiences in a supportive environment.",
-      icon: "🤝",
+      icon: "",
       features: ["Peer support", "Networking", "Shared experiences"]
     }
   ];
@@ -35,7 +35,7 @@ export default function HowWeHelp() {
       id: 1,
       title: "Phase 1: Promise Land Transition",
       description: "Begin your journey with our foundational program designed specifically for military transition.",
-      icon: "🌟",
+      icon: "",
       features: [
         "Military to civilian transition strategy",
         "Identity transformation",
@@ -47,7 +47,7 @@ export default function HowWeHelp() {
       id: 2,
       title: "Phase 2: High Performance Coaching",
       description: "Elevate your potential and achieve excellence in your chosen path.",
-      icon: "🚀",
+      icon: "",
       features: [
         "Advanced performance techniques",
         "Leadership development",
@@ -59,7 +59,7 @@ export default function HowWeHelp() {
       id: 3,
       title: "Phase 3: Coaching Business Academy",
       description: "Transform your experience into a successful coaching business.",
-      icon: "💼",
+      icon: "",
       features: [
         "Business model development",
         "Marketing strategies",
@@ -170,19 +170,19 @@ export default function HowWeHelp() {
         </div>
 
         {/* CTA Section */}
-        <div className="text-center">
+        <div className="text-center bg-[#002147">
           <h3 className="text-2xl font-bold text-brand-navy mb-6">
             Ready to Begin Your Transformation?
           </h3>
           <div className="space-x-4">
             <button
-              className="bg-brand-navy text-white px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-colors duration-300"
+              className="bg-white text-brand-navy border-2 border-brand-navy px-8 py-3 rounded-lg font-semibold hover:[#ff5e1a] transition-colors duration-300"
               aria-label="Start your assessment"
             >
               Take Life Score Assessment
             </button>
             <button
-              className="bg-white text-brand-navy border-2 border-brand-navy px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors duration-300"
+              className="bg-white text-brand-navy border-2 border-brand-navy px-8 py-3 rounded-lg font-semibold hover:bg-[#ff5e1a] transition-colors duration-300"
               aria-label="Schedule a consultation"
             >
               Schedule Free Consultation

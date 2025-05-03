@@ -6,10 +6,10 @@ const CorporatePartnersPage = () => {
       {/* Hero Section */}
       <section className="bg-[url('/images/corporate-hero.jpg')] bg-cover bg-center text-white py-20 px-4 text-center">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-4xl text-[#002147] md:text-5xl font-bold mb-4">
             Partner With the WANAC
           </h1>
-          <p className="text-lg md:text-xl mb-6">
+          <p className="text-lg text-[#002147] md:text-xl mb-6">
             Align your brand with a mission that supports our nation’s military and their families.
           </p>
           <a
@@ -26,7 +26,7 @@ const CorporatePartnersPage = () => {
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-3xl font-semibold mb-6">Why Partner With the US?</h2>
           <p className="text-gray-700 mb-6">
-            By partnering with the USO, your company demonstrates its commitment to the men and women who serve our country. We offer meaningful opportunities for engagement, recognition, and impact.
+            By partnering with the WANAC, your company demonstrates its commitment to the men and women who serve our country. We offer meaningful opportunities for engagement, recognition, and impact.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
             {[

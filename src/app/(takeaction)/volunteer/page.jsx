@@ -67,7 +67,7 @@ const VolunteerPage = () => {
             Make a difference in the lives of service members and their families.
           </p>
           <a
-            href="#get-started"
+            href="/volunteer/get-started"
             className="inline-block bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
             aria-label="Get started volunteering"
           >

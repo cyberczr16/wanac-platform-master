@@ -18,23 +18,31 @@ export default function Home() {
       </Head>
 
       {/* Hero Section */}
-      <section className="min-h-[80vh] flex flex-col justify-center items-center px-6 text-center bg-[#002147] text-white py-24">
-
-        <h1 className="text-5xl font-extrabold max-w-3xl leading-tight uppercase tracking-wide text-heading">
+<section className="min-h-[80vh] bg-[#002147] text-white py-24">
+  <div className="container mx-auto grid grid-cols-12 px-6">
+    <div className="col-start-3 col-span-8 flex flex-col">
+      <h1 className="text-5xl font-extrabold max-w-3xl leading-tight uppercase tracking-wide text-heading">
         Empowering Service Members and Veterans through couching and community support
-        </h1>
-        <p className="text-lg mt-4 max-w-xl text-white">
+      </h1>
+      <p className="text-lg mt-4 max-w-xl text-white">
         Personalized coaching, AI tools and community to help you thrive after Service.
-        </p>
-        <div className="mt-6 space-x-4">
-          <Link href="/signup" className="bg-accent text-white px-6 py-3 rounded-md font-semibold uppercase tracking-wide hover:bg-hover transition-all">
-            Get Started
-          </Link>
-          <Link href="/donate" className="border-2 border-white px-6 py-2 rounded font-semibold hover:bg-white hover:text-background transition-all">
-            Log In
-          </Link>
-        </div>
-      </section>
+      </p>
+      <div className="mt-6 space-x-4">
+        <Link
+          href="/signup"
+          className="border-2 border-white px-6 py-2 rounded font-semibold hover:bg-white hover:text-background transition-all"
+        >
+          Get Started
+        </Link>
+        <Link href="/login" className="border-2 border-white px-6 py-2 rounded font-semibold hover:bg-white hover:text-background transition-all">
+          Log In
+        </Link>
+      </div>
+    </div>
+  </div>
+</section>
+
+
 
       <section id="how-we-help" className="py-20 px-6 bg-white text-center relative">
   {/* Background Pattern */}
@@ -115,7 +123,7 @@ export default function Home() {
       <section className="py-20 px-6 bg-[#002147] text-white">
   <div className="max-w-7xl mx-auto text-center">
     {/* Section Title */}
-    <h2 className="text-3xl font-semibold mb-8">Key Features of Our Web App</h2>
+    <h2 className="text-3xl font-semibold mb-8">KEY WEB APP FEATURES</h2>
     <p className="text-lg mb-12">Discover the powerful features that make our web app the best choice for your needs.</p>
 
     {/* Features Grid */}
