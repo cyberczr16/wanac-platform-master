@@ -1,6 +1,7 @@
 "use client"; // Enable client-side rendering for this file
 
 import './globals.css';
+import './fonts.css'; // Add this line to import the fonts
 import React from 'react';
 import { usePathname } from 'next/navigation'; // Import usePathname for route detection
 import Navbar from '../../components/Navbar';
@@ -22,6 +23,9 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en" className="bg-[#002147] text-gray-800">
+      <head>
+        {/* You can add additional meta tags here if needed */}
+      </head>
       <body>
         {!shouldExclude && <Navbar />} {/* Render Navbar only if not excluded */}
         <main className="p-4">{children}</main>

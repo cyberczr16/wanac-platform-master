@@ -13,8 +13,8 @@ const LeadershipGivingPage = () => {
             Make a lasting impact through philanthropic leadership and transform the lives of service members and their families.
           </p>
           <a
-            href="#give-now"
-            className="bg-red-600 hover:bg-red-700 px-6 py-3 text-lg font-medium rounded-full"
+            href="#donate"
+            className="bg-orange-500 text-white hover:bg-orange-200 text-white px-6 py-3 text-lg font-medium rounded-full"
           >
             Give Now
           </a>
@@ -53,11 +53,11 @@ const LeadershipGivingPage = () => {
       </section>
 
       {/* Impact Highlight */}
-      <section className="py-16 px-6 bg-white">
+      <section className="py-16 px-6 bg-[#f9f9f9]">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-semibold mb-6">Your Leadership Fuels Our Mission</h2>
           <p className="text-gray-700 text-lg">
-            From supporting families during deployments to helping service members transition to civilian life, your generosity ensures that the USO is always by their side.
+            From supporting families during deployments to helping service members transition to civilian life, your generosity ensures that WANAC is always by their side.
           </p>
         </div>
       </section>
@@ -69,12 +69,12 @@ const LeadershipGivingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[
               {
-                name: "Linda K., USO Donor",
-                quote: "Giving to the USO is my way of honoring the heroes who serve and sacrifice every day."
+                name: "Linda K., WANAC Donor",
+                quote: "Giving to the WANAC is my way of honoring the heroes who serve and sacrifice every day."
               },
               {
                 name: "Robert M., Legacy Supporter",
-                quote: "Including the USO in my estate plan was an easy decision — it's a cause I deeply believe in."
+                quote: "Including the WANAC in my estate plan was an easy decision — it's a cause I deeply believe in."
               }
             ].map(({ name, quote }) => (
               <div key={name} className="bg-white p-6 rounded shadow text-left">
@@ -87,16 +87,16 @@ const LeadershipGivingPage = () => {
       </section>
 
       {/* Final CTA */}
-      <section id="give-now" className="bg-red-600 text-white py-16 px-4 text-center">
+      <section id="give-now" className="bg-[#002147] text-white py-16 px-4 text-center">
         <h2 className="text-3xl font-bold mb-4">Join Our Leadership Circle</h2>
         <p className="text-lg mb-6">
           Make a difference that endures for generations.
         </p>
         <a
-          href="https://www.uso.org/contact/major-giving"
+          href="/contact"
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-white text-red-600 px-6 py-3 rounded-full text-lg font-medium hover:bg-gray-100"
+          className="bg-orange-500 text-white hover:bg-orange-200 text-white px-6 py-3 text-lg font-medium rounded-full"
         >
           Contact Our Team
         </a>

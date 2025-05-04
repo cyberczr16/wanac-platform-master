@@ -18,7 +18,7 @@ export default function Home() {
       </Head>
 
       {/* Hero Section */}
-<section className="min-h-[70vh] bg-[#002147] text-white py-24">
+<section className="min-h-[65vh] bg-[#002147] text-white py-24">
   <div className="container mx-auto grid grid-cols-12 px-6">
     <div className="col-start-3 col-span-8 flex flex-col">
       <h1 className="text-5xl font-extrabold max-w-3xl leading-tight uppercase tracking-wide text-heading">

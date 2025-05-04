@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 
@@ -146,7 +148,7 @@ const HelpCenterPage = () => {
       id: 1,
       name: "Live Chat",
       description: "Chat with our support team in real-time",
-      icon: "💬",
+      icon: "",
       availability: "Available Monday-Friday, 8am-8pm ET",
       action: "Start Chat",
       link: "#chat"
@@ -155,7 +157,7 @@ const HelpCenterPage = () => {
       id: 2,
       name: "Email Support",
       description: "Send us a message anytime",
-      icon: "📧",
+      icon: "",
       availability: "Responses within 24 hours",
       action: "Email Us",
       link: "mailto:support@wanac.org"
@@ -164,7 +166,7 @@ const HelpCenterPage = () => {
       id: 3,
       name: "Phone Support",
       description: "Speak directly with our team",
-      icon: "📞",
+      icon: "",
       availability: "Available Monday-Friday, 9am-5pm ET",
       action: "Call Now",
       link: "tel:1-800-123-4567"
@@ -173,7 +175,7 @@ const HelpCenterPage = () => {
       id: 4,
       name: "Schedule a Call",
       description: "Book a time for us to call you",
-      icon: "📅",
+      icon: "",
       availability: "Select a time that works for you",
       action: "Schedule",
       link: "/schedule-call"
@@ -192,7 +194,7 @@ const HelpCenterPage = () => {
   return (
     <div className="bg-white text-gray-800">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-indigo-700 py-20 px-6">
+      <section className="bg-[#002147] py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
             How Can We Help You?
@@ -201,11 +203,11 @@ const HelpCenterPage = () => {
             <input
               type="text"
               placeholder="Search for answers..."
-              className="w-full px-6 py-4 rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow-lg"
+              className="w-full px-6 py-4 rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-orange-400 shadow-lg"
               aria-label="Search help center"
             />
             <button
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-colors duration-300"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-orange-500 text-white p-3 rounded-full hover:bg-orange-600 transition-colors duration-300"
               aria-label="Search"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -245,7 +247,7 @@ const HelpCenterPage = () => {
                 <p className="text-sm text-gray-500 mb-6">{method.availability}</p>
                 <a
                   href={method.link}
-                  className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
+                  className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full text-sm font-medium transition-colors duration-300"
                 >
                   {method.action}
                 </a>
@@ -312,7 +314,7 @@ const HelpCenterPage = () => {
                 </p>
                 <a
                   href="/helpcenter/tutorials"
-                  className="text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-orange-500 hover:text-orange-700 font-medium"
                 >
                   Watch Tutorials →
                 </a>
@@ -328,7 +330,7 @@ const HelpCenterPage = () => {
                 </p>
                 <a
                   href="/helpcenter/guides"
-                  className="text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-orange-500 hover:text-orange-700 font-medium"
                 >
                   Browse Guides →
                 </a>
@@ -344,7 +346,7 @@ const HelpCenterPage = () => {
                 </p>
                 <a
                   href="/community/forum"
-                  className="text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-orange-500 hover:text-orange-700 font-medium"
                 >
                   Join Discussion →
                 </a>
@@ -355,7 +357,7 @@ const HelpCenterPage = () => {
       </section>
 
       {/* Feedback Section */}
-      <section className="py-16 px-6 bg-blue-600 text-white">
+      <section className="py-16 px-6 bg-[#002147] text-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-6">
             Help Us Improve
@@ -365,64 +367,14 @@ const HelpCenterPage = () => {
           </p>
           <a
             href="/feedback"
-            className="inline-block bg-white text-blue-600 px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300 hover:bg-gray-100"
+            className="inline-block bg-white text-[#002147] px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300 hover:bg-gray-100"
           >
             Give Feedback
           </a>
         </div>
       </section>
 
-      {/* Related Resources */}
-      <section className="py-16 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-semibold mb-12 text-center">
-            Explore More Resources
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-gray-50 rounded-xl p-8 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="text-4xl mb-4 mx-auto">📰</div>
-              <h3 className="text-xl font-bold mb-4">Blog Articles</h3>
-              <p className="text-gray-600 mb-6">
-                Read our latest articles on military life, veteran resources, and community stories.
-              </p>
-              <Link
-                href="/resources/blogs"
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                Read Articles →
-              </Link>
-            </div>
-            
-            <div className="bg-gray-50 rounded-xl p-8 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="text-4xl mb-4 mx-auto">📚</div>
-              <h3 className="text-xl font-bold mb-4">Resource Guides</h3>
-              <p className="text-gray-600 mb-6">
-                Download comprehensive guides on various topics relevant to military life.
-              </p>
-              <Link
-                href="/resources/guides"
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                Browse Guides →
-              </Link>
-            </div>
-            
-            <div className="bg-gray-50 rounded-xl p-8 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="text-4xl mb-4 mx-auto">🎓</div>
-              <h3 className="text-xl font-bold mb-4">Workshops & Events</h3>
-              <p className="text-gray-600 mb-6">
-                Join our virtual and in-person events designed to support your journey.
-              </p>
-              <Link
-                href="/resources/workshops"
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                View Calendar →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+  
     </div>
   );
 };

@@ -136,20 +136,20 @@ const WorkshopsPage = () => {
     <div className="bg-white text-gray-800">
       {/* Hero Section */}
       <section 
-        className="relative bg-[url('/images/workshops/workshops-hero.jpg')] bg-cover bg-center py-32 px-4"
+        className="relative bg-[#002147] bg-cover bg-center py-32 px-4"
         aria-label="Hero section"
       >
         <div className="absolute inset-0 bg-black opacity-40"></div>
         <div className="relative max-w-3xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-            Workshops & Events
+            WORKSHOPS & EVENTS
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-white">
             Develop skills and connect with others through our specialized programs
           </p>
           <a
             href="#upcoming-workshops"
-            className="inline-block bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
+            className="inline-block bg-orange-500 hover:bg-orange-500 text-white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
             aria-label="Browse workshops"
           >
             Browse Workshops
@@ -173,7 +173,7 @@ const WorkshopsPage = () => {
               </div>
               <div className="md:w-3/5 p-8 md:p-12 flex flex-col justify-center">
                 <div className="flex items-center mb-4">
-                  <span className="bg-green-100 text-green-600 text-xs font-medium px-3 py-1 rounded-full">
+                  <span className="bg-orange-100 text-orange-600 text-xs font-medium px-3 py-1 rounded-full">
                     {featuredWorkshop.category}
                   </span>
                   <span className="ml-3 bg-blue-100 text-blue-600 text-xs font-medium px-3 py-1 rounded-full">
@@ -209,7 +209,7 @@ const WorkshopsPage = () => {
                   <span className="text-sm text-gray-500">{featuredWorkshop.spots}</span>
                   <a
                     href={featuredWorkshop.registrationLink}
-                    className="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors duration-300"
+                    className="inline-block bg-orange-500 hover:bg-orange-500 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors duration-300"
                   >
                     Register Now
                   </a>
@@ -266,7 +266,7 @@ const WorkshopsPage = () => {
                     alt={workshop.title} 
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-4 right-4 bg-white text-green-600 text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                  <div className="absolute top-4 right-4 bg-white text-orange-600 text-xs font-bold px-3 py-1 rounded-full shadow-md">
                     {workshop.format}
                   </div>
                 </div>
@@ -313,7 +313,7 @@ const WorkshopsPage = () => {
                     <span className="text-sm text-gray-500">{workshop.spots}</span>
                     <a
                       href={workshop.registrationLink}
-                      className="text-green-600 hover:text-green-800 font-medium transition-colors duration-300"
+                      className="text-orange-600 hover:text-orange-800 font-medium transition-colors duration-300"
                     >
                       Register →
                     </a>
@@ -338,7 +338,7 @@ const WorkshopsPage = () => {
               </a>
               <a
                 href="#"
-                className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 border border-green-600"
+                className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-orange-600"
                 aria-current="page"
               >
                 1
@@ -378,14 +378,14 @@ const WorkshopsPage = () => {
                 key={testimonial.id}
                 className="bg-white rounded-xl shadow-md p-8 hover:shadow-lg transition-shadow duration-300"
               >
-                <svg className="h-8 w-8 text-green-500 mb-4" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
+                <svg className="h-8 w-8 text-orange-500 mb-4" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
                   <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
                 </svg>
                 <p className="italic text-gray-700 mb-6">{testimonial.quote}</p>
                 <div className="border-t pt-4">
                   <p className="font-bold text-gray-800">{testimonial.name}</p>
                   <p className="text-gray-600">{testimonial.role}</p>
-                  <p className="text-green-600 text-sm mt-1">Workshop: {testimonial.workshop}</p>
+                  <p className="text-orange-600 text-sm mt-1">Workshop: {testimonial.workshop}</p>
                 </div>
               </div>
             ))}
@@ -394,7 +394,7 @@ const WorkshopsPage = () => {
       </section>
 
       {/* Request Workshop */}
-      <section className="py-20 px-6 bg-green-600 text-white">
+      <section className="py-20 px-6 bg-[#002147] text-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-6">
             Don't See What You're Looking For?
@@ -404,7 +404,7 @@ const WorkshopsPage = () => {
           </p>
           <a
             href="/contact?subject=Workshop%20Request"
-            className="inline-block bg-white text-green-600 px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300 hover:bg-gray-100"
+            className="inline-block bg-orange-700 text- white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300 hover:bg-gray-100"
           >
             Request a Workshop
           </a>
@@ -422,19 +422,19 @@ const WorkshopsPage = () => {
               </p>
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start">
-                  <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-6 w-6 text-orange-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Customized content for your audience</span>
                 </li>
                 <li className="flex items-start">
-                  <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-6 w-6 text-orange-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Expert facilitators with military background</span>
                 </li>
                 <li className="flex items-start">
-                  <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-6 w-6 text-orange-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Interactive and engaging format</span>
@@ -442,7 +442,7 @@ const WorkshopsPage = () => {
               </ul>
               <a
                 href="/host-workshop"
-                className="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors duration-300"
+                className="inline-block bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors duration-300"
               >
                 Learn More About Hosting
               </a>
@@ -459,57 +459,7 @@ const WorkshopsPage = () => {
         </div>
       </section>
 
-      {/* Related Resources */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-semibold mb-12 text-center">
-            Explore More Resources
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-xl p-8 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="text-4xl mb-4 mx-auto">📰</div>
-              <h3 className="text-xl font-bold mb-4">Blog Articles</h3>
-              <p className="text-gray-600 mb-6">
-                Read our latest articles on military life, veteran resources, and community stories.
-              </p>
-              <Link
-                href="/resources/blogs"
-                className="text-green-600 hover:text-green-800 font-medium"
-              >
-                Read Articles →
-              </Link>
-            </div>
-            
-            <div className="bg-white rounded-xl p-8 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="text-4xl mb-4 mx-auto">📚</div>
-              <h3 className="text-xl font-bold mb-4">Resource Guides</h3>
-              <p className="text-gray-600 mb-6">
-                Download comprehensive guides on various topics relevant to military life.
-              </p>
-              <Link
-                href="/resources/guides"
-                className="text-green-600 hover:text-green-800 font-medium"
-              >
-                Browse Guides →
-              </Link>
-            </div>
-            
-            <div className="bg-white rounded-xl p-8 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="text-4xl mb-4 mx-auto">❓</div>
-              <h3 className="text-xl font-bold mb-4">Help Center</h3>
-              <p className="text-gray-600 mb-6">
-                Find answers to common questions and access support resources.
-              </p>
-              <Link
-                href="/resources/helpcenter"
-                className="text-green-600 hover:text-green-800 font-medium"
-              >
-                Get Help →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+     
     </div>
   );
 };

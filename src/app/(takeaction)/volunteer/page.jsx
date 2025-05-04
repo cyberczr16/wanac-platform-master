@@ -1,22 +1,12 @@
+"use client";
+
 import React from "react";
 
 const VolunteerPage = () => {
   const volunteerSteps = [
-    { 
-      step: 1, 
-      title: "Explore Opportunities", 
-      desc: "Find volunteer roles near you that match your interests." 
-    },
-    { 
-      step: 2, 
-      title: "Apply Online", 
-      desc: "Submit your application through our secure platform." 
-    },
-    { 
-      step: 3, 
-      title: "Start Making a Difference", 
-      desc: "Receive training and begin your journey." 
-    }
+    { step: 1, title: "Explore Opportunities", desc: "Find volunteer roles near you that match your interests." },
+    { step: 2, title: "Apply Online", desc: "Submit your application through our secure platform." },
+    { step: 3, title: "Start Making a Difference", desc: "Receive training and begin your journey." }
   ];
 
   const volunteerStories = [
@@ -54,10 +44,7 @@ const VolunteerPage = () => {
   return (
     <div className="bg-white text-gray-800">
       {/* Hero Section */}
-      <section 
-        className="relative bg-[url('/images/volunteer-hero.jpg')] bg-cover bg-center py-32 px-4"
-        aria-label="Hero section"
-      >
+      <section className="relative bg-[#002147] bg-cover bg-center py-32 px-4">
         <div className="absolute inset-0 bg-black opacity-40"></div>
         <div className="relative max-w-3xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
@@ -68,31 +55,28 @@ const VolunteerPage = () => {
           </p>
           <a
             href="/volunteer/get-started"
-            className="inline-block bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
-            aria-label="Get started volunteering"
+            className="inline-block bg-orange-500 text-white hover:bg-orange-600 px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
           >
             Get Started
           </a>
         </div>
       </section>
 
-      {/* Steps to Volunteer */}
-      <section 
-        id="get-started" 
-        className="py-20 px-6 bg-gray-50"
-        aria-label="Volunteering steps"
-      >
+      {/* Steps Section */}
+      <section className="py-20 px-6 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-semibold mb-12 text-center">
             How to Volunteer
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {volunteerSteps.map(({ step, title, desc }) => (
-              <div 
+              <div
                 key={step}
                 className="bg-white shadow-lg rounded-xl p-8 transform hover:scale-105 transition-transform duration-300"
               >
-                <div className="w-12 h-12 bg-red-600 text-white rounded-full flex items-center justify-center mb-4 mx-auto">
+                <div
+                  className="w-12 h-12 bg-orange-500 text-white rounded-full flex items-center justify-center mb-4 mx-auto"
+                >
                   <span className="text-xl font-bold">{step}</span>
                 </div>
                 <h3 className="text-xl font-bold mb-4 text-center">{title}</h3>
@@ -103,25 +87,22 @@ const VolunteerPage = () => {
         </div>
       </section>
 
-      {/* Volunteer Stories */}
-      <section 
-        className="py-20 px-6 bg-white"
-        aria-label="Volunteer stories"
-      >
+      {/* Stories Section */}
+      <section className="py-20 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-semibold mb-12 text-center">
             Meet Our Volunteers
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {volunteerStories.map(({ name, story, role }) => (
-              <div 
+              <div
                 key={name}
                 className="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300"
               >
                 <p className="italic text-gray-700 mb-6 text-lg">"{story}"</p>
                 <div className="border-t pt-4">
                   <p className="font-bold text-gray-800 text-lg">— {name}</p>
-                  <p className="text-red-600">{role}</p>
+                  <p className="text-orange-500">{role}</p>
                 </div>
               </div>
             ))}
@@ -130,21 +111,16 @@ const VolunteerPage = () => {
       </section>
 
       {/* FAQ Section */}
-      <section 
-        className="py-20 px-6 bg-gray-50"
-        aria-label="Frequently asked questions"
-      >
+      <section className="py-20 px-6 bg-gray-50">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-semibold mb-12 text-center">
             Frequently Asked Questions
           </h2>
           <div className="space-y-6">
             {faqData.map((faq, index) => (
-              <div 
+              <div
                 key={index}
                 className="bg-white rounded-xl shadow-md p-8 hover:shadow-lg transition-shadow duration-300"
-                role="region"
-                aria-label={`FAQ item ${index + 1}`}
               >
                 <h3 className="text-xl font-semibold mb-4 text-[#002147]">
                   {faq.question}
@@ -158,27 +134,41 @@ const VolunteerPage = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section 
-        className="py-20 px-6 bg-[#002147] text-white"
-        aria-label="Call to action"
-      >
+      {/* CTA Section - Similar to other pages */}
+      <section className="py-20 px-6 bg-[#002147] text-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Join Us?
+            Ready to Make a Difference?
           </h2>
           <p className="text-xl mb-8">
-            Start your volunteer journey and make a lasting impact.
+            Join our community of volunteers and help support our nation's military and their families.
           </p>
           <a
-            href="https://volunteers.uso.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-white text-red-600 px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300 hover:bg-gray-100"
-            aria-label="Apply to volunteer - Opens in new tab"
+            href="/volunteer/get-started"
+            className="inline-block bg-orange-500 text-white hover:bg-orange-600 px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
           >
-            Apply to Volunteer
+            Apply Today
           </a>
+        </div>
+      </section>
+
+      {/* Stats Section - Similar to testimonials page */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div className="p-6">
+              <div className="text-4xl font-bold text-orange-500 mb-2">5,000+</div>
+              <p className="text-gray-700">active volunteers nationwide</p>
+            </div>
+            <div className="p-6">
+              <div className="text-4xl font-bold text-orange-500 mb-2">120,000</div>
+              <p className="text-gray-700">volunteer hours contributed annually</p>
+            </div>
+            <div className="p-6">
+              <div className="text-4xl font-bold text-orange-500 mb-2">92%</div>
+              <p className="text-gray-700">of volunteers report high satisfaction</p>
+            </div>
+          </div>
         </div>
       </section>
     </div>

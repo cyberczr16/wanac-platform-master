@@ -120,7 +120,7 @@ const TestimonialsPage = () => {
     <div className="bg-white text-gray-800">
       {/* Hero Section */}
       <section 
-        className="relative bg-[url('/images/testimonials-hero.jpg')] bg-cover bg-center py-32 px-4"
+        className="relative bg-[#002147] bg-cover bg-center py-32 px-4"
         aria-label="Hero section"
       >
         <div className="absolute inset-0 bg-black opacity-40"></div>
@@ -151,7 +151,7 @@ const TestimonialsPage = () => {
                 </div>
               </div>
               <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-                <div className="text-5xl text-red-600 mb-6">"</div>
+                <div className="text-5xl text-orange-500 mb-6">"</div>
                 <blockquote className="text-xl md:text-2xl italic mb-8 text-gray-700">
                   WANAC didn't just help me find a job – they helped me find my purpose after service. Their holistic approach to veteran support addresses the mind, body, and spirit in ways I hadn't experienced with other organizations.
                 </blockquote>
@@ -163,7 +163,7 @@ const TestimonialsPage = () => {
                   />
                   <div>
                     <p className="font-bold text-lg">Master Sergeant William Taylor</p>
-                    <p className="text-red-600">US Army, Retired</p>
+                    <p className="text-orange-500">US Army, Retired</p>
                   </div>
                 </div>
               </div>
@@ -182,7 +182,7 @@ const TestimonialsPage = () => {
                 key={index}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-colors duration-300 ${
                   category === "All" 
-                    ? "bg-red-600 text-white" 
+                    ? "bg-orange-500 text-white" 
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >
@@ -208,7 +208,7 @@ const TestimonialsPage = () => {
                     alt={testimonial.name} 
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-4 right-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                  <div className="absolute top-4 right-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
                     {testimonial.category}
                   </div>
                 </div>
@@ -218,7 +218,7 @@ const TestimonialsPage = () => {
                   </blockquote>
                   <div className="border-t pt-4">
                     <p className="font-bold text-gray-800">{testimonial.name}</p>
-                    <p className="text-red-600">{testimonial.role}</p>
+                    <p className="text-orange-500">{testimonial.role}</p>
                   </div>
                 </div>
               </div>
@@ -246,7 +246,7 @@ const TestimonialsPage = () => {
                     className="w-full h-48 object-cover"
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
+                    <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -256,13 +256,13 @@ const TestimonialsPage = () => {
                 </div>
                 <div className="p-6">
                   <h3 className="font-bold text-lg mb-2">{video.name}</h3>
-                  <p className="text-red-600 mb-4">{video.role}</p>
+                  <p className="text-orange-500 mb-4">{video.role}</p>
                   <p className="text-gray-600 mb-4">{video.description}</p>
                   <a 
                     href={video.videoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
+                    className="inline-block bg-orange-500 hover:bg-orange-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
                   >
                     Watch Video
                   </a>
@@ -296,15 +296,15 @@ const TestimonialsPage = () => {
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="p-6">
-              <div className="text-4xl font-bold text-red-600 mb-2">95%</div>
+              <div className="text-4xl font-bold text-orange-500 mb-2">95%</div>
               <p className="text-gray-700">of program participants report improved well-being</p>
             </div>
             <div className="p-6">
-              <div className="text-4xl font-bold text-red-600 mb-2">10,000+</div>
+              <div className="text-4xl font-bold text-orange-500 mb-2">10,000+</div>
               <p className="text-gray-700">service members and families supported annually</p>
             </div>
             <div className="p-6">
-              <div className="text-4xl font-bold text-red-600 mb-2">87%</div>
+              <div className="text-4xl font-bold text-orange-500 mb-2">87%</div>
               <p className="text-gray-700">of veterans find employment within 6 months</p>
             </div>
           </div>

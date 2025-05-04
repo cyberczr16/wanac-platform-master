@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 
@@ -124,13 +126,13 @@ const BlogsPage = () => {
     <div className="bg-white text-gray-800">
       {/* Hero Section */}
       <section 
-        className="relative bg-[url('/images/blogs/blog-hero.jpg')] bg-cover bg-center py-32 px-4"
+        className="relative bg-[#002147] bg-cover bg-center py-20 px-4"
         aria-label="Hero section"
       >
         <div className="absolute inset-0 bg-black opacity-40"></div>
         <div className="relative max-w-3xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-            WANAC Blog
+            WANAC BLOG
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-white">
             Insights, stories, and resources for the military and veteran community
@@ -154,13 +156,13 @@ const BlogsPage = () => {
               </div>
               <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
                 <div className="flex items-center mb-4">
-                  <span className="bg-red-100 text-red-600 text-xs font-medium px-3 py-1 rounded-full">
+                  <span className="bg-orange-100 text-orange-600 text-xs font-medium px-3 py-1 rounded-full">
                     {featuredPost.category}
                   </span>
                   <span className="text-gray-500 text-sm ml-4">{featuredPost.date}</span>
                 </div>
                 <h3 className="text-2xl md:text-3xl font-bold mb-4">
-                  <Link href={`/resources/blogs/${featuredPost.slug}`} className="hover:text-red-600 transition-colors duration-300">
+                  <Link href={`/resources/blogs/${featuredPost.slug}`} className="hover:text-orange-600 transition-colors duration-300">
                     {featuredPost.title}
                   </Link>
                 </h3>
@@ -169,7 +171,7 @@ const BlogsPage = () => {
                   <span className="text-sm text-gray-500">{featuredPost.readTime}</span>
                   <Link 
                     href={`/resources/blogs/${featuredPost.slug}`}
-                    className="inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
+                    className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full text-sm font-medium transition-colors duration-300"
                   >
                     Read More
                   </Link>
@@ -189,7 +191,7 @@ const BlogsPage = () => {
                 key={index}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-colors duration-300 ${
                   category === "All Categories" 
-                    ? "bg-red-600 text-white" 
+                    ? "bg-orange-500 text-white" 
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >
@@ -224,7 +226,7 @@ const BlogsPage = () => {
                     <span className="text-gray-500 text-sm ml-4">{post.date}</span>
                   </div>
                   <h3 className="text-xl font-bold mb-3">
-                    <Link href={`/resources/blogs/${post.slug}`} className="hover:text-red-600 transition-colors duration-300">
+                    <Link href={`/resources/blogs/${post.slug}`} className="hover:text-orange-600 transition-colors duration-300">
                       {post.title}
                     </Link>
                   </h3>
@@ -233,7 +235,7 @@ const BlogsPage = () => {
                     <span className="text-sm text-gray-500">{post.readTime}</span>
                     <Link 
                       href={`/resources/blogs/${post.slug}`}
-                      className="text-red-600 hover:text-red-800 font-medium transition-colors duration-300"
+                      className="text-orange-500 hover:text-orange-700 font-medium transition-colors duration-300"
                     >
                       Read More →
                     </Link>
@@ -258,7 +260,7 @@ const BlogsPage = () => {
               </a>
               <a
                 href="#"
-                className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-red-600"
+                className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-orange-500 border border-orange-500"
                 aria-current="page"
               >
                 1
@@ -302,10 +304,10 @@ const BlogsPage = () => {
       </section>
 
       {/* Newsletter Signup */}
-      <section className="py-20 px-6 bg-gray-50">
+      <section className="py-20 px-6 bg-[#002147] text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6">Stay Updated</h2>
-          <p className="text-lg text-gray-600 mb-8">
+          <h2 className="text-3xl font-bold mb-6">STAY UPDATED</h2>
+          <p className="text-lg text-white mb-8">
             Subscribe to our newsletter to receive the latest articles, resources, and updates.
           </p>
           <form className="max-w-md mx-auto">
@@ -313,17 +315,17 @@ const BlogsPage = () => {
               <input
                 type="email"
                 placeholder="Your email address"
-                className="flex-grow px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                className="flex-grow px-4 py-3 rounded-lg border border-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 required
               />
               <button
                 type="submit"
-                className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-300"
+                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-medium transition-colors duration-300"
               >
                 Subscribe
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-4">
+            <p className="text-xs text-white mt-4">
               By subscribing, you agree to our Privacy Policy and consent to receive updates from WANAC.
             </p>
           </form>
@@ -334,46 +336,46 @@ const BlogsPage = () => {
       <section className="py-20 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-semibold mb-12 text-center">
-            Explore More Resources
+            EXPLORE MORE RESOURCES
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-gray-50 rounded-xl p-8 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="text-4xl mb-4 mx-auto">📚</div>
+              <div className="text-4xl mb-4 mx-auto"></div>
               <h3 className="text-xl font-bold mb-4">Guides & Handbooks</h3>
               <p className="text-gray-600 mb-6">
                 Comprehensive resources for navigating military life, benefits, and transitions.
               </p>
               <Link
                 href="/resources/guides"
-                className="text-red-600 hover:text-red-800 font-medium"
+                className="text-orange-500 hover:text-orange-700 font-medium"
               >
                 Browse Guides →
               </Link>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-8 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="text-4xl mb-4 mx-auto">🎓</div>
+              <div className="text-4xl mb-4 mx-auto"></div>
               <h3 className="text-xl font-bold mb-4">Workshops & Events</h3>
               <p className="text-gray-600 mb-6">
                 Virtual and in-person learning opportunities for skill development and networking.
               </p>
               <Link
                 href="/resources/workshops"
-                className="text-red-600 hover:text-red-800 font-medium"
+                className="text-orange-500 hover:text-orange-700 font-medium"
               >
                 View Calendar →
               </Link>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-8 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="text-4xl mb-4 mx-auto">❓</div>
+              <div className="text-4xl mb-4 mx-auto"></div>
               <h3 className="text-xl font-bold mb-4">Help Center</h3>
               <p className="text-gray-600 mb-6">
                 Find answers to common questions and access support resources.
               </p>
               <Link
                 href="/resources/helpcenter"
-                className="text-red-600 hover:text-red-800 font-medium"
+                className="text-orange-500 hover:text-orange-700 font-medium"
               >
                 Get Help →
               </Link>

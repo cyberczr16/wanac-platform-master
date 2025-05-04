@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 
@@ -9,7 +11,7 @@ const GuidesPage = () => {
       title: "Military to Civilian Transition Guide",
       description: "A comprehensive resource for service members preparing to transition to civilian life, covering employment, education, benefits, and more.",
       category: "Career & Employment",
-      icon: "📝",
+      icon: "",
       downloadLink: "/downloads/military-civilian-transition-guide.pdf",
       lastUpdated: "March 2024",
       pages: 42,
@@ -20,7 +22,7 @@ const GuidesPage = () => {
       title: "VA Benefits Handbook",
       description: "Navigate the complex world of VA benefits with this step-by-step guide to eligibility, application processes, and maximizing your benefits.",
       category: "Benefits & Resources",
-      icon: "📚",
+      icon: "",
       downloadLink: "/downloads/va-benefits-handbook.pdf",
       lastUpdated: "February 2024",
       pages: 68,
@@ -31,7 +33,7 @@ const GuidesPage = () => {
       title: "Military Family Relocation Guide",
       description: "Essential information for military families facing PCS moves, including checklists, school transition tips, and community resources.",
       category: "Family Support",
-      icon: "🏠",
+      icon: "",
       downloadLink: "/downloads/military-family-relocation.pdf",
       lastUpdated: "January 2024",
       pages: 35,
@@ -42,7 +44,7 @@ const GuidesPage = () => {
       title: "Veteran Mental Health Resource Directory",
       description: "A comprehensive listing of mental health services, support groups, crisis resources, and self-care strategies for veterans and their families.",
       category: "Health & Wellness",
-      icon: "🧠",
+      icon: "",
       downloadLink: "/downloads/veteran-mental-health-directory.pdf",
       lastUpdated: "April 2024",
       pages: 53,
@@ -53,7 +55,7 @@ const GuidesPage = () => {
       title: "Military Spouse Employment Toolkit",
       description: "Career resources specifically designed for military spouses, including remote work opportunities, portable careers, and resume strategies.",
       category: "Career & Employment",
-      icon: "💼",
+      icon: "",
       downloadLink: "/downloads/spouse-employment-toolkit.pdf",
       lastUpdated: "December 2023",
       pages: 29,
@@ -64,7 +66,7 @@ const GuidesPage = () => {
       title: "Post-9/11 GI Bill Education Guide",
       description: "Maximize your education benefits with this detailed guide to the Post-9/11 GI Bill, including eligibility, application process, and school selection.",
       category: "Education",
-      icon: "🎓",
+      icon: "",
       downloadLink: "/downloads/gi-bill-education-guide.pdf",
       lastUpdated: "February 2024",
       pages: 47,
@@ -75,7 +77,7 @@ const GuidesPage = () => {
       title: "Veteran Entrepreneurship Manual",
       description: "A step-by-step guide for veterans looking to start their own business, including funding resources, business planning, and mentorship opportunities.",
       category: "Career & Employment",
-      icon: "🚀",
+      icon: "",
       downloadLink: "/downloads/veteran-entrepreneurship-manual.pdf",
       lastUpdated: "March 2024",
       pages: 61,
@@ -86,7 +88,7 @@ const GuidesPage = () => {
       title: "Military Children's Education Support Guide",
       description: "Resources for helping military children thrive academically during transitions, including school liaison information and special education services.",
       category: "Family Support",
-      icon: "👨‍👩‍👧‍👦",
+      icon: "",
       downloadLink: "/downloads/military-children-education.pdf",
       lastUpdated: "January 2024",
       pages: 38,
@@ -97,7 +99,7 @@ const GuidesPage = () => {
       title: "Veteran Housing and Home Loans Guide",
       description: "Navigate VA home loans, housing benefits, and resources for veterans experiencing housing insecurity with this comprehensive guide.",
       category: "Benefits & Resources",
-      icon: "🏡",
+      icon: "",
       downloadLink: "/downloads/veteran-housing-guide.pdf",
       lastUpdated: "April 2024",
       pages: 44,
@@ -121,7 +123,7 @@ const GuidesPage = () => {
     <div className="bg-white text-gray-800">
       {/* Hero Section */}
       <section 
-        className="relative bg-[url('/images/guides/guides-hero.jpg')] bg-cover bg-center py-32 px-4"
+        className="relative bg-[#002147] bg-cover bg-center py-20 px-4"
         aria-label="Hero section"
       >
         <div className="absolute inset-0 bg-black opacity-40"></div>
@@ -134,7 +136,7 @@ const GuidesPage = () => {
           </p>
           <a
             href="#guides-list"
-            className="inline-block bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
+            className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
             aria-label="Browse guides"
           >
             Browse Guides
@@ -158,7 +160,7 @@ const GuidesPage = () => {
               </div>
               <div className="md:w-3/5 p-8 md:p-12 flex flex-col justify-center">
                 <div className="flex items-center mb-4">
-                  <span className="bg-blue-100 text-blue-600 text-xs font-medium px-3 py-1 rounded-full">
+                  <span className="bg-orange-100 text-orange-600 text-xs font-medium px-3 py-1 rounded-full">
                     {featuredGuide.category}
                   </span>
                   <span className="text-gray-500 text-sm ml-4">Updated: {featuredGuide.lastUpdated}</span>
@@ -183,7 +185,7 @@ const GuidesPage = () => {
                 </div>
                 <a
                   href={featuredGuide.downloadLink}
-                  className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors duration-300"
+                  className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full text-sm font-medium transition-colors duration-300"
                   download
                 >
                   Download Guide
@@ -203,7 +205,7 @@ const GuidesPage = () => {
                 key={index}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-colors duration-300 ${
                   category === "All Categories" 
-                    ? "bg-blue-600 text-white" 
+                    ? "bg-orange-500 text-white" 
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >
@@ -259,7 +261,7 @@ const GuidesPage = () => {
                   </div>
                   <a
                     href={guide.downloadLink}
-                    className="block text-center bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-lg text-sm font-medium transition-colors duration-300"
+                    className="block text-center bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-full text-sm font-medium transition-colors duration-300"
                     download
                   >
                     Download PDF
@@ -272,15 +274,15 @@ const GuidesPage = () => {
       </section>
 
       {/* Request Guide Section */}
-      <section className="py-20 px-6 bg-gray-50">
+      <section className="py-20 px-6 bg-[#002147]">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6">Need a Specific Resource?</h2>
-          <p className="text-lg text-gray-600 mb-8">
+          <h2 className="text-3xl text-white font-bold mb-6">NEED A SPECIFIC RESOURCE</h2>
+          <p className="text-lg text-white mb-8">
             Can't find what you're looking for? Let us know what resources would be helpful for you.
           </p>
           <a
             href="/contact?subject=Resource%20Request"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
+            className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
           >
             Request a Guide
           </a>
@@ -295,7 +297,7 @@ const GuidesPage = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-gray-50 rounded-xl p-8 text-center">
-              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">1</div>
+              <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">1</div>
               <h3 className="text-xl font-bold mb-4">Download</h3>
               <p className="text-gray-600">
                 Choose the guide that fits your needs and download the PDF to your device for easy access.
@@ -303,7 +305,7 @@ const GuidesPage = () => {
             </div>
             
             <div className="bg-gray-50 rounded-xl p-8 text-center">
-              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">2</div>
+              <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">2</div>
               <h3 className="text-xl font-bold mb-4">Review</h3>
               <p className="text-gray-600">
                 Each guide contains actionable steps, checklists, and resources you can use immediately.
@@ -311,7 +313,7 @@ const GuidesPage = () => {
             </div>
             
             <div className="bg-gray-50 rounded-xl p-8 text-center">
-              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">3</div>
+              <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">3</div>
               <h3 className="text-xl font-bold mb-4">Connect</h3>
               <p className="text-gray-600">
                 Reach out to our team if you need additional support or have questions about the resources.
@@ -322,49 +324,49 @@ const GuidesPage = () => {
       </section>
 
       {/* Related Resources */}
-      <section className="py-20 px-6 bg-gray-50">
+      <section className="py-20 px-6 bg-[#002147]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-semibold mb-12 text-center">
-            Explore More Resources
+          <h2 className="text-3xl text-white font-semibold mb-12 text-center">
+            EXPLORE MORE RESOURCES
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white rounded-xl p-8 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="text-4xl mb-4 mx-auto">📰</div>
+              <div className="text-4xl mb-4 mx-auto"></div>
               <h3 className="text-xl font-bold mb-4">Blog Articles</h3>
               <p className="text-gray-600 mb-6">
                 Read our latest articles on military life, veteran resources, and community stories.
               </p>
               <Link
                 href="/resources/blogs"
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                className="text-orange-500 hover:text-orange-700 font-medium"
               >
                 Read Articles →
               </Link>
             </div>
             
             <div className="bg-white rounded-xl p-8 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="text-4xl mb-4 mx-auto">🎓</div>
+              <div className="text-4xl mb-4 mx-auto"></div>
               <h3 className="text-xl font-bold mb-4">Workshops & Events</h3>
               <p className="text-gray-600 mb-6">
                 Join our virtual and in-person events designed to support your journey.
               </p>
               <Link
                 href="/resources/workshops"
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                className="text-orange-500 hover:text-orange-700 font-medium"
               >
                 View Calendar →
               </Link>
             </div>
             
             <div className="bg-white rounded-xl p-8 text-center hover:shadow-md transition-shadow duration-300">
-              <div className="text-4xl mb-4 mx-auto">❓</div>
+              <div className="text-4xl mb-4 mx-auto"></div>
               <h3 className="text-xl font-bold mb-4">Help Center</h3>
               <p className="text-gray-600 mb-6">
                 Find answers to common questions and access support resources.
               </p>
               <Link
                 href="/resources/helpcenter"
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                className="text-orange-500 hover:text-orange-700 font-medium"
               >
                 Get Help →
               </Link>

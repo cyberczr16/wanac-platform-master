@@ -149,7 +149,7 @@ export default function Signup() {
         console.log("Form submitted", { userType, ...form });
         
         // Redirect based on user type
-        router.push(userType === "client" ? "/register/client" : "/register/coach");
+        router.push(userType === "client" ? "/client" : "/coach");
       } catch (error) {
         console.error("Registration error:", error);
         setErrors(prev => ({ ...prev, submit: "Registration failed. Please try again." }));

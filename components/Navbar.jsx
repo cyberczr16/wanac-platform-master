@@ -31,6 +31,8 @@ export default function Navbar({ hideNavbar = false }) {
     '/lifescore',
     '/resources',
     '/settings',
+    '/mycoach',
+    '/library',
   ];
   
   // Check if current path starts with any of the excluded paths
@@ -140,7 +142,7 @@ export default function Navbar({ hideNavbar = false }) {
             <button
               onClick={() => toggleDropdown("are")}
               onKeyDown={(e) => handleKeyDown(e, "are")}
-              className="flex items-center text-black font-medium hover:text-orange-500"
+              className="flex items-center text-black font-medium hover:text-orange-500 transition duration-300"
               aria-expanded={activeDropdown === "are"}
               aria-haspopup="true"
             >
@@ -152,7 +154,7 @@ export default function Navbar({ hideNavbar = false }) {
             <button
               onClick={() => toggleDropdown("help")}
               onKeyDown={(e) => handleKeyDown(e, "help")}
-              className="flex items-center text-black font-medium hover:text-orange-500"
+              className="flex items-center text-black font-medium hover:text-orange-500 transition duration-300"
               aria-expanded={activeDropdown === "help"}
               aria-haspopup="true"
             >
@@ -164,7 +166,7 @@ export default function Navbar({ hideNavbar = false }) {
             <button
               onClick={() => toggleDropdown("action")}
               onKeyDown={(e) => handleKeyDown(e, "action")}
-              className="flex items-center text-black font-medium hover:text-orange-500"
+              className="flex items-center text-black font-medium hover:text-orange-500 transition duration-300"
               aria-expanded={activeDropdown === "action"}
               aria-haspopup="true"
             >
@@ -176,7 +178,7 @@ export default function Navbar({ hideNavbar = false }) {
             <button
               onClick={() => toggleDropdown("resources")}
               onKeyDown={(e) => handleKeyDown(e, "resources")}
-              className="flex items-center text-black font-medium hover:text-orange-500"
+              className="flex items-center text-black font-medium hover:text-orange-500 transition duration-300"
               aria-expanded={activeDropdown === "resources"}
               aria-haspopup="true"
             >
@@ -186,19 +188,19 @@ export default function Navbar({ hideNavbar = false }) {
           
           <Link
             href="/donate"
-            className="bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600"
+            className="bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600 transition duration-300"
           >
             DONATE
           </Link>
           <Link
-            href="/donate"
-            className="bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600"
+            href="/strategy"
+            className="bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600 transition duration-300"
           >
             FREE STRATEGY SESSION
           </Link>
           <Link
             href="/workshops"
-            className="bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600"
+            className="bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600 transition duration-300"
           >
             SHOP
           </Link>
@@ -218,147 +220,160 @@ export default function Navbar({ hideNavbar = false }) {
       </div>
 
       {/* Full-width Dropdowns */}
-      {activeDropdown === "are" && (
-  <div 
-    className="absolute left-0 top-full w-screen bg-white backdrop-blur-md border-t border-gray-200 shadow-md z-40 transition-all duration-200 ease-in-out"
-    role="menu"
-  >
-    <div className="max-w-7xl mx-auto px-4 py-2 grid grid-cols-2 md:grid-cols-5 gap-x-2 gap-y-0 text-black">
-      <Link href="/ourstory" className="text-sm hover:text-orange-500 whitespace-nowrap py-0" role="menuitem">
-        ★ Our Story 
-      </Link>
-      <Link href="/ourstory" className="text-sm hover:text-orange-500 whitespace-nowrap py-0" role="menuitem">
-        ★ Board of Directors
-      </Link>
-      <Link href="/ourstory" className="text-sm hover:text-orange-500 whitespace-nowrap py-0" role="menuitem">
-        ★ Advisory Board
-      </Link>
-      <Link href="/ourstory" className="text-sm hover:text-orange-500 whitespace-nowrap py-0" role="menuitem">
-        ★ Veteran Advisory Board
-      </Link>
-      <Link href="/ourstory" className="text-sm hover:text-orange-500 whitespace-nowrap py-0" role="menuitem">
-        ★ Executive Staff
-      </Link>
-    </div>
-  </div>
-)}
-
-{activeDropdown === "help" && (
-  <div 
-    className="absolute left-0 top-full w-screen bg-white backdrop-blur-md border-t border-gray-200 shadow-md z-40 transition-all duration-200 ease-in-out"
-    role="menu"
-  >
-    <div className="max-w-7xl mx-auto px-4 py-3 grid grid-cols-2 md:grid-cols-5 gap-x-2 gap-y-0.5 text-black">
-      <Link href="/howwehelp" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Why You Need a Coach
-      </Link>
-      <Link href="/howwehelp" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Our Approach
-      </Link>
-      <Link href="/howwehelp" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Phase 1
-      </Link>
-      <Link href="/howwehelp" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Phase 2
-      </Link>
-      <Link href="/howwehelp" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Phase 3
-      </Link>
-    </div>
-  </div>
-)}
-
-{activeDropdown === "action" && (
-  <div 
-    className="absolute left-0 top-full w-screen bg-white backdrop-blur-md border-t border-gray-200 shadow-md z-40 transition-all duration-200 ease-in-out"
-    role="menu"
-  >
-    <div className="max-w-7xl mx-auto px-4 py-3 grid grid-cols-2 md:grid-cols-5 gap-x-1 gap-y-0.1 text-black">
-      <Link href="/volunteer" className="text-sm hover:text-orange-500 whitespace-nowrap py-0" role="menuitem">
-        ★ Volunteer
-      </Link>
-      <Link href="/corporatepartners" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Corporate Partners
-      </Link>
-      <Link href="/leadership" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Leadership Giving
-      </Link>
-      <Link href="/support" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Ways to Support
-      </Link>
-      <Link href="/testimonials" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Testimonials
-      </Link>
-    </div>
-  </div>
-)}
-
-
-{activeDropdown === "resources" && (
-  <div 
-    className="absolute left-0 top-full w-screen bg-white backdrop-blur-md border-t border-gray-200 shadow-md z-40 transition-all duration-200 ease-in-out"
-    role="menu"
-  >
-    <div className="max-w-7xl mx-auto px-4 py-3 grid grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-0.5 text-black">
-      <Link href="/workshops" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Free Workshops
-      </Link>
-      <Link href="/guides" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Guides
-      </Link>
-      <Link href="/blog" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Blog
-      </Link>
-      <Link href="/help" className="text-sm hover:text-orange-500 whitespace-nowrap py-1" role="menuitem">
-        ★ Help Center
-      </Link>
-    </div>
-  </div>
-)}
-
-      {/* Mobile Menu Content */}
-      {isMobileMenuOpen && (
-        <div 
-          className="md:hidden mt-4 px-4 space-y-4 bg-white/90 backdrop-blur-md border-t py-4"
-          role="menu"
-        >
-          <Link
-            href="/who-we-are"
-            className="block text-black font-medium hover:text-orange-500"
-            role="menuitem"
-          >
-            ★ Who We Are
+      <div 
+        className={`absolute left-0 top-full w-screen bg-white backdrop-blur-md border-t border-gray-200 shadow-md z-40 transition-all duration-300 ease-in-out transform ${
+          activeDropdown === "are" ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
+        }`}
+        role="menu"
+      >
+        <div className="max-w-7xl mx-auto px-4 py-3 grid grid-cols-2 md:grid-cols-5 gap-x-2 gap-y-1 text-black">
+          <Link href="/ourstory" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Our Story 
           </Link>
-          <Link
-            href="/how-we-help"
-            className="block text-black font-medium hover:text-orange-500"
-            role="menuitem"
-          >
-            ★ How We Help
+          <Link href="/ourstory" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Board of Directors
           </Link>
-          <Link
-            href="/take-action"
-            className="block text-black font-medium hover:text-orange-500"
-            role="menuitem"
-          >
-            ★ Take Action
+          <Link href="/ourstory" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Advisory Board
           </Link>
-          <Link
-            href="/resources"
-            className="block text-black font-medium hover:text-orange-500"
-            role="menuitem"
-          >
-            ★ Resources
+          <Link href="/ourstory" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Veteran Advisory Board
           </Link>
-          <Link
-            href="/donate"
-            className="block bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600"
-            role="menuitem"
-          >
-            DONATE
+          <Link href="/ourstory" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Executive Staff
           </Link>
         </div>
-      )}
+      </div>
+
+      <div 
+        className={`absolute left-0 top-full w-screen bg-white backdrop-blur-md border-t border-gray-200 shadow-md z-40 transition-all duration-300 ease-in-out transform ${
+          activeDropdown === "help" ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
+        }`}
+        role="menu"
+      >
+        <div className="max-w-7xl mx-auto px-4 py-3 grid grid-cols-2 md:grid-cols-5 gap-x-2 gap-y-1 text-black">
+          <Link href="/howwehelp" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Why You Need a Coach
+          </Link>
+          <Link href="/howwehelp" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Our Approach
+          </Link>
+          <Link href="/howwehelp" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Phase 1
+          </Link>
+          <Link href="/howwehelp" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Phase 2
+          </Link>
+          <Link href="/howwehelp" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Phase 3
+          </Link>
+        </div>
+      </div>
+
+      <div 
+        className={`absolute left-0 top-full w-screen bg-white backdrop-blur-md border-t border-gray-200 shadow-md z-40 transition-all duration-300 ease-in-out transform ${
+          activeDropdown === "action" ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
+        }`}
+        role="menu"
+      >
+        <div className="max-w-7xl mx-auto px-4 py-3 grid grid-cols-2 md:grid-cols-5 gap-x-2 gap-y-1 text-black">
+          <Link href="/volunteer" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Volunteer
+          </Link>
+          <Link href="/corporatepartners" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Corporate Partners
+          </Link>
+          <Link href="/leadership" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Leadership Giving
+          </Link>
+          <Link href="/support" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Ways to Support
+          </Link>
+          <Link href="/testimonials" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Testimonials
+          </Link>
+        </div>
+      </div>
+
+      <div 
+        className={`absolute left-0 top-full w-screen bg-white backdrop-blur-md border-t border-gray-200 shadow-md z-40 transition-all duration-300 ease-in-out transform ${
+          activeDropdown === "resources" ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
+        }`}
+        role="menu"
+      >
+        <div className="max-w-7xl mx-auto px-4 py-3 grid grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-1 text-black">
+          <Link href="/workshops" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Free Workshops
+          </Link>
+          <Link href="/guides" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Guides
+          </Link>
+          <Link href="/blog" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Blog
+          </Link>
+          <Link href="/help" className="text-sm hover:text-orange-500 whitespace-nowrap py-1 transition duration-300" role="menuitem">
+            ★ Help Center
+          </Link>
+        </div>
+      </div>
+
+      {/* Mobile Menu Content */}
+      <div 
+        className={`md:hidden mt-4 px-4 space-y-4 bg-white/90 backdrop-blur-md border-t py-4 transition-all duration-300 ease-in-out ${
+          isMobileMenuOpen ? "opacity-100 max-h-96" : "opacity-0 max-h-0 overflow-hidden pointer-events-none"
+        }`}
+        role="menu"
+      >
+        <Link
+          href="/who-we-are"
+          className="block text-black font-medium hover:text-orange-500 transition duration-300"
+          role="menuitem"
+        >
+          ★ Who We Are
+        </Link>
+        <Link
+          href="/how-we-help"
+          className="block text-black font-medium hover:text-orange-500 transition duration-300"
+          role="menuitem"
+        >
+          ★ How We Help
+        </Link>
+        <Link
+          href="/take-action"
+          className="block text-black font-medium hover:text-orange-500 transition duration-300"
+          role="menuitem"
+        >
+          ★ Take Action
+        </Link>
+        <Link
+          href="/resources"
+          className="block text-black font-medium hover:text-orange-500 transition duration-300"
+          role="menuitem"
+        >
+          ★ Resources
+        </Link>
+        <Link
+          href="/donate"
+          className="block bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600 transition duration-300"
+          role="menuitem"
+        >
+          DONATE
+        </Link>
+        <Link
+          href="/strategy"
+          className="block bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600 transition duration-300"
+          role="menuitem"
+        >
+          FREE STRATEGY SESSION
+        </Link>
+        <Link
+          href="/workshops"
+          className="block bg-orange-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-orange-600 transition duration-300"
+          role="menuitem"
+        >
+          SHOP
+        </Link>
+      </div>
     </nav>
   );
 }

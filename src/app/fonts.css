@@ -1,0 +1,8 @@
+/* Import Source Sans Pro and Montserrat (as Gotham alternative) from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
+
+
+:root {
+  --font-heading: 'Montserrat', 'Arial', sans-serif;
+  --font-body: 'Source Sans Pro', 'Arial', sans-serif;
+}

@@ -4,17 +4,17 @@ const CorporatePartnersPage = () => {
   return (
     <div className="text-gray-800 bg-white">
       {/* Hero Section */}
-      <section className="bg-[url('/images/corporate-hero.jpg')] bg-cover bg-center text-white py-20 px-4 text-center">
+      <section className="bg-[#002147] bg-cover bg-center text-white py-20 px-4 text-center">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl text-[#002147] md:text-5xl font-bold mb-4">
+          <h1 className="text-4xl text-white md:text-5xl font-bold mb-4">
             Partner With the WANAC
           </h1>
-          <p className="text-lg text-[#002147] md:text-xl mb-6">
+          <p className="text-lg text-white md:text-xl mb-6">
             Align your brand with a mission that supports our nation’s military and their families.
           </p>
           <a
             href="#become-partner"
-            className="bg-red-600 hover:bg-red-700 px-6 py-3 text-lg font-medium rounded-full"
+            className="bg-orange-500 text-white hover:bg-orange-200 text-white px-6 py-3 text-lg font-medium rounded-full"
           >
             Become a Partner
           </a>
@@ -67,10 +67,10 @@ const CorporatePartnersPage = () => {
           Learn more about how your organization can partner with the WANAC to support our military heroes.
         </p>
         <a
-          href="https://www.uso.org/contact/partnerships"
+          href="/contact"
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-white text-red-600 px-6 py-3 rounded-full text-lg font-medium hover:bg-gray-100"
+          className="bg-orange-500 text-white hover:bg-orange-200 text-white px-6 py-3 text-lg font-medium rounded-full"
         >
           Contact Our Team
         </a>

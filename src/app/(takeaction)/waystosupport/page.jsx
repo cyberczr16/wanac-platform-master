@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 
 const WaysToSupportPage = () => {
@@ -6,7 +8,7 @@ const WaysToSupportPage = () => {
       id: 1,
       title: "Make a Donation",
       description: "Your financial contribution helps us provide essential services to those in need.",
-      icon: "💰",
+      icon: "",
       link: "/donate",
       buttonText: "Donate Now"
     },
@@ -14,7 +16,7 @@ const WaysToSupportPage = () => {
       id: 2,
       title: "Volunteer Your Time",
       description: "Join our community of dedicated volunteers making a difference every day.",
-      icon: "👥",
+      icon: "",
       link: "/volunteer",
       buttonText: "Become a Volunteer"
     },
@@ -22,7 +24,7 @@ const WaysToSupportPage = () => {
       id: 3,
       title: "Corporate Partnerships",
       description: "Partner with us to create meaningful impact while achieving your CSR goals.",
-      icon: "🤝",
+      icon: "",
       link: "/corporatepatners",
       buttonText: "Partner With Us"
     },
@@ -30,7 +32,7 @@ const WaysToSupportPage = () => {
       id: 4,
       title: "Leadership Giving",
       description: "Make a significant impact through our leadership giving programs.",
-      icon: "⭐",
+      icon: "",
       link: "/leadershipgiving",
       buttonText: "Learn More"
     }
@@ -77,20 +79,20 @@ const WaysToSupportPage = () => {
     <div className="bg-white text-gray-800">
       {/* Hero Section */}
       <section 
-        className="relative bg-[url('/images/support-hero.jpg')] bg-cover bg-center py-32 px-4"
+        className="relative bg-[#002147] bg-cover bg-center py-20 px-4"
         aria-label="Hero section"
       >
         <div className="absolute inset-0 bg-black opacity-40"></div>
         <div className="relative max-w-3xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-            Ways to Support WANAC
+            WAYS TO SUPPORT WANAC
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-white">
             Join us in our mission to empower and support service members, veterans, and their families.
           </p>
           <a
-            href="#support-options"
-            className="inline-block bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
+            href="#supportoptions"
+            className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
             aria-label="Explore ways to support"
           >
             Explore Ways to Help
@@ -119,7 +121,7 @@ const WaysToSupportPage = () => {
                 <p className="text-gray-600 text-center mb-6 flex-grow">{option.description}</p>
                 <a
                   href={option.link}
-                  className="block text-center bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg text-lg font-medium transition-colors duration-300 mt-auto"
+                  className="block text-center bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full text-lg font-medium transition-colors duration-300 mt-auto"
                 >
                   {option.buttonText}
                 </a>
@@ -147,7 +149,7 @@ const WaysToSupportPage = () => {
                 <p className="italic text-gray-700 mb-6 text-lg flex-grow">"{story.story}"</p>
                 <div className="border-t pt-4">
                   <p className="font-bold text-gray-800 text-lg">— {story.name}</p>
-                  <p className="text-red-600">{story.impact}</p>
+                  <p className="text-orange-500">{story.impact}</p>
                 </div>
               </div>
             ))}
@@ -184,39 +186,39 @@ const WaysToSupportPage = () => {
               </ul>
               <a
                 href="/donate?tier=friend"
-                className="block text-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-lg font-medium transition-colors duration-300"
+                className="block text-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-medium transition-colors duration-300"
               >
                 Donate as a Friend
               </a>
             </div>
             
-            <div className="bg-white shadow-xl rounded-xl p-8 border-t-4 border-red-500 transform scale-105">
-              <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
+            <div className="bg-white shadow-xl rounded-xl p-8 border-t-4 border-orange-500 transform scale-105 relative">
+              <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
                 MOST POPULAR
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-center text-red-600">Advocate</h3>
+              <h3 className="text-2xl font-bold mb-4 text-center text-orange-600">Advocate</h3>
               <p className="text-4xl font-bold text-center mb-6">$100 - $499</p>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start">
-                  <span className="text-red-500 mr-2">✓</span>
+                  <span className="text-orange-500 mr-2">✓</span>
                   <span>All Friend benefits</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-red-500 mr-2">✓</span>
+                  <span className="text-orange-500 mr-2">✓</span>
                   <span>Personalized thank you message</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-red-500 mr-2">✓</span>
+                  <span className="text-orange-500 mr-2">✓</span>
                   <span>Exclusive WANAC merchandise</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-red-500 mr-2">✓</span>
+                  <span className="text-orange-500 mr-2">✓</span>
                   <span>Invitation to annual virtual event</span>
                 </li>
               </ul>
               <a
                 href="/donate?tier=advocate"
-                className="block text-center bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg text-lg font-medium transition-colors duration-300"
+                className="block text-center bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full text-lg font-medium transition-colors duration-300"
               >
                 Donate as an Advocate
               </a>
@@ -245,7 +247,7 @@ const WaysToSupportPage = () => {
               </ul>
               <a
                 href="/donate?tier=champion"
-                className="block text-center bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg text-lg font-medium transition-colors duration-300"
+                className="block text-center bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full text-lg font-medium transition-colors duration-300"
               >
                 Donate as a Champion
               </a>
@@ -298,7 +300,7 @@ const WaysToSupportPage = () => {
           <div className="flex flex-col md:flex-row justify-center gap-4">
             <a
               href="/donate"
-              className="inline-block bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
+              className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full text-lg font-medium transition-colors duration-300"
               aria-label="Donate now"
             >
               Donate Now

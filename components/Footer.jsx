@@ -21,7 +21,9 @@ export default function Footer({ hideFooter = false }) {
     '/community',
     '/journal',
     '/aichatbot',
-    '/lifescore'
+    '/lifescore',
+    '/mycoach',
+    '/library',
     
   ];
   
