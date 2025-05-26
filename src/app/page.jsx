@@ -24,7 +24,7 @@ export default function Homepage() {
   {/* Hero Background Image */}
   <div className="absolute inset-0 w-full h-full">
     <Image
-      src="/landingpage2.jpg"
+      src="/landingpage4.jpg"
       alt="Military Service Members"
       fill
       priority
