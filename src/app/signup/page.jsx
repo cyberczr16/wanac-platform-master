@@ -28,7 +28,7 @@ export default function Signup() {
     name: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    password_confirmation: "",
     phone: "",
     timezone: "",
     profilePic: null,
@@ -185,10 +185,10 @@ export default function Signup() {
     }
     
     if (currentStep === 1) {
-      if (!form.confirmPassword) {
-        newErrors.confirmPassword = "Please confirm your password.";
-      } else if (form.password !== form.confirmPassword) {
-        newErrors.confirmPassword = "Passwords do not match.";
+      if (!form.password_confirmation) {
+        newErrors.password_confirmation = "Please confirm your password.";
+      } else if (form.password !== form.password_confirmation) {
+        newErrors.password_confirmation = "Passwords do not match.";
       }
       
       if (!form.acceptTerms) {
@@ -411,19 +411,19 @@ export default function Signup() {
                 </div>
 
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-brand-blue mb-1">
+                  <label htmlFor="password_confirmation" className="block text-sm font-medium text-brand-blue mb-1">
                     Confirm Password <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
-                      id="confirmPassword"
+                      id="password_confirmation"
                       type={showConfirmPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      value={form.confirmPassword}
+                      name="password_confirmation"
+                      value={form.password_confirmation}
                       onChange={handleChange}
                       aria-required="true"
                       className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                        errors.confirmPassword ? "border-red-500 focus:ring-red-500" : "focus:ring-brand-orange"
+                        errors.password_confirmation ? "border-red-500 focus:ring-red-500" : "focus:ring-brand-orange"
                       } pr-10`}
                       placeholder="Confirm your password"
                     />
@@ -436,7 +436,7 @@ export default function Signup() {
                       {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
                   </div>
-                  {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+                  {errors.password_confirmation && <p className="text-red-500 text-sm mt-1">{errors.password_confirmation}</p>}
                 </div>
 
                 {/* Terms and Privacy Policy */}
