@@ -235,6 +235,7 @@ export default function Signup() {
           name: form.name.trim(),
           email: form.email.trim().toLowerCase(),
           password: form.password,
+          password_confirmation: form.password_confirmation,
           role: userType.toUpperCase(),
           phone: form.phone ? (form.phone.startsWith('+') ? form.phone : `+${form.phone}`)?.trim() : undefined,
           timezone: form.timezone === 'Eastern Time (ET)' ? 'America/New_York' : form.timezone,
