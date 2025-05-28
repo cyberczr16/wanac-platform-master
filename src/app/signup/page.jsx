@@ -206,6 +206,11 @@ export default function Signup() {
       }
     }
     
+    // Log any validation errors
+    if (Object.keys(newErrors).length > 0) {
+      console.log('Validation errors:', newErrors);
+    }
+    
     return newErrors;
   };
 
@@ -231,14 +236,16 @@ export default function Signup() {
           email: form.email.trim().toLowerCase(),
           password: form.password,
           role: userType.toUpperCase(),
-          phone: form.phone?.trim() || undefined,
-          timezone: form.timezone || undefined,
+          phone: form.phone ? (form.phone.startsWith('+') ? form.phone : `+${form.phone}`)?.trim() : undefined,
+          timezone: form.timezone === 'Eastern Time (ET)' ? 'America/New_York' : form.timezone,
           bio: form.bio?.trim() || undefined,
           specialty: userType === "coach" ? form.specialty?.trim() : undefined,
           referralCode: form.referralCode?.trim() || undefined,
           preferredContact: form.preferredContact,
           profilePic: form.profilePic || undefined
         };
+
+        console.log('Sending registration data:', registrationData);
 
         // Call the registration API
         const response = await authService.register(registrationData);
@@ -262,7 +269,7 @@ export default function Signup() {
             handleValidationErrors(error.response.data.errors);
           }
           if (error.response?.data?.error) {
-            push.error(error.response.data.error);
+            toast.error(error.response.data.error);
           }
         } else {
           console.log(error);
