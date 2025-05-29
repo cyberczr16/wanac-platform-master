@@ -86,9 +86,9 @@ export default function Login() {
         
         // Role-based redirection
         const dashboardPaths = {
-          client: '/(dashboard)/client',
-          coach: '/(dashboard)/coach',
-          admin: '/(dashboard)/admin'
+          client: '/pages/(dashboard)/client',
+          coach: '/pages/(dashboard)/coach',
+          admin: '/pages/(dashboard)/admin'
         };
         
         const dashboardPath = dashboardPaths[userType];
