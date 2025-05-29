@@ -60,7 +60,7 @@ export default function Login() {
       
       try {
         // TODO: Replace with actual API call
-        const response = await fetch('/api/auth/login', {
+        const response = await fetch('/api/v1/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -72,11 +72,17 @@ export default function Login() {
           }),
         });
 
+        const data = await response.json();
+        
         if (!response.ok) {
-          throw new Error('Login failed');
+          // Handle specific error messages from the server
+          throw new Error(data.message || 'Login failed. Please try again.');
         }
 
-        const data = await response.json();
+        // Verify that we received the expected user data
+        if (!data.user) {
+          throw new Error('Invalid response from server');
+        }
         
         // Store user data in localStorage
         localStorage.setItem('wanacUser', JSON.stringify({
@@ -86,9 +92,9 @@ export default function Login() {
         
         // Role-based redirection
         const dashboardPaths = {
-          client: '/pages/(dashboard)/client',
-          coach: '/pages/(dashboard)/coach',
-          admin: '/pages/(dashboard)/admin'
+          client: '/pages/client',
+          coach: '/pages/coach',
+          admin: '/pages/admin'
         };
         
         const dashboardPath = dashboardPaths[userType];
