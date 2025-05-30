@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
+import InfographicWheel from '../../../../components/infographicWheel';
+
 
 const PlepPage = () => {
-  const [activeStep, setActiveStep] = useState(1);
-
   const steps = [
     {
       number: 1,
@@ -68,6 +68,14 @@ const PlepPage = () => {
       ]
     }
   ];
+  const colorClasses = [
+    'border-orange-400 bg-orange-50 text-orange-700',
+    'border-lime-500 bg-lime-50 text-lime-700',
+    'border-blue-400 bg-blue-50 text-blue-700',
+    'border-pink-400 bg-pink-50 text-pink-700',
+    'border-cyan-400 bg-cyan-50 text-cyan-700',
+  ];
+  
 
   return (
     <div className="bg-white">
@@ -90,6 +98,14 @@ const PlepPage = () => {
           <p className="text-xl max-w-3xl mx-auto px-4">
             Your Strategic Pathway to Educational Excellence
           </p>
+          <div className="mt-8 flex justify-center gap-4">
+            <button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full font-semibold transition-colors">
+              Apply Now
+            </button>
+            <button className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-[#002147] transition-colors">
+              Learn More
+            </button>
+          </div>
         </div>
       </header>
 
@@ -147,7 +163,7 @@ const PlepPage = () => {
             <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2M7 7h10" />
                 </svg>
               </div>
               <h4 className="font-semibold mb-3">Targeted Resources</h4>
@@ -157,95 +173,43 @@ const PlepPage = () => {
         </div>
       </section>
 
-      {/* Interactive How PLEP Works Section */}
-      <section id="how-it-works" className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-12 text-center">How PLEP Works</h2>
-          
-          {/* Interactive Infographic */}
-          <div className="max-w-6xl mx-auto">
-            {/* Steps Timeline */}
-            <div className="relative">
-              {/* Connection Line */}
-              <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-600 transform -translate-y-1/2 z-0"></div>
-              
-              {/* Steps */}
-              <div className="grid md:grid-cols-4 gap-8 relative z-10">
-                {steps.map((step, index) => (
-                  <div
-                    key={step.number}
-                    className={`relative ${activeStep === step.number ? 'scale-105 transform transition-all duration-300' : ''}`}
-                    onClick={() => setActiveStep(step.number)}
-                  >
-                    {/* Step Card */}
-                    <div className={`bg-white rounded-lg shadow-lg p-6 cursor-pointer transition-all duration-300 hover:shadow-xl 
-                      ${activeStep === step.number ? 'border-2 border-blue-500' : 'hover:border-2 hover:border-blue-300'}`}>
-                      {/* Step Number with Icon */}
-                      <div className="flex items-center justify-center mb-4">
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center 
-                          ${activeStep === step.number ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-500'} 
-                          transition-colors duration-300`}>
-                          {step.icon}
-                        </div>
-                      </div>
-                      
-                      {/* Step Title */}
-                      <h3 className={`text-xl font-semibold text-center mb-2 
-                        ${activeStep === step.number ? 'text-blue-600' : 'text-gray-800'}`}>
-                        {step.title}
-                      </h3>
-                      
-                      {/* Step Description */}
-                      <p className="text-gray-600 text-center text-sm mb-4">
-                        {step.description}
-                      </p>
+      <section id="how-it-works" className="py-24 bg-white">
+  <div className="container mx-auto px-4">
+    <div className="text-center mb-16">
+      <span className="text-orange-400 font-semibold text-lg mb-4 block">Our Process</span>
+      <h2 className="text-4xl font-bold mb-6 text-[#002147]">How PLEP Works</h2>
+      <p className="text-gray-600 max-w-2xl mx-auto">
+        Our comprehensive approach ensures a smooth transition from military service to academic success.
+      </p>
+    </div>
+  
+    <div className="grid md:grid-cols-2 gap-12 items-center">
+      {/* Left Infographic Chart (placeholder for now) */}
+      <div className="relative w-full flex justify-center">
+      
+      </div>
 
-                      {/* Progress Indicator */}
-                      <div className="hidden md:block absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-                        <div className={`w-4 h-4 rounded-full border-2 
-                          ${activeStep === step.number ? 'bg-blue-500 border-blue-500' : 'bg-white border-blue-300'}`}>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Detailed Content */}
-            <div className="mt-16 bg-white rounded-xl shadow-lg p-8 transition-all duration-300">
-              <div className="max-w-3xl mx-auto">
-                {steps.map((step) => (
-                  activeStep === step.number && (
-                    <div key={step.number} className="space-y-6">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center">
-                          {step.icon}
-                        </div>
-                        <h3 className="text-2xl font-semibold text-blue-800">{step.title}</h3>
-                      </div>
-                      <p className="text-gray-600 text-lg">{step.description}</p>
-                      <div className="bg-blue-50 rounded-lg p-6">
-                        <h4 className="font-semibold text-blue-800 mb-4">Key Components:</h4>
-                        <ul className="space-y-3">
-                          {step.details.map((detail, index) => (
-                            <li key={index} className="flex items-start space-x-3">
-                              <svg className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <span className="text-gray-700">{detail}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )
-                ))}
-              </div>
+      {/* Right Step List */}
+      <div className="space-y-6">
+        {steps.map((step, index) => (
+          <div
+            key={index}
+            className={`flex items-start shadow rounded-lg p-4 border-l-[6px] ${
+              colorClasses[index % colorClasses.length]
+            }`}
+          >
+            <div className={`text-xl font-bold mr-4`}>0{step.number}</div>
+            <div>
+              <h3 className="text-lg font-semibold">{step.title}</h3>
+              <p className="text-gray-600 text-sm">{step.description}</p>
             </div>
           </div>
-        </div>
-      </section>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
 
       {/* Success Stories Section */}
       <section id="success-stories" className="py-16 bg-gray-50">

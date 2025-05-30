@@ -67,23 +67,40 @@ const VetaPage = () => {
           <p className="text-xl max-w-3xl mx-auto px-4">
             Launch and Scale Your Veteran-Led Business
           </p>
+          <div className="mt-8 flex justify-center gap-4">
+            <button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full font-semibold transition-colors">
+              Apply Now
+            </button>
+            <button className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-[#002147] transition-colors">
+              Learn More
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Navigation Bar */}
+      {/* Navigation Bar */}
       <section>
         <div className="relative w-full h-10 bg-[#002147] overflow-hidden flex items-center justify-center">
           <nav className="relative z-10 flex space-x-16 px-4">
-            <a href="#overview" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
-              Overview
+            <a href="#program-overview" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              Program Overview
             </a>
-            <a href="#program" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
-              Program
+            <a href="#how-it-works" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              How It Works
             </a>
-            <a href="#apply" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
-              Apply
+            <a href="#success-stories" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              Success Stories
             </a>
           </nav>
+          <div 
+            className="absolute inset-0 w-full" 
+            style={{
+              animation: 'slide 20s linear infinite',
+            }}
+          >
+            <div className="h-full bg-gradient-to-r from-blue-600 via-[#002147] to-blue-600 w-[200%]"></div>
+          </div>
         </div>
       </section>
 

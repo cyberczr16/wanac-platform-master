@@ -55,30 +55,7 @@ export default function HowWeHelp() {
   ];
 
   const coachingPhases = [
-    {
-      id: 1,
-      title: "Promise Land Education & Career Programs",
-      description: "Begin your journey with our specialized education and career transition programs.",
-      imagePath: "/promiselandtransition.jpg",
-      features: [
-        "Structured academic transition support",
-        "Career management skills",
-        "Personalized mentoring",
-        "Strategic planning"
-      ]
-    },
-    {
-      id: 2,
-      title: "Peak Performance Coaching",
-      description: "Master personal and professional excellence through our comprehensive coaching program.",
-      imagePath: "/highperfomacecoaching.jpg",
-      features: [
-        "12-session coaching model",
-        "Enhanced clarity and productivity",
-        "Personal development",
-        "Performance optimization"
-      ]
-    },
+    
     {
       id: 3,
       title: "Certified Peak Performance Coach (CPPC)",

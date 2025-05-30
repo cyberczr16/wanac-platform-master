@@ -27,6 +27,14 @@ const PpcPage = () => {
           <p className="text-xl max-w-3xl mx-auto px-4">
             Transform Your Potential into Exceptional Results
           </p>
+          <div className="mt-8 flex justify-center gap-4">
+            <button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full font-semibold transition-colors">
+              Apply Now
+            </button>
+            <button className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-[#002147] transition-colors">
+              Learn More
+            </button>
+          </div>
         </div>
       </header>
 

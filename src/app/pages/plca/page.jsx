@@ -36,20 +36,28 @@ const PlcaPage = () => {
         </div>
       </header>
 
-      {/* Quick Navigation */}
-      <section>
+     {/* Navigation Bar */}
+     <section>
         <div className="relative w-full h-10 bg-[#002147] overflow-hidden flex items-center justify-center">
           <nav className="relative z-10 flex space-x-16 px-4">
-            <a href="#overview" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
-              Overview
+            <a href="#program-overview" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              Program Overview
             </a>
-            <a href="#process" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
-              Process
+            <a href="#how-it-works" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              How It Works
             </a>
-            <a href="#apply" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
-              Apply
+            <a href="#success-stories" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              Success Stories
             </a>
           </nav>
+          <div 
+            className="absolute inset-0 w-full" 
+            style={{
+              animation: 'slide 20s linear infinite',
+            }}
+          >
+            <div className="h-full bg-gradient-to-r from-blue-600 via-[#002147] to-blue-600 w-[200%]"></div>
+          </div>
         </div>
       </section>
 
