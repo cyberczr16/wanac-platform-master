@@ -1,7 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 
 // Update base URL to match the documentation
-export const BASE_URL = 'https://wanac-api.kuzasports.com';
+export const BASE_URL = 'https://wanac-api.kuzasports.com/';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
