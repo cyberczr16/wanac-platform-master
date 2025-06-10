@@ -11,6 +11,7 @@ const excludedPaths = [
   '/pages/(dashboard)/client',
   '/pages/(dashboard)/coach',
   '/pages/(dashboard)/admin',
+  '/pages/admin',
   '/onboarding',
   '/life-score',
   '/pages/client',

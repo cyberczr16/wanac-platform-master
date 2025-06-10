@@ -1,3 +1,4 @@
+"use client";
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, BarChart2, Settings, LogOut, Users, Calendar, HeartPulse, BookOpen, CheckSquare, Brain, MessageCircle, Bot, UserCog, CalendarDays, Briefcase, GraduationCap } from 'lucide-react'

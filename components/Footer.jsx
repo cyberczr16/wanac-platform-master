@@ -12,7 +12,11 @@ export default function Footer({ hideFooter = false }) {
     '/dashboard', '/login', '/signup', '/signin', '/register',
     '/client', '/coach', '/admin', '/settings', '/appointments',
     '/messages', '/community', '/journal', '/aichatbot',
-    '/lifescore', '/mycoach', '/library',
+    '/lifescore', '/mycoach', '/library', '/events',
+    '/career-compass', '/education-compass', '/taskmanagement',
+    '/aiinsights', '/admin', '/breakoutrooms',
+    '/accountsettings', '/reports', '/corporate-partners',
+    '/leadership-giving', '/ways-to-support', '/testimonials',
   ];
 
   const shouldHideFooter =
