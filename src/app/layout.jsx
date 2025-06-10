@@ -20,6 +20,8 @@ export default function RootLayout({ children }) {
     '/pages/(dashboard)/admin',
     '/onboarding',
     '/life-score',
+    '/pages/client',
+    '/pages/breakoutroom',
   ];
 
   const shouldExclude = excludedPaths.some((path) => 

@@ -133,178 +133,177 @@ const OurStory = () => {
         </div>
       </header>
       <section>
-          <div className="relative w-full h-10 bg-[#002147] overflow-hidden flex items-center justify-center">
-            <nav className="relative z-10 flex space-x-16 px-4">
-              <a href="#about" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
-                About
-              </a>
-              <a href="#board" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
-                Board of Directors
-              </a>
-              <a href="#executive" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
-                Executive Staff
-              </a>
-            </nav>
-            <div 
-              className="absolute inset-0 w-full" 
-              style={{
-                animation: 'slide 20s linear infinite',
-              }}
-            >
-              <div className="h-full bg-gradient-to-r from-blue-600 via-[#002147] to-blue-600 w-[200%]"></div>
-            </div>
+        <div className="relative w-full h-10 bg-[#002147] overflow-hidden flex items-center justify-center">
+          <nav className="relative z-10 flex space-x-8 px-4">
+            <a href="#about" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              About
+            </a>
+            <a href="#mission" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              Mission
+            </a>
+            <a href="#what-sets-apart" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              What Sets Apart
+            </a>
+            <a href="#core-pillars" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              Core Pillars
+            </a>
+            <a href="#aspirations" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              Aspirations
+            </a>
+            <a href="#board" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              Board of Directors
+            </a>
+            <a href="#executive" className="text-white hover:text-blue-300 transition-colors text-sm font-medium">
+              Executive Staff
+            </a>
+          </nav>
+          <div 
+            className="absolute inset-0 w-full" 
+            style={{
+              animation: 'slide 20s linear infinite',
+            }}
+          >
+            <div className="h-full bg-gradient-to-r from-blue-600 via-[#002147] to-blue-600 w-[200%]"></div>
           </div>
-        </section>
+        </div>
+      </section>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-12">
 
+        {/* About Section */}
+        <section id="about" className="p-8 mb-12">
+          
+            
+              <h2 className="text-3xl font-bold text-[#002147] tracking-tight text-center">
+                ABOUT WANAC
+              </h2>
+              <p className="text-gray-600 mt-1 text-base text-center">Empowering Veterans Through Excellence</p>
+            
+        </section>
+
         {/* Mission Section */}
-        <section id="about" className="bg-white p-8 rounded-xl shadow-lg mb-12">
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div className="border-l-4 border-blue-600 pl-4">
-                <h2 className="text-3xl font-bold text-[#002147] tracking-tight">
-                  ABOUT WANAC
-                </h2>
-                <p className="text-gray-600 mt-1 text-base">Empowering Veterans Through Excellence</p>
-              </div>
-              
-              <div className="prose prose-base max-w-none space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-[#002147] mb-3 flex items-center">
-                    <span className="w-6 h-0.5 bg-blue-600 mr-2"></span>
-                    Our Mission
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed">
-                    WANAC is committed to empowering transitioning service members, veterans, and professionals by delivering
-                    transformative coaching and training that fosters personal growth, professional excellence, and entrepreneurial
-                    success. Our innovative programs and resources are carefully designed to enable participants to lead impactful lives in
-                    their communities and beyond.
-                  </p>
-                </div>
+        <section id="mission" className="p-8 mb-12 text-center">
+          <img src="/images/mission.jpg" alt="Mission" className="mx-auto mb-6 w-full max-w-md rounded-lg" />
+          <h3 className="text-xl font-bold text-[#002147] mb-3 flex items-center justify-center">
+            
+            Our Mission
+          </h3>
+          <p className="text-gray-700 leading-relaxed mx-auto max-w-2xl">We are committed to empowering transitioning service members, veterans, and professionals by delivering
+transformative coaching and training that fosters personal growth, professional excellence, and entrepreneurial
+success. Our innovative programs and resources are carefully designed to enable participants to lead impactful lives in
+their communities and beyond.
+          </p>
+        </section>
 
-                <div>
-                  <h3 className="text-xl font-bold text-[#002147] mb-3 flex items-center">
-                    <span className="w-6 h-0.5 bg-blue-600 mr-2"></span>
-                    What Sets WANAC Apart
-                  </h3>
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                    <p className="text-gray-700 leading-relaxed">
-                      In today's rapidly evolving world, the ability to adapt, lead, and inspire others is more important than ever. At WANAC,
-                      we cultivate forward-thinking leaders who not only possess strategic insight and adaptability but also excel in
-                      emotional intelligence and resilience—key traits of transformative leadership.
-                    </p>
-                    <p className="text-gray-700 leading-relaxed mt-3">
-                      Our distinctive approach combines rigorous academic insights with real-world experiences, preparing our participants
-                      to confidently navigate life's transitions and professional challenges.
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-xl font-bold text-[#002147] mb-3 flex items-center">
-                    <span className="w-6 h-0.5 bg-blue-600 mr-2"></span>
-                    Core Pillars of WANAC
-                  </h3>
-                  <div className="grid grid-cols-1 gap-3">
-                    {[
-                      {
-                        title: "Clarity and Vision",
-                        desc: "Establishing clear personal and professional pathways."
-                      },
-                      {
-                        title: "Energy and Resilience",
-                        desc: "Optimizing physical, emotional, and mental well-being."
-                      },
-                      {
-                        title: "Courage and Confidence",
-                        desc: "Building the ability to navigate challenges with strength."
-                      },
-                      {
-                        title: "Productivity and Excellence",
-                        desc: "Empowering individuals to achieve exceptional results."
-                      },
-                      {
-                        title: "Influence and Leadership",
-                        desc: "Enhancing interpersonal skills to inspire and drive change."
-                      }
-                    ].map((pillar, index) => (
-                      <div key={index} className="flex items-start p-3 bg-white rounded-lg border border-gray-100 hover:shadow-sm transition-shadow">
-                        <span className="text-blue-600 font-bold mr-2 text-base">0{index + 1}</span>
-                        <div>
-                          <span className="font-bold text-gray-900">{pillar.title}:</span>
-                          <span className="text-gray-700 ml-1 text-sm">{pillar.desc}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-xl font-bold text-[#002147] mb-3 flex items-center">
-                    <span className="w-6 h-0.5 bg-blue-600 mr-2"></span>
-                    Our Strategic Aspirations
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[
-                      {
-                        title: "Attain Excellence",
-                        desc: "We are dedicated to excellence in every program, resource, and initiative we undertake."
-                      },
-                      {
-                        title: "Empower Lifelong Success",
-                        desc: "We provide comprehensive tools and support to ensure sustainable success."
-                      },
-                      {
-                        title: "Drive Innovation",
-                        desc: "We continuously innovate our methodologies to deliver cutting-edge coaching and training solutions."
-                      },
-                      {
-                        title: "Build Strong Community",
-                        desc: "We foster an inclusive community, creating meaningful connections among veterans, professionals, and industry leaders."
-                      },
-                      {
-                        title: "Create Opportunity and Access",
-                        desc: "We strive to remove barriers, promoting opportunities for personal and professional advancement for traditionally underserved groups."
-                      }
-                    ].map((aspiration, index) => (
-                      <div key={index} className="p-3 bg-white rounded-lg border border-gray-100 hover:shadow-sm transition-shadow">
-                        <h4 className="font-semibold text-[#002147] mb-1 text-sm">{aspiration.title}</h4>
-                        <p className="text-gray-700 text-sm">{aspiration.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="relative h-full flex flex-col gap-4">
-              <div className="relative h-2/3 overflow-hidden rounded-lg shadow-lg">
-                <img
-                  src="/veteran1.jpg"
-                  alt="Veterans in professional setting"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#002147]/60 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                  <h4 className="text-xl font-bold mb-1">Transforming Lives</h4>
-                  <p className="text-xs opacity-90">Building tomorrow's leaders through veteran empowerment</p>
-                </div>
-              </div>
-              <div className="relative h-1/3 overflow-hidden rounded-lg bg-[#002147] p-4 text-white flex items-center">
-                <div>
-                  <h4 className="text-lg font-bold mb-2">Join Our Mission</h4>
-                  <p className="text-xs opacity-90 mb-3">Be part of our journey in empowering veterans and creating future leaders.</p>
-                  <a href="/contact" className="inline-flex items-center text-xs font-semibold text-white hover:text-blue-200 transition-colors">
-                    Learn More 
-                    <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
+        {/* What Sets WANAC Apart Section */}
+        <section id="what-sets-apart" className="p-8 mb-12 text-center">
+          <img src="/images/sets-apart.jpg" alt="What Sets WANAC Apart" className="mx-auto mb-6 w-full max-w-md rounded-lg" />
+          <h3 className="text-xl font-bold text-[#002147] mb-3 flex items-center justify-center">
+            What Sets WANAC Apart
+          </h3>
+          <div className="mx-auto max-w-2xl">
+            <p className="text-gray-700 leading-relaxed">In today's rapidly evolving world, the ability to adapt, lead, and inspire others is more important than ever. At WANAC,
+we cultivate forward-thinking leaders who not only possess strategic insight and adaptability but also excel in
+emotional intelligence and resilience—key traits of transformative leadership.
+            </p>
+            <p className="text-gray-700 leading-relaxed mt-3">Our distinctive approach combines rigorous academic insights with real-world experiences, preparing our participants
+            to confidently navigate life's transitions and professional challenges.
+            </p>
           </div>
+        </section>
+
+        {/* Core Pillars Section */}
+        <section id="core-pillars" className="p-8 mb-12 text-center">
+          <img src="/images/core-pillars.jpg" alt="Core Pillars" className="mx-auto mb-6 w-full max-w-md rounded-lg" />
+          <h3 className="text-xl font-bold text-[#002147] mb-3 flex items-center justify-center">
+            
+            Core Pillars of WANAC
+          </h3>
+          <div className="grid grid-cols-1 gap-3 mx-auto max-w-2xl">
+            {[
+              {
+                title: "Clarity and Vision",
+                desc: "Establishing clear personal and professional pathways."
+              },
+              {
+                title: "Energy and Resilience",
+                desc: "Optimizing physical, emotional, and mental well-being."
+              },
+              {
+                title: "Courage and Confidence",
+                desc: "Building the ability to navigate challenges with strength."
+              },
+              {
+                title: "Productivity and Excellence",
+                desc: "Empowering individuals to achieve exceptional results."
+              },
+              {
+                title: "Influence and Leadership",
+                desc: "Enhancing interpersonal skills to inspire and drive change."
+              }
+            ].map((pillar, index) => (
+              <div key={index} className="flex flex-col items-center p-3">
+
+                <div>
+                  <span className="font-bold text-gray-900">{pillar.title}:</span>
+                  <span className="text-gray-700 ml-1 text-sm">{pillar.desc}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Strategic Aspirations Section */}
+        <section id="aspirations" className="p-8 mb-12 text-center">
+          <img src="/images/aspirations.jpg" alt="Aspirations" className="mx-auto mb-6 w-full max-w-md rounded-lg" />
+          <h3 className="text-xl font-bold text-[#002147] mb-3 flex items-center justify-center">
+            
+            Our Strategic Aspirations
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mx-auto max-w-3xl">
+            {[
+              {
+                title: "Attain Excellence",
+                desc: "Establishing clear personal and professional pathways.."
+              },
+              {
+                title: "Empower Lifelong Success",
+                desc: "We provide comprehensive tools and support to ensure sustainable success."
+              },
+              {
+                title: "Drive Innovation",
+                desc: "We continuously innovate our methodologies to deliver cutting-edge coaching and training solutions."
+              },
+              {
+                title: "PBuild Strong Community",
+                desc: "We foster an inclusive community, creating meaningful connections among veterans, professionals, and industry leaders."
+              },
+              {
+                title: "Create Opportunity and Access",
+                desc: "We strive to remove barriers, promoting opportunities for personal and professional advancement for traditionally underserved groups."
+              }
+            ].map((aspiration, index) => (
+              <div key={index} className="p-3 flex flex-col items-center">
+                <h4 className="font-semibold text-[#002147] mb-1 text-sm">{aspiration.title}</h4>
+                <p className="text-gray-700 text-sm">{aspiration.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="bg-blue-50 rounded-xl p-8 mb-12 text-center flex flex-col items-center justify-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-[#002147] mb-3">Join the WANAC Community</h2>
+          <p className="text-gray-700 max-w-xl mx-auto mb-6 text-base md:text-lg">
+            Become part of an empowered network dedicated to making meaningful, positive impacts in society. Connect with us
+            to start your transformative journey today.
+          </p>
+          <a
+            href="/services"
+            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition text-base md:text-lg"
+          >
+            Explore Our Services &rarr;
+          </a>
         </section>
 
         {/* Leadership Sections */}
