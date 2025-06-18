@@ -20,7 +20,7 @@ export default function Homepage() {
   <div 
     className="absolute inset-0 w-full h-full z-0"
     style={{
-      backgroundImage: `linear-gradient(150deg, rgba(0,33,71,0.85) 10%, rgba(255,94,26,0.60) 300%, rgba(255,255,255,0.90) 100%), url('/landingpage4.jpg')`,
+      backgroundImage: `linear-gradient(150deg, rgba(0,33,71,0.85) 10%, rgba(255,94,26,0.60) 200%, rgba(255,255,255,0.90) 100%), url('/landingpage4.jpg')`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
@@ -58,7 +58,7 @@ export default function Homepage() {
   </div>
 </section>
 
-<section id="how-we-help" className="py-16 px-4 text-center relative overflow-hidden" style={{ background: 'linear-gradient(155deg, #f8fafc 0%, #ffedd5 50%, #e0e7ff 100%)' }}>
+<section id="how-we-help" className="py-16 px-4 text-center relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #FFFDF9 0%, #FF7D33 15%, #FF5E1A 50%, #002147 60%)' }}>
   {/* Extra gradients for visual layering */}
   <div className="absolute top-1/3 left-0 w-96 h-96 bg-gradient-to-br from-orange-400/10 via-orange-200/10 to-blue-400/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 z-0" />
   <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-gradient-to-tr from-blue-400/10 via-white/10 to-orange-400/10 rounded-full blur-2xl z-0" />
@@ -71,8 +71,8 @@ export default function Homepage() {
   <div className="relative z-10">
     {/* Section Header */}
     <div className="mb-12">
-      <h2 className="text-3xl font-bold mt-2 mb-3 uppercase text-[#002147]">How We Help</h2>
-      <div className="w-16 h-1 bg-[#002147] mx-auto rounded-full"/>
+      <h2 className="text-3xl font-bold mt-2 mb-3 uppercase text-white">How We Help</h2>
+      <div className="w-16 h-1 bg-white mx-auto rounded-full"/>
     </div>
 
     {/* Cards Grid */}
@@ -150,82 +150,84 @@ export default function Homepage() {
 </section>
 
       <section className="py-20 px-6 bg-[#002147] text-white relative overflow-hidden">
+        {/* Hero-style background image + gradient overlay */}
+        <div 
+          className="absolute inset-0 w-full h-full z-0"
+          style={{
+            backgroundImage: `linear-gradient(150deg, rgba(0,33,71,0.85) 10%, rgba(255,94,26,0.60) 200%, rgba(255,255,255,0.90) 100%), url('/aIandfeatires.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            pointerEvents: 'none',
+          }}
+          aria-hidden="true"
+        />
         {/* Extra gradients for features section */}
         <div className="absolute -top-24 left-1/2 w-[36rem] h-[36rem] bg-gradient-to-br from-orange-400/20 via-blue-400/10 to-white/10 rounded-full blur-3xl -translate-x-1/2 z-0 animate-pulse" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tr from-blue-400/10 via-white/10 to-orange-400/10 rounded-full blur-2xl z-0" />
-  {/* Background Image */}
-  <div className="absolute inset-0 w-full h-full z-0">
-    <img
-      src="/aIandfeatires.jpg"
-      alt="Background"
-      className="w-full h-full object-cover opacity-20"
-    />
-    {/* Optional overlay for better contrast */}
-    <div className="absolute inset-0 bg-[#002147] opacity-80"></div>
-  </div>
-  <div className="max-w-7xl mx-auto text-center relative z-10">
-    {/* Section Title */}
-    <h2 className="text-3xl font-semibold mb-8">KEY WEB APP FEATURES</h2>
-    <p className="text-lg mb-12">Discover the powerful features that make our web app the best choice for your needs.</p>
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          {/* Section Title */}
+          <h2 className="text-3xl font-semibold mb-8">KEY WEB APP FEATURES</h2>
+          <p className="text-lg mb-12">Discover the powerful features that make our web app the best choice for your needs.</p>
 
-    {/* Features Grid */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 max-w-7xl mx-auto">
-      {/* Feature 1 */}
-      <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/10">
-        <div className="mb-8 relative">
-          <div className="absolute -inset-1 bg-orange-500/30 rounded-lg blur"></div>
-          <lord-icon
-            src="https://cdn.lordicon.com/uoljexdg.json"
-            trigger="hover"
-            colors="primary:#ee8220,secondary:#ffffff"
-            style={{ width: '80px', height: '80px' }}
-            class="mx-auto relative z-10"
-          />
-        </div>
-        <h3 className="text-2xl font-bold mb-4 text-center text-white">Session Booking</h3>
-        <p className="text-lg text-gray-300 text-center leading-relaxed">
-          Easily book your sessions with a simple, intuitive interface that guarantees a smooth user experience.
-        </p>
-      </div>
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 max-w-7xl mx-auto">
+            {/* Feature 1 */}
+            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/10">
+              <div className="mb-8 relative">
+                <div className="absolute -inset-1 bg-orange-500/30 rounded-lg blur"></div>
+                <lord-icon
+                  src="https://cdn.lordicon.com/uoljexdg.json"
+                  trigger="hover"
+                  colors="primary:#ee8220,secondary:#ffffff"
+                  style={{ width: '80px', height: '80px' }}
+                  class="mx-auto relative z-10"
+                />
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-center text-white">Session Booking</h3>
+              <p className="text-lg text-gray-300 text-center leading-relaxed">
+                Easily book your sessions with a simple, intuitive interface that guarantees a smooth user experience.
+              </p>
+            </div>
 
-      {/* Feature 2 */}
-      <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/10">
-        <div className="mb-8 relative">
-          <div className="absolute -inset-1 bg-orange-500/30 rounded-lg blur"></div>
-          <lord-icon
-            src="https://cdn.lordicon.com/qvbrkejx.json"
-            trigger="hover"
-            colors="primary:#ee8220,secondary:#ffffff"
-            style={{ width: '80px', height: '80px' }}
-            class="mx-auto relative z-10"
-          />
-        </div>
-        <h3 className="text-2xl font-bold mb-4 text-center text-white">AI Assistant</h3>
-        <p className="text-lg text-gray-300 text-center leading-relaxed">
-          Get personalized assistance with our AI-driven assistant, designed to streamline your tasks and improve productivity.
-        </p>
-      </div>
+            {/* Feature 2 */}
+            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/10">
+              <div className="mb-8 relative">
+                <div className="absolute -inset-1 bg-orange-500/30 rounded-lg blur"></div>
+                <lord-icon
+                  src="https://cdn.lordicon.com/qvbrkejx.json"
+                  trigger="hover"
+                  colors="primary:#ee8220,secondary:#ffffff"
+                  style={{ width: '80px', height: '80px' }}
+                  class="mx-auto relative z-10"
+                />
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-center text-white">AI Assistant</h3>
+              <p className="text-lg text-gray-300 text-center leading-relaxed">
+                Get personalized assistance with our AI-driven assistant, designed to streamline your tasks and improve productivity.
+              </p>
+            </div>
 
-      {/* Feature 3 */}
-      <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/10">
-        <div className="mb-8 relative">
-          <div className="absolute -inset-1 bg-orange-500/30 rounded-lg blur"></div>
-          <lord-icon
-            src="https://cdn.lordicon.com/nayeills.json"
-            trigger="hover"
-            colors="primary:#ee8220,secondary:#ffffff"
-            style={{ width: '80px', height: '80px' }}
-            class="mx-auto relative z-10"
-          />
+            {/* Feature 3 */}
+            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/10">
+              <div className="mb-8 relative">
+                <div className="absolute -inset-1 bg-orange-500/30 rounded-lg blur"></div>
+                <lord-icon
+                  src="https://cdn.lordicon.com/nayeills.json"
+                  trigger="hover"
+                  colors="primary:#ee8220,secondary:#ffffff"
+                  style={{ width: '80px', height: '80px' }}
+                  class="mx-auto relative z-10"
+                />
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-center text-white">Real-Time Updates</h3>
+              <p className="text-lg text-gray-300 text-center leading-relaxed">
+                Stay informed with real-time notifications and updates, ensuring you're always in the loop.
+              </p>
+            </div>
+          </div>
         </div>
-        <h3 className="text-2xl font-bold mb-4 text-center text-white">Real-Time Updates</h3>
-        <p className="text-lg text-gray-300 text-center leading-relaxed">
-          Stay informed with real-time notifications and updates, ensuring you're always in the loop.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
 
       {/* Community and Testimonial */}
       <section className="py-20 px-6 bg-white text-[#002147] relative overflow-hidden" style={{ background: 'linear-gradient(155deg, #f8fafc 0%, #ffedd5 50%, #e0e7ff 100%)' }}>

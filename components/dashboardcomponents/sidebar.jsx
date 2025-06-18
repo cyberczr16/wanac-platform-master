@@ -35,6 +35,7 @@ export default function Sidebar() {
         aria-label="Open sidebar"
         onClick={() => setMobileOpen(true)}
       >
+        
         <Menu size={24} />
       </button>
       {/* Sidebar overlay for mobile */}

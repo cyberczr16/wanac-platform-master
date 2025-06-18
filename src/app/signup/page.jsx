@@ -281,6 +281,20 @@ export default function Signup() {
       <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] px-4 py-8">
         <div className="bg-white shadow-md rounded-lg p-8 max-w-md w-full">
           <h1 className="text-2xl font-bold text-brand-navy mb-2">Create an Account</h1>
+          <div className="flex space-x-4 mb-6">
+            <a
+              href="/pages/vsointakeform"
+              className="flex-1 py-2 px-4 text-center rounded-md border border-brand-orange text-brand-orange font-semibold hover:bg-brand-orange hover:text-white transition-colors duration-200"
+            >
+              VSO Intake Form
+            </a>
+            <a
+              href="/pages/programintakeform"
+              className="flex-1 py-2 px-4 text-center rounded-md border border-brand-blue text-brand-blue font-semibold hover:bg-brand-blue hover:text-white transition-colors duration-200"
+            >
+              Program Intake Form
+            </a>
+          </div>
           
           {/* User Type Selection */}
           <div className="flex mb-6 border bg-[#002147] rounded-md overflow-hidden">
