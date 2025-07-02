@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
-import CommunityChat from '../../../../../components/CommunityChat';
+import Sidebar from '../../../../../../components/dashboardcomponents/sidebar';
+import ClientTopbar from '../../../../../../components/dashboardcomponents/clienttopbar';
+import CommunityChat from '../../../../../../components/CommunityChat';
 import { FaPlus } from 'react-icons/fa';
-import { fetchCommunities, createCommunity, updateCommunityPost, deleteCommunity, addCommunityPostComment, updateCommunityPostComment, deleteCommunityPostComment, fetchCommunityPosts } from '../../../../services/api/community.service';
+import { fetchCommunities, createCommunity, updateCommunityPost, deleteCommunity, addCommunityPostComment, updateCommunityPostComment, deleteCommunityPostComment, fetchCommunityPosts } from '../../../../../services/api/community.service';
 
 export default function CommunityPage() {
   const [collapsed, setCollapsed] = useState(false);
