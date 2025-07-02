@@ -1,26 +1,32 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
-import CommunityFeedWidget from '../../../../../components/dashboardcomponents/widgets/CommunityFeedWidget';
-import { FaLock, FaCalendarAlt, FaPlus, FaUsers } from 'react-icons/fa';
-import { fetchCommunities, createCommunity } from '../../../../../src/services/api/community.service';
+import Sidebar from "../../../../../components/dashboardcomponents/sidebar";
+import ClientTopbar from "../../../../../components/dashboardcomponents/clienttopbar";
+import CommunityFeedWidget from "../../../../../components/dashboardcomponents/widgets/CommunityFeedWidget";
+import { FaLock, FaCalendarAlt, FaPlus, FaUsers } from "react-icons/fa";
+import {
+  fetchCommunities,
+  createCommunity,
+} from "../../../../../src/services/api/community.service";
 
 export default function CommunityPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState(null);
   const [communities, setCommunities] = useState([]);
   const [loadingCommunities, setLoadingCommunities] = useState(true);
-  const [communityError, setCommunityError] = useState('');
+  const [communityError, setCommunityError] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newCommunity, setNewCommunity] = useState({ name: '', description: '' });
+  const [newCommunity, setNewCommunity] = useState({
+    name: "",
+    description: "",
+  });
   const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState('');
+  const [createError, setCreateError] = useState("");
   const [selectedCommunityId, setSelectedCommunityId] = useState(null);
 
   useEffect(() => {
-    const userData = localStorage.getItem('wanacUser');
+    const userData = localStorage.getItem("wanacUser");
     if (userData) {
       try {
         setUser(JSON.parse(userData));
@@ -32,24 +38,34 @@ export default function CommunityPage() {
 
   useEffect(() => {
     setLoadingCommunities(true);
+  
     fetchCommunities()
-      .then(data => {
+      .then((data) => {
+        console.log("Fetched data:", data);
+  
         let comms = Array.isArray(data)
           ? data
-          : (Array.isArray(data.communities) ? data.communities : []);
+          : Array.isArray(data.communites?.data)
+          ? data.communites.data
+          : [];
+  
         setCommunities(comms);
-        setCommunityError('');
+        setCommunityError("");
       })
-      .catch(() => setCommunityError('Failed to load communities.'))
+      .catch((error) => {
+        console.error("Error fetching communities:", error);
+        setCommunityError("Failed to load communities.");
+      })
       .finally(() => setLoadingCommunities(false));
   }, []);
+  
 
   const handleCreateCommunity = async (e) => {
     e.preventDefault();
     setCreating(true);
-    setCreateError('');
+    setCreateError("");
     if (!newCommunity.name.trim() || !newCommunity.description.trim()) {
-      setCreateError('Name and description are required.');
+      setCreateError("Name and description are required.");
       setCreating(false);
       return;
     }
@@ -61,19 +77,22 @@ export default function CommunityPage() {
       const created = await createCommunity(payload);
       setCommunities([created, ...communities]);
       setShowCreateModal(false);
-      setNewCommunity({ name: '', description: '' });
+      setNewCommunity({ name: "", description: "" });
     } catch (err) {
-      setCreateError('Failed to create community.');
+      setCreateError("Failed to create community.");
     } finally {
       setCreating(false);
     }
   };
 
-
   return (
     <div className="h-screen flex bg-gray-50 font-serif">
       {/* Sidebar */}
-      <Sidebar className="w-56 bg-white border-r border-gray-200" collapsed={collapsed} setCollapsed={setCollapsed} />
+      <Sidebar
+        className="w-56 bg-white border-r border-gray-200"
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+      />
       {/* Main Area */}
       <div className="flex-1 flex flex-col h-full transition-all duration-300">
         {/* Top Bar */}
@@ -98,31 +117,53 @@ export default function CommunityPage() {
                     </button>
                   </div>
                   {loadingCommunities ? (
-                    <p className="text-gray-500 text-sm">Loading communities...</p>
+                    <p className="text-gray-500 text-sm">
+                      Loading communities...
+                    </p>
                   ) : communityError ? (
                     <p className="text-red-500 text-sm">{communityError}</p>
                   ) : communities.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No communities yet. Be the first to create one!</p>
+                    <p className="text-gray-500 text-sm">
+                      No communities yet. Be the first to create one!
+                    </p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {communities.map(comm => (
+                      {communities.map((comm) => (
                         <div
                           key={comm.id}
-                          className={`rounded-lg border p-4 flex flex-col bg-white shadow hover:shadow-md transition group cursor-pointer ${selectedCommunityId === comm.id ? 'ring-2 ring-blue-500 border-blue-500' : ''}`}
+                          className={`rounded-lg border p-4 flex flex-col bg-white shadow hover:shadow-md transition group cursor-pointer ${
+                            selectedCommunityId === comm.id
+                              ? "ring-2 ring-blue-500 border-blue-500"
+                              : ""
+                          }`}
                           onClick={() => setSelectedCommunityId(comm.id)}
                         >
                           <div className="flex items-center gap-2 mb-2">
                             <FaUsers className="text-blue-600 text-xl" />
-                            <h3 className="font-bold text-lg text-gray-800 group-hover:text-blue-700 transition">{comm.name || <span className='italic text-gray-400'>Untitled</span>}</h3>
+                            <h3 className="font-bold text-lg text-gray-800 group-hover:text-blue-700 transition">
+                              {comm.name || (
+                                <span className="italic text-gray-400">
+                                  Untitled
+                                </span>
+                              )}
+                            </h3>
                           </div>
                           {comm.name && (
                             <div className="mb-2">
-                              <span className="text-xs text-gray-500 font-medium">Name: </span>
-                              <span className="text-sm text-gray-700">{comm.name}</span>
+                              <span className="text-xs text-gray-500 font-medium">
+                                Name:{" "}
+                              </span>
+                              <span className="text-sm text-gray-700">
+                                {comm.name}
+                              </span>
                             </div>
                           )}
                           <hr className="mb-2 border-gray-200" />
-                          <p className="text-sm text-gray-600 mb-2 min-h-[40px]">{comm.description || <span className='italic text-gray-400'></span>}</p>
+                          <p className="text-sm text-gray-600 mb-2 min-h-[40px]">
+                            {comm.description || (
+                              <span className="italic text-gray-400"></span>
+                            )}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -132,42 +173,66 @@ export default function CommunityPage() {
                 {showCreateModal && (
                   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
                     <div className="bg-white rounded-lg p-8 w-full max-w-md shadow-lg relative">
-                      <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-700" onClick={() => setShowCreateModal(false)}>&times;</button>
-                      <h3 className="text-xl font-bold mb-4">Create Community</h3>
-                      <form onSubmit={handleCreateCommunity} className="space-y-4">
+                      <button
+                        className="absolute top-2 right-2 text-gray-400 hover:text-gray-700"
+                        onClick={() => setShowCreateModal(false)}
+                      >
+                        &times;
+                      </button>
+                      <h3 className="text-xl font-bold mb-4">
+                        Create Community
+                      </h3>
+                      <form
+                        onSubmit={handleCreateCommunity}
+                        className="space-y-4"
+                      >
                         <div>
-                          <label className="block text-sm font-medium mb-1">Name</label>
+                          <label className="block text-sm font-medium mb-1">
+                            Name
+                          </label>
                           <input
                             type="text"
                             className="w-full border rounded px-3 py-2"
                             value={newCommunity.name}
-                            onChange={e => setNewCommunity({ ...newCommunity, name: e.target.value })}
+                            onChange={(e) =>
+                              setNewCommunity({
+                                ...newCommunity,
+                                name: e.target.value,
+                              })
+                            }
                             required
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-1">Description</label>
+                          <label className="block text-sm font-medium mb-1">
+                            Description
+                          </label>
                           <textarea
                             className="w-full border rounded px-3 py-2"
                             value={newCommunity.description}
-                            onChange={e => setNewCommunity({ ...newCommunity, description: e.target.value })}
+                            onChange={(e) =>
+                              setNewCommunity({
+                                ...newCommunity,
+                                description: e.target.value,
+                              })
+                            }
                             required
                           />
                         </div>
-                        {createError && <p className="text-red-500 text-sm">{createError}</p>}
+                        {createError && (
+                          <p className="text-red-500 text-sm">{createError}</p>
+                        )}
                         <button
                           type="submit"
                           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-orange-500 transition w-full"
                           disabled={creating}
                         >
-                          {creating ? 'Creating...' : 'Create'}
+                          {creating ? "Creating..." : "Create"}
                         </button>
                       </form>
                     </div>
                   </div>
                 )}
-
-  
               </div>
             </div>
           </div>
