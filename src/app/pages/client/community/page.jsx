@@ -3,21 +3,39 @@
 import { useState, useEffect } from "react";
 import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
 import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
-import CommunityFeedWidget from '../../../../../components/dashboardcomponents/widgets/CommunityFeedWidget';
-import { FaLock, FaCalendarAlt, FaPlus, FaUsers } from 'react-icons/fa';
-import { fetchCommunities, createCommunity } from '../../../../../src/services/api/community.service';
+import CommunityChat from '../../../../../components/CommunityChat';
+import { FaPlus } from 'react-icons/fa';
+import { fetchCommunities, createCommunity, updateCommunityPost, deleteCommunity, addCommunityPostComment, updateCommunityPostComment, deleteCommunityPostComment, fetchCommunityPosts } from '../../../../services/api/community.service';
 
 export default function CommunityPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState(null);
+  const [selectedTab, setSelectedTab] = useState('Explore');
   const [communities, setCommunities] = useState([]);
-  const [loadingCommunities, setLoadingCommunities] = useState(true);
-  const [communityError, setCommunityError] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newCommunity, setNewCommunity] = useState({ title: '', description: '' });
-  const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState('');
-  const [selectedCommunityId, setSelectedCommunityId] = useState(null);
+  const [hostingForm, setHostingForm] = useState({ title: '', date: '', time: '', type: '', location: '', link: '' });
+  const [loading, setLoading] = useState(true);
+  const [chatMessages, setChatMessages] = useState([
+    { text: "Welcome to the community chat!", sender: "Admin", time: "Now" }
+  ]);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [postForm, setPostForm] = useState({ title: '', description: '' });
+
+  const handleSend = (text) => {
+    setChatMessages(msgs => [
+      ...msgs,
+      { text, sender: user?.name || 'You', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+    ]);
+  };
+  const contacts = [
+    { id: 1, name: 'John D.' },
+    { id: 2, name: 'Sarah M.' },
+    { id: 3, name: 'Michael T.' },
+    { id: 4, name: 'Elizabeth R.' },
+    { id: 5, name: 'Samantha S.' },
+  ];
+  const [selectedContact, setSelectedContact] = useState(null);
+  const handleSelectContact = (contact) => setSelectedContact(contact);
 
   useEffect(() => {
     const userData = localStorage.getItem('wanacUser');
@@ -28,47 +46,267 @@ export default function CommunityPage() {
         setUser(null);
       }
     }
-  }, []);
-
-  useEffect(() => {
-    setLoadingCommunities(true);
-    fetchCommunities()
-      .then(data => {
-        let comms = Array.isArray(data)
-          ? data
-          : (Array.isArray(data.communities) ? data.communities : []);
-        setCommunities(comms);
-        setCommunityError('');
-      })
-      .catch(() => setCommunityError('Failed to load communities.'))
-      .finally(() => setLoadingCommunities(false));
-  }, []);
-
-  const handleCreateCommunity = async (e) => {
-    e.preventDefault();
-    setCreating(true);
-    setCreateError('');
-    if (!newCommunity.title.trim() || !newCommunity.description.trim()) {
-      setCreateError('Title and description are required.');
-      setCreating(false);
-      return;
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const communities = await fetchCommunities();
+        setCommunities(Array.isArray(communities) ? communities : []);
+        const posts = await fetchCommunityPosts();
+        setPosts(Array.isArray(posts) ? posts : []);
+      } catch (e) {
+        setCommunities([]);
+        setPosts([]);
+      }
+      setLoading(false);
     }
+    fetchData();
+  }, []);
+
+  const handleCreateCommunity = async (communityData) => {
+    setActionLoading(true);
     try {
-      const payload = {
-        title: newCommunity.title,
-        description: newCommunity.description,
-      };
-      const created = await createCommunity(payload);
-      setCommunities([created, ...communities]);
-      setShowCreateModal(false);
-      setNewCommunity({ title: '', description: '' });
-    } catch (err) {
-      setCreateError('Failed to create community.');
-    } finally {
-      setCreating(false);
-    }
+      let newCommunity;
+      if (typeof communityData === 'string') {
+        newCommunity = {
+          content: communityData,
+          user: user?.name || 'You',
+          time: new Date().toLocaleString(),
+          id: Date.now(),
+          type: 'post',
+        };
+      } else {
+        newCommunity = communityData;
+      }
+      await createCommunity(newCommunity);
+      const communities = await fetchCommunities();
+      setCommunities(Array.isArray(communities) ? communities : []);
+    } catch (e) {}
+    setActionLoading(false);
   };
 
+  const handleUpdateCommunity = async (postId, data) => {
+    setActionLoading(true);
+    try {
+      await updateCommunityPost(postId, data);
+      const posts = await fetchCommunityPosts();
+      setPosts(Array.isArray(posts) ? posts : []);
+    } catch (e) {}
+    setActionLoading(false);
+  };
+
+  const handleDeleteCommunity = async (communityId) => {
+    setActionLoading(true);
+    try {
+      await deleteCommunity(communityId);
+      const communities = await fetchCommunities();
+      setCommunities(Array.isArray(communities) ? communities : []);
+    } catch (e) {}
+    setActionLoading(false);
+  };
+
+  const handleAddComment = async (comment) => {
+    setActionLoading(true);
+    try {
+      await addCommunityPostComment(comment);
+      const communities = await fetchCommunities();
+      setCommunities(Array.isArray(communities) ? communities : []);
+    } catch (e) {}
+    setActionLoading(false);
+  };
+
+  const handleUpdateComment = async (commentId, data) => {
+    setActionLoading(true);
+    try {
+      await updateCommunityPostComment(commentId, data);
+      const communities = await fetchCommunities();
+      setCommunities(Array.isArray(communities) ? communities : []);
+    } catch (e) {}
+    setActionLoading(false);
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    setActionLoading(true);
+    try {
+      await deleteCommunityPostComment(commentId);
+      const communities = await fetchCommunities();
+      setCommunities(Array.isArray(communities) ? communities : []);
+    } catch (e) {}
+    setActionLoading(false);
+  };
+
+  // Hosting form submit
+  const handleCreateEvent = (e) => {
+    e.preventDefault();
+    // Validation logic
+    if (!hostingForm.title || !hostingForm.date || !hostingForm.time || !hostingForm.type) return;
+    if (hostingForm.type === 'Physical' && !hostingForm.location) return;
+    if (hostingForm.type === 'Online' && !hostingForm.link) return;
+    const newCommunity = {
+      ...hostingForm,
+      rsvps: 0,
+      host: user?.name || 'You',
+      time: `${hostingForm.date}, ${hostingForm.time}`,
+      id: Date.now(),
+      type: 'meetup',
+    };
+    handleCreateCommunity(newCommunity);
+    setHostingForm({ title: '', date: '', time: '', type: '', location: '', link: '' });
+    setSelectedTab('Explore');
+  };
+
+  // Main content for each tab
+  let mainContent;
+  if (loading || actionLoading) {
+    mainContent = <div className="pl-8"><p>Loading community data...</p></div>;
+  } else if (selectedTab === 'Explore') {
+    mainContent = (
+      <div className="pl-8">
+        <h2 className="text-2xl font-bold mb-6 text-primary">WANAC Community</h2>
+        {/* Community Feed Section (replaces CommunityFeedWidget) */}
+        <section className="bg-white rounded-xl shadow p-4 mb-12">
+          <h3 className="text-lg font-semibold text-brand-navy mb-3 flex items-center gap-2">
+            Community Feed
+          </h3>
+          {/* Post box */}
+          <form
+            onSubmit={e => {
+              e.preventDefault();
+              if (postForm.title.trim() && postForm.description.trim()) {
+                handleCreateCommunity({
+                  title: 'WANAC Community',
+                  description: postForm.description,
+                  user: user?.name || 'You',
+                  time: new Date().toLocaleString(),
+                  id: Date.now(),
+                  type: 'post',
+                });
+                setPostForm({ title: '', description: '' });
+              }
+            }}
+            className="mb-4"
+          >
+            <textarea
+              className="w-full border rounded p-2 mb-2"
+              rows={2}
+              placeholder="Share something with the community..."
+              value={postForm.description}
+              onChange={e => setPostForm({ ...postForm, description: e.target.value })}
+            />
+            <button type="submit" className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700">Post</button>
+          </form>
+          <div className="space-y-3">
+            {[...communities].sort((a, b) => (b.id || 0) - (a.id || 0)).map(item => (
+              <div key={item.id} className="border-b pb-2 last:border-0">
+                <div className="flex items-start">
+                  <div className="bg-brand-navy text-white rounded-full w-8 h-8 flex items-center justify-center text-sm mr-2">
+                    {item.user?.charAt(0) || 'M'}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm">
+                      <span className="font-medium">{item.user || item.host || 'Meetup'}</span> {item.action || (item.type === 'meetup' ? 'created a meetup' : 'posted')}
+                    </p>
+                    <p className="text-xs text-gray-500">{item.time || item.date || ''}</p>
+                    <p className="text-sm mt-1 font-semibold">{item.title}</p>
+                    <p className="text-sm">{item.description || item.content}</p>
+                    {item.type === 'meetup' && (
+                      <div className="mt-2">
+                        <span className="text-xs text-gray-600">{item.duration} • {item.location || ''}</span>
+                      </div>
+                    )}
+                    {/* Like/Reshare buttons */}
+                    <div className="flex gap-2 mt-2">
+                      <button className="text-blue-600 hover:underline text-xs" onClick={() => handleUpdateCommunity(item.id)}>Like</button>
+                      <button className="text-blue-600 hover:underline text-xs" onClick={() => handleDeleteCommunity(item.id)}>Reshare</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        <div className="mt-12">
+          <h3 className="text-xl font-semibold mb-4 text-primary">All Posts</h3>
+          {posts.length === 0 ? (
+            <p className="text-gray-500">No posts available.</p>
+          ) : (
+            <ul className="space-y-4">
+              {posts.map(post => (
+                <li key={post.id} className="bg-white p-4 rounded shadow border border-gray-100">
+                  <div className="text-lg font-semibold text-gray-900 mb-1">{post.title || post.content}</div>
+                  <div className="text-gray-800 mb-2">{post.description || post.content}</div>
+                  <div className="text-xs text-gray-500 flex justify-between">
+                    <span>By: {post.user_id || post.user || 'Unknown'}</span>
+                    <span>{post.created_at ? new Date(post.created_at).toLocaleString() : (post.time || '')}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    );
+  } else if (selectedTab === 'Hosting') {
+    mainContent = (
+      <div className="pl-8">
+        <h2 className="text-2xl font-bold mb-6 text-primary">Host a Meetup</h2>
+        <form className="bg-white p-6 rounded-lg shadow-md space-y-4 max-w-lg" onSubmit={handleCreateEvent}>
+          <div>
+            <label className="block text-sm font-medium mb-1">Title</label>
+            <input type="text" className="w-full border rounded px-3 py-2" value={hostingForm.title} onChange={e => setHostingForm({ ...hostingForm, title: e.target.value })} required />
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">Date</label>
+              <input type="date" className="w-full border rounded px-3 py-2" value={hostingForm.date} onChange={e => setHostingForm({ ...hostingForm, date: e.target.value })} required />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">Time</label>
+              <input type="time" className="w-full border rounded px-3 py-2" value={hostingForm.time} onChange={e => setHostingForm({ ...hostingForm, time: e.target.value })} required />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Type</label>
+            <select
+              className="w-full border rounded px-3 py-2"
+              value={hostingForm.type}
+              onChange={e => setHostingForm({ ...hostingForm, type: e.target.value, location: '', link: '' })}
+              required
+            >
+              <option value="">Select type</option>
+              <option value="Physical">Physical</option>
+              <option value="Online">Online</option>
+            </select>
+          </div>
+          {hostingForm.type === 'Physical' && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Location</label>
+              <input type="text" className="w-full border rounded px-3 py-2" value={hostingForm.location} onChange={e => setHostingForm({ ...hostingForm, location: e.target.value })} required />
+            </div>
+          )}
+          {hostingForm.type === 'Online' && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Link</label>
+              <input type="text" className="w-full border rounded px-3 py-2" value={hostingForm.link} onChange={e => setHostingForm({ ...hostingForm, link: e.target.value })} required />
+            </div>
+          )}
+          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"><FaPlus /> Create Meetup</button>
+        </form>
+      </div>
+    );
+  } else if (selectedTab === 'Chat') {
+    mainContent = (
+      <div className="pl-8">
+        <CommunityChat
+          messages={chatMessages}
+          onSend={handleSend}
+          user={user}
+          contacts={contacts}
+          selectedContact={selectedContact}
+          onSelectContact={handleSelectContact}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex bg-gray-50 font-serif">
@@ -80,96 +318,23 @@ export default function CommunityPage() {
         <ClientTopbar user={user} />
         {/* Main Content */}
         <main className="flex-1 h-0 overflow-y-auto px-4 md:px-12 py-8 bg-gray-50">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col lg:flex-row gap-8">
-              {/* Main Content */}
-              <div className="flex-1 space-y-8">
-                {/* Community Creation & List */}
-                <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-none">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
-                      <FaUsers className="text-primary" /> Communities
-                    </h2>
-                    <button
-                      className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-orange-500 transition text-sm"
-                      onClick={() => setShowCreateModal(true)}
-                    >
-                      <FaPlus /> Create Community
-                    </button>
-                  </div>
-                  {loadingCommunities ? (
-                    <p className="text-gray-500 text-sm">Loading communities...</p>
-                  ) : communityError ? (
-                    <p className="text-red-500 text-sm">{communityError}</p>
-                  ) : communities.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No communities yet. Be the first to create one!</p>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {communities.map(comm => (
-                        <div
-                          key={comm.id}
-                          className={`rounded-lg border p-4 flex flex-col bg-white shadow hover:shadow-md transition group cursor-pointer ${selectedCommunityId === comm.id ? 'ring-2 ring-blue-500 border-blue-500' : ''}`}
-                          onClick={() => setSelectedCommunityId(comm.id)}
-                        >
-                          <div className="flex items-center gap-2 mb-2">
-                            <FaUsers className="text-blue-600 text-xl" />
-                            <h3 className="font-bold text-lg text-gray-800 group-hover:text-blue-700 transition">{comm.title || <span className='italic text-gray-400'>Untitled</span>}</h3>
-                          </div>
-                          {comm.name && (
-                            <div className="mb-2">
-                              <span className="text-xs text-gray-500 font-medium">Name: </span>
-                              <span className="text-sm text-gray-700">{comm.name}</span>
-                            </div>
-                          )}
-                          <hr className="mb-2 border-gray-200" />
-                          <p className="text-sm text-gray-600 mb-2 min-h-[40px]">{comm.description || <span className='italic text-gray-400'></span>}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </section>
-                {/* Create Community Modal */}
-                {showCreateModal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                    <div className="bg-white rounded-lg p-8 w-full max-w-md shadow-lg relative">
-                      <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-700" onClick={() => setShowCreateModal(false)}>&times;</button>
-                      <h3 className="text-xl font-bold mb-4">Create Community</h3>
-                      <form onSubmit={handleCreateCommunity} className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-1">Title</label>
-                          <input
-                            type="text"
-                            className="w-full border rounded px-3 py-2"
-                            value={newCommunity.title}
-                            onChange={e => setNewCommunity({ ...newCommunity, title: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-1">Description</label>
-                          <textarea
-                            className="w-full border rounded px-3 py-2"
-                            value={newCommunity.description}
-                            onChange={e => setNewCommunity({ ...newCommunity, description: e.target.value })}
-                            required
-                          />
-                        </div>
-                        {createError && <p className="text-red-500 text-sm">{createError}</p>}
-                        <button
-                          type="submit"
-                          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-orange-500 transition w-full"
-                          disabled={creating}
-                        >
-                          {creating ? 'Creating...' : 'Create'}
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                )}
-
-  
+          <div className="max-w-5xl mx-auto">
+            {/* Tabs at the top */}
+            <div className="flex justify-center border-b border-gray-200 mb-8">
+              <div className="flex space-x-12">
+                {['Explore', 'Hosting', 'Chat'].map(tab => (
+                  <button
+                    key={tab}
+                    className={`text-lg font-medium focus:outline-none pb-1 ${selectedTab === tab ? 'text-black font-semibold border-b-2 border-blue-600' : 'text-gray-500'}`}
+                    onClick={() => setSelectedTab(tab)}
+                  >
+                    {tab}
+                  </button>
+                ))}
               </div>
             </div>
+            {/* Main content: dynamic content only, no sidebar */}
+            <section className="flex-1">{mainContent}</section>
           </div>
         </main>
       </div>
