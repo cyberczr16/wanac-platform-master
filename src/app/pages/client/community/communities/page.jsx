@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { fetchCommunityById, addCommunityFeedPost } from "../../../../../services/api/community.service";
+import { fetchCommunityById, addCommunityFeedPost, addEvent } from "../../../../../services/api/community.service";
 
 const sampleMeetups = [
   {
@@ -62,6 +62,12 @@ export default function CommunityDetailPage() {
   const [newFeedContent, setNewFeedContent] = useState("");
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedError, setFeedError] = useState("");
+  const [comments, setComments] = useState({});
+  const [newComment, setNewComment] = useState({});
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [eventForm, setEventForm] = useState({ title: '', date: '', time: '', description: '', type: 'online', link: '', location: '' });
+  const [eventLoading, setEventLoading] = useState(false);
+  const [eventError, setEventError] = useState("");
 
   useEffect(() => {
     if (!communityId) {
@@ -130,7 +136,9 @@ export default function CommunityDetailPage() {
               </button>
             ))}
           </div>
-          <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition mb-4 flex items-center justify-center gap-2">
+          <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition mb-4 flex items-center justify-center gap-2"
+            onClick={() => setShowScheduleModal(true)}
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M16 3v4M8 3v4M3 12h18"/></svg>
             Schedule
           </button>
@@ -215,6 +223,54 @@ export default function CommunityDetailPage() {
                       <div className="text-gray-800 mb-1">{post.content}</div>
                       <div className="text-xs text-gray-500 mb-1">Posted by <span className="font-semibold">{post.userName || "Unknown"}</span></div>
                       <div className="text-xs text-gray-400">{post.createdAt.toLocaleString()}</div>
+                      {/* Comments Section */}
+                      <div className="mt-4 pl-4 border-l">
+                        <div className="font-semibold text-sm mb-2 text-blue-700">Comments</div>
+                        {/* Comments List */}
+                        {Array.isArray(comments[post.id]) && comments[post.id].length > 0 ? (
+                          <ul className="space-y-2 mb-2">
+                            {comments[post.id].map((comment, cidx) => (
+                              <li key={cidx} className="bg-white rounded px-3 py-2 shadow-sm">
+                                <span className="font-semibold text-blue-700">{comment.userName || "Unknown"}:</span> {comment.content}
+                                <div className="text-xs text-gray-400 text-right">{comment.createdAt.toLocaleTimeString()}</div>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div className="text-gray-400 italic mb-2">No comments yet.</div>
+                        )}
+                        {/* Add Comment Form */}
+                        <form
+                          className="flex gap-2"
+                          onSubmit={e => {
+                            e.preventDefault();
+                            if (!newComment[post.id]?.trim() || !user) return;
+                            setComments(prev => ({
+                              ...prev,
+                              [post.id]: [
+                                ...(prev[post.id] || []),
+                                { content: newComment[post.id], userName: user.name, createdAt: new Date() }
+                              ]
+                            }));
+                            setNewComment(prev => ({ ...prev, [post.id]: "" }));
+                          }}
+                        >
+                          <input
+                            className="flex-1 border rounded p-2"
+                            type="text"
+                            placeholder="Add a comment..."
+                            value={newComment[post.id] || ""}
+                            onChange={e => setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))}
+                          />
+                          <button
+                            type="submit"
+                            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
+                            disabled={!newComment[post.id]?.trim()}
+                          >
+                            Comment
+                          </button>
+                        </form>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -269,6 +325,125 @@ export default function CommunityDetailPage() {
           )}
         </main>
       </div>
+      {/* Schedule Event Modal */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <h2 className="text-xl font-bold mb-4">Schedule Event</h2>
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={async e => {
+                e.preventDefault();
+                setEventLoading(true);
+                setEventError("");
+                try {
+                  const payload = {
+                    type: eventForm.type === 'inperson' ? 'Physical' : 'online',
+                    date: eventForm.date,
+                    time: eventForm.time,
+                    location: eventForm.type === 'inperson' ? eventForm.location : undefined,
+                    link: eventForm.type === 'online' ? eventForm.link : undefined,
+                  };
+                  await addEvent(payload);
+                  setShowScheduleModal(false);
+                  setEventForm({ title: '', date: '', time: '', description: '', type: 'online', link: '', location: '' });
+                } catch (err) {
+                  setEventError("Failed to schedule event. Please try again.");
+                } finally {
+                  setEventLoading(false);
+                }
+              }}
+            >
+              <input
+                className="border rounded p-2"
+                type="text"
+                placeholder="Event Title"
+                value={eventForm.title}
+                onChange={e => setEventForm(f => ({ ...f, title: e.target.value }))}
+                required
+              />
+              <input
+                className="border rounded p-2"
+                type="date"
+                value={eventForm.date}
+                onChange={e => setEventForm(f => ({ ...f, date: e.target.value }))}
+                required
+              />
+              <input
+                className="border rounded p-2"
+                type="time"
+                value={eventForm.time}
+                onChange={e => setEventForm(f => ({ ...f, time: e.target.value }))}
+                required
+              />
+              <textarea
+                className="border rounded p-2"
+                rows={3}
+                placeholder="Description"
+                value={eventForm.description}
+                onChange={e => setEventForm(f => ({ ...f, description: e.target.value }))}
+              />
+              {/* Event Type Selector */}
+              <div className="flex gap-4 items-center">
+                <label className="font-medium">Type:</label>
+                <select
+                  className="border rounded p-2 flex-1"
+                  value={eventForm.type}
+                  onChange={e => setEventForm(f => ({ ...f, type: e.target.value }))}
+                >
+                  <option value="online">Online</option>
+                  <option value="inperson">In Person</option>
+                </select>
+              </div>
+              {/* Conditional Fields */}
+              {eventForm.type === 'online' && (
+                <input
+                  className="border rounded p-2"
+                  type="url"
+                  placeholder="Online Event Link (Zoom, Google Meet, etc.)"
+                  value={eventForm.link}
+                  onChange={e => setEventForm(f => ({ ...f, link: e.target.value }))}
+                  required
+                />
+              )}
+              {eventForm.type === 'inperson' && (
+                <input
+                  className="border rounded p-2"
+                  type="text"
+                  placeholder="Event Location/Address"
+                  value={eventForm.location}
+                  onChange={e => setEventForm(f => ({ ...f, location: e.target.value }))}
+                  required
+                />
+              )}
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                  onClick={() => setShowScheduleModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                  disabled={eventLoading}
+                >
+                  {eventLoading ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </form>
+            {eventError && <div className="text-red-500 text-sm mb-2">{eventError}</div>}
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-2xl"
+              onClick={() => setShowScheduleModal(false)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
