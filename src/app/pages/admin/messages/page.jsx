@@ -1,7 +1,7 @@
 "use client";
-import AdminSidebar from '../../../../components/dashboardcomponents/adminsidebar';
-import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
-import ChatComponent from '../../../../components/ChatComponent';
+import AdminSidebar from '../../../../../components/dashboardcomponents/adminsidebar';
+import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
+import ChatComponent from '../../../../../components/ChatComponent';
 import { useState, useEffect } from 'react';
 
 export default function AdminMessagesPage() {
