@@ -13,7 +13,7 @@ import {
   FaUserEdit,
 } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
-import AdminSidebar from '../../../components/dashboardcomponents/adminsidebar';
+import AdminSidebar from '../../../../components/dashboardcomponents/adminsidebar';
   
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
