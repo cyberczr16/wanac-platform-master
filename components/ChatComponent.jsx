@@ -3,29 +3,79 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send } from 'lucide-react';
 
-export default function ChatComponent() {
+const AI_AVATAR = (
+  <span className="inline-flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full mr-2">
+    🤖
+  </span>
+);
+const USER_AVATAR = (
+  <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-400 text-white rounded-full ml-2">
+    🧑
+  </span>
+);
+
+function LoadingDots() {
+  return (
+    <span className="inline-block w-6 text-gray-400">
+      <span className="animate-bounce">.</span>
+      <span className="animate-bounce delay-75">.</span>
+      <span className="animate-bounce delay-150">.</span>
+    </span>
+  );
+}
+
+export default function ChatComponent({ user }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { text: "Hello! How can I help you today?", sender: "bot" }
-  ]);
-  const [inputValue, setInputValue] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
   const chatContainerRef = useRef(null);
+  const messagesEndRef = useRef(null);
   
   const toggleChat = () => setIsOpen(!isOpen);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
-    
-    setMessages([...messages, { text: inputValue, sender: "user" }]);
-    setInputValue('');
-    
-    setTimeout(() => {
-      setMessages(prev => [...prev, { 
-        text: "Thanks for your message! Our team will get back to you soon.", 
-        sender: "bot" 
-      }]);
-    }, 1000);
+  // Load chat history from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("wanacChatHistory");
+    if (saved) setMessages(JSON.parse(saved));
+  }, []);
+
+  // Save chat history to localStorage
+  useEffect(() => {
+    localStorage.setItem("wanacChatHistory", JSON.stringify(messages));
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+    const userMessage = { sender: "user", text: input };
+    setMessages((msgs) => [...msgs, userMessage]);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: input,
+          userId: user?.id,
+        }),
+      });
+      const data = await res.json();
+      setMessages((msgs) => [
+        ...msgs,
+        { sender: "ai", text: data.message || "No response." },
+      ]);
+    } catch (err) {
+      setMessages((msgs) => [
+        ...msgs,
+        { sender: "ai", text: "Error: " + err.message },
+      ]);
+    }
+    setInput("");
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -54,31 +104,49 @@ export default function ChatComponent() {
           </div>
           
           <div ref={chatContainerRef} className="flex-1 p-3 overflow-y-auto max-h-80 space-y-3">
-            {messages.map((message, index) => (
-              <div key={index} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[80%] p-3 rounded-lg ${
-                  message.sender === "user" 
-                    ? "bg-orange-500 text-white rounded-tr-none" 
-                    : "bg-gray-100 text-gray-800 rounded-tl-none"
-                }`}>
-                  {message.text}
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex items-end ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+              >
+                {msg.sender === "ai" && AI_AVATAR}
+                <div
+                  className={`max-w-[75%] px-4 py-2 rounded-2xl shadow-sm text-base break-words ${
+                    msg.sender === "user"
+                      ? "bg-blue-500 text-white rounded-br-none"
+                      : "bg-gray-100 text-gray-800 rounded-bl-none"
+                  }`}
+                >
+                  {msg.text}
                 </div>
+                {msg.sender === "user" && USER_AVATAR}
               </div>
             ))}
+            {loading && (
+              <div className="flex items-end justify-start">
+                {AI_AVATAR}
+                <div className="bg-gray-100 text-gray-400 px-4 py-2 rounded-2xl shadow-sm text-base">
+                  <LoadingDots />
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
           
-          <form onSubmit={handleSubmit} className="border-t border-gray-200 p-3 flex">
+          <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="border-t border-gray-200 p-3 flex">
             <input
               type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !loading && sendMessage()}
               placeholder="Type your message..."
               className="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              disabled={loading}
             />
             <button 
               type="submit"
               className="bg-orange-500 text-white px-4 rounded-r-lg hover:bg-orange-600 flex items-center justify-center"
-              disabled={!inputValue.trim()}
+              disabled={!input.trim() || loading}
             >
               <Send size={18} />
             </button>

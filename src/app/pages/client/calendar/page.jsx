@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
 import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
 import { Dialog } from "@headlessui/react";
+import { FaCalendar } from 'react-icons/fa';
 
 const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -48,6 +49,23 @@ const CalendarPage = () => {
   for (let i = 1; i <= daysInMonth; i++) {
     days.push(i);
   }
+
+  const mockUpcomingSessions = [
+    {
+      id: 1,
+      title: "Career Guidance",
+      date: "2025-06-15",
+      time: "10:00 AM",
+      status: "Scheduled",
+    },
+    {
+      id: 2,
+      title: "Personal Development",
+      date: "2025-06-18",
+      time: "2:00 PM",
+      status: "Scheduled",
+    },
+  ];
 
   return (
     <div className="h-screen flex bg-gray-50 font-serif">
@@ -119,7 +137,36 @@ const CalendarPage = () => {
               
               {/* Right Sidebar */}
               <div className="lg:w-80 space-y-4">
-                {/* Empty widget area */}
+                {/* Upcoming Sessions Widget */}
+                <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-none">
+                  <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                    <FaCalendar className="text-primary" />
+                    Upcoming Sessions
+                  </h3>
+                  <div className="space-y-4">
+                    {mockUpcomingSessions.length === 0 ? (
+                      <p className="text-gray-500 text-sm">No upcoming sessions.</p>
+                    ) : (
+                      mockUpcomingSessions.map((session) => (
+                        <div
+                          key={session.id}
+                          className="border-l-4 border-primary pl-4 py-3 bg-primary/5 rounded"
+                        >
+                          <div className="flex justify-between">
+                            <div>
+                              <p className="font-medium text-gray-800">{session.title}</p>
+                              <p className="text-sm text-gray-600">Status: {session.status}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-semibold text-gray-800">{session.date}</p>
+                              <p className="text-sm text-gray-600">{session.time}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </section>
               </div>
             </div>
           </div>

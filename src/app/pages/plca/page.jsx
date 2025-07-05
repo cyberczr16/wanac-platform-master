@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 const PlcaPage = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif" }}>
       {/* Hero Section */}
       <header className="relative bg-[#002147] text-white">
         <div 
@@ -19,7 +19,7 @@ const PlcaPage = () => {
         />
         <div className="absolute inset-0 bg-[#002147] opacity-75"></div>
         <div className="relative z-10 py-20 text-center">
-          <h1 className="text-5xl font-bold mb-4">
+          <h1 className="text-5xl font-bold mb-4" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>
             Promise Land Career Accelerator (PLCA)
           </h1>
           <p className="text-xl max-w-3xl mx-auto px-4">
@@ -69,7 +69,7 @@ participants with the essential skills needed to thrive professionally in divers
       {/* Program Overview Section */}
       <section id="overview" className="py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-12 text-center text-[#002147]">Program Overview</h2>
+          <h2 className="text-3xl font-bold mb-12 text-center text-[#002147]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>Program Overview</h2>
           <div className="max-w-5xl mx-auto px-4">
             <div className="flex flex-col md:flex-row gap-8 items-stretch">
               {/* Strategic Career Readiness Card */}
@@ -81,7 +81,7 @@ participants with the essential skills needed to thrive professionally in divers
                     <path d="M16 7V5a4 4 0 0 0-8 0v2" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-[#002147]">Strategic Career Readiness</h3>
+                <h3 className="text-2xl font-bold mb-4 text-[#002147]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>Strategic Career Readiness</h3>
                 <ul className="space-y-3 text-gray-700 text-base text-left mx-auto max-w-xs">
                   <li className="flex items-start gap-2">
                     <span className="text-orange-500 mt-1">•</span>
@@ -106,7 +106,7 @@ participants with the essential skills needed to thrive professionally in divers
                     <path d="M2 9v6c0 2.21 4.48 4 10 4s10-1.79 10-4V9" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-[#002147]">Expert-Designed Curriculum</h3>
+                <h3 className="text-2xl font-bold mb-4 text-[#002147]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>Expert-Designed Curriculum</h3>
                 <ul className="space-y-3 text-gray-700 text-base text-left mx-auto max-w-xs">
                   <li className="flex items-start gap-2">
                     <span className="text-blue-500 mt-1">•</span>
@@ -137,7 +137,7 @@ participants with the essential skills needed to thrive professionally in divers
           opacity: 0.05
         }}></div>
         <div className="container mx-auto px-4 relative z-10">
-          <h2 className="text-3xl font-bold mb-12 text-center text-[#002147]">How PLCA Works</h2>
+          <h2 className="text-3xl font-bold mb-12 text-center text-[#002147]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>How PLCA Works</h2>
           <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {[
               {
@@ -165,7 +165,7 @@ participants with the essential skills needed to thrive professionally in divers
                 <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-2xl font-bold text-orange-500">{item.step}</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-3 text-[#002147]">{item.title}</h3>
+                <h3 className="text-xl font-semibold mb-3 text-[#002147]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>{item.title}</h3>
                 <p className="text-gray-600">{item.description}</p>
               </div>
             ))}
@@ -176,7 +176,7 @@ participants with the essential skills needed to thrive professionally in divers
       {/* Who Should Enroll Section */}
       <section id="who-should-enroll" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-12 text-center text-[#002147]">Who Should Enroll?</h2>
+          <h2 className="text-3xl font-bold mb-12 text-center text-[#002147]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>Who Should Enroll?</h2>
           <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8">
             <p className="text-lg mb-6 text-[#002147] font-semibold">PLCA is ideal for:</p>
             <ul className="list-disc pl-6 space-y-4 text-gray-700 text-base">
@@ -191,7 +191,7 @@ participants with the essential skills needed to thrive professionally in divers
       {/* Testimonials Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-12 text-center text-[#002147]">Success Stories</h2>
+          <h2 className="text-3xl font-bold mb-12 text-center text-[#002147]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>Success Stories</h2>
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <div className="bg-gray-50 p-8 rounded-xl shadow-md">
               <p className="italic mb-6 text-gray-600">
@@ -231,12 +231,12 @@ participants with the essential skills needed to thrive professionally in divers
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="max-w-3xl mx-auto">
-              <h3 className="text-3xl font-bold text-white mb-8">
+              <h3 className="text-3xl font-bold text-white mb-8" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>
               Launch Your Civilian Career Today
               </h3>
               <p className="text-lg text-gray-300 mb-8">
               Ready to take your next career step with confidence? Schedule your complimentary consultation and discover how
-              WANAC’s Promise Land Career Accelerator can accelerate your professional success.
+              WANAC's Promise Land Career Accelerator can accelerate your professional success.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button className="w-full sm:w-auto bg-orange-500 text-white px-8 py-4 rounded-lg font-semibold hover:bg-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">

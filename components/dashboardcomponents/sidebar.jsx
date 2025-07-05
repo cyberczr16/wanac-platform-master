@@ -1,12 +1,13 @@
 "use client";
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Home, BarChart2, Settings, LogOut, Users, Calendar, HeartPulse, BookOpen, CheckSquare, Brain, MessageCircle, Bot, UserCog, CalendarDays, Briefcase, GraduationCap, Video, Menu } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
   { name: 'Dashboard', href: '/pages/client/dashboard', icon: <Home size={18} /> },
   { name: 'Calendar', href: '/pages/client/calendar', icon: <Calendar size={18} /> },
+  
   { name: 'Lifescores', href: '/pages/client/lifescores', icon: <HeartPulse size={18} /> },
   { name: 'Journal', href: '/pages/client/journal', icon: <BookOpen size={18} /> },
   { name: 'Breakout Rooms', href: '/client/breakout-rooms', icon: <Users size={18} /> },
@@ -14,11 +15,10 @@ const navItems = [
   { name: 'AI Insights', href: '/pages/client/aiinsights', icon: <Brain size={18} /> },
   { name: 'Community', href: '/pages/client/community', icon: <MessageCircle size={18} /> },
   { name: 'AI Chat Bot', href: '/pages/client/aichatbot', icon: <Bot size={18} /> },
+  { name: 'Students', href: '/pages/client/students', icon: <Users size={18} /> },
   { name: 'Account Settings', href: '/pages/client/accountsettings', icon: <UserCog size={18} /> },
-  { name: 'Events', href: '/pages/client/upcomingevents', icon: <CalendarDays size={18} /> },
-  { name: 'Sessions', href: '/pages/client/sessions', icon: <Video size={18} /> }, // <-- Changed to Video icon
-  { name: 'My Career Compass', href: '/client/career-compass', icon: <Briefcase size={18} /> },
-  { name: 'My Education Compass', href: '/client/education-compass', icon: <GraduationCap size={18} /> },
+  { name: 'Sessions', href: '/pages/client/session', icon: <Video size={18} /> }, // <-- Changed to Video icon
+  { name: 'My Education Compass', href: '/pages/client/myeducationcompass', icon: <GraduationCap size={18} /> },
   { name: 'Reports', href: '/client/reports', icon: <BarChart2 size={18} /> },
 ]
 
@@ -26,6 +26,15 @@ export default function Sidebar() {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const router = useRouter();
+
+  // Logout handler
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('wanacUser');
+    }
+    router.push('/login');
+  };
 
   return (
     <>
@@ -77,7 +86,7 @@ export default function Sidebar() {
           </nav>
           <div className="p-2 border-t flex flex-col gap-1">
             <button className="flex items-center gap-2 px-2 py-2 text-xs text-gray-600 hover:bg-gray-100 w-full rounded-md"
-              onClick={() => setMobileOpen(false)}
+              onClick={() => { setMobileOpen(false); handleLogout(); }}
             >
               <LogOut size={18} />
               {'Log Out'}
@@ -117,6 +126,7 @@ export default function Sidebar() {
         </nav>
         <div className="p-2 border-t flex flex-col gap-1">
           <button className={`flex items-center gap-2 px-2 py-2 text-xs text-gray-600 hover:bg-gray-100 w-full rounded-md ${collapsed ? 'justify-center' : ''}`}
+            onClick={handleLogout}
           >
             <LogOut size={18} />
             {!collapsed && 'Log Out'}

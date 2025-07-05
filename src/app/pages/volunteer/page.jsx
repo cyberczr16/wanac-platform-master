@@ -61,7 +61,7 @@ const VolunteerPage = () => {
   ];
 
   return (
-    <div className="bg-white text-gray-800">
+    <div className="bg-white text-gray-800 font-sans" style={{ fontFamily: 'var(--font-body)' }}>
      {/*   Hero Section */}
      <header className="relative bg-[#002147] text-white">
         <div 
@@ -75,7 +75,7 @@ const VolunteerPage = () => {
         />
         <div className="absolute inset-0 bg-[#002147] opacity-75"></div>
         <div className="relative z-10 py-16 text-center">
-          <h1 className="text-5xl font-bold mb-4">VOLUNTEER WITH WANAC</h1>
+          <h1 className="text-5xl font-bold mb-4 font-sans">VOLUNTEER WITH WANAC</h1>
           <p className="text-xl max-w-3xl mx-auto px-4">
             Make a difference in the lives of service members and their families
           </p>
@@ -115,7 +115,7 @@ const VolunteerPage = () => {
         <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-gradient-to-tr from-blue-400/10 via-white/10 to-orange-400/10 rounded-full blur-2xl z-0" />
         <div className="absolute inset-0 opacity-5 bg-[url('/testimonials-bg-pattern.jpg')] bg-cover bg-center"></div>
         <div className="max-w-6xl mx-auto relative z-10">
-          <h2 className="text-3xl md:text-4xl text-white font-semibold mb-12 text-center">
+          <h2 className="text-3xl md:text-4xl text-white font-semibold mb-12 text-center font-sans">
             How to Volunteer
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
@@ -133,7 +133,7 @@ const VolunteerPage = () => {
                 >
                   <Icon className="text-3xl" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-center text-gray-800">{title}</h3>
+                <h3 className="text-2xl font-bold mb-4 text-center text-gray-800 font-sans">{title}</h3>
                 <p className="text-gray-600 text-center leading-relaxed">{desc}</p>
               </div>
             ))}
@@ -144,7 +144,7 @@ const VolunteerPage = () => {
       {/* Stories Section */}
       <section className="py-20 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-12  text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-12  text-center font-sans">
             Meet Our Volunteers
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -167,7 +167,7 @@ const VolunteerPage = () => {
       {/* FAQ Section */}
       <section className="py-20 px-6 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-12 text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-12 text-center font-sans">
             Frequently Asked Questions
           </h2>
           <div className="space-y-6">
@@ -176,7 +176,7 @@ const VolunteerPage = () => {
                 key={index}
                 className="bg-white rounded-xl shadow-md p-8 hover:shadow-lg transition-shadow duration-300"
               >
-                <h3 className="text-xl font-semibold mb-4 text-[#002147]">
+                <h3 className="text-xl font-semibold mb-4 text-[#002147] font-sans">
                   {faq.question}
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
@@ -191,7 +191,7 @@ const VolunteerPage = () => {
       {/* CTA Section - Similar to other pages */}
       <section className="py-20 px-6 bg-[#002147] text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 font-sans">
             Ready to Make a Difference?
           </h2>
           <p className="text-xl mb-8">

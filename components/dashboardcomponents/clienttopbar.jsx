@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useRef } from 'react';
 import { FaBell, FaUserCircle } from 'react-icons/fa';
 

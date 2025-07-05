@@ -254,7 +254,7 @@ export default function Homepage() {
       </section>
 
       {/* Community and Testimonial */}
-      <section className="py-20 px-6 bg-white text-[#002147] relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #002147 0%, #FF7D33 15%, #FF5E1A 50%, #002147 60%)' }}>
+      <section className="py-20 px-6 bg-white text-[#002147] relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #FFFDF9 0%, #FF7D33 15%, #FF5E1A 50%, #002147 60%)' }}>
         {/* Extra gradients for testimonials */}
         <div className="absolute top-0 left-1/3 w-96 h-96 bg-gradient-to-br from-orange-400/10 via-orange-200/10 to-blue-400/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 z-0" />
         <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-gradient-to-tr from-blue-400/10 via-white/10 to-orange-400/10 rounded-full blur-2xl z-0" />

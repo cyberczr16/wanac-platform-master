@@ -1,36 +1,35 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
+import CoachSidebar from '../../../../../components/dashboardcomponents/CoachSidebar';
 import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
 import { FaCalendar, FaVideo, FaMicrophone, FaUpload, FaRobot, FaBookOpen, FaInfoCircle } from 'react-icons/fa';
-import SessionRecorder from "./SessionRecorder";
-import FileUpload from "./FileUpload";
+import SessionRecorder from "../../client/session/SessionRecorder";
+import FileUpload from "../../client/session/FileUpload";
 
 const mockUpcomingSessions = [
   {
     id: 1,
-    title: "Career Guidance",
-    date: "2025-06-15",
-    time: "10:00 AM",
+    title: "Coaching with Alex",
+    date: "2025-07-10",
+    time: "11:00 AM",
     status: "Scheduled",
   },
   {
     id: 2,
-    title: "Personal Development",
-    date: "2025-06-18",
-    time: "2:00 PM",
+    title: "Performance Review",
+    date: "2025-07-12",
+    time: "3:00 PM",
     status: "Scheduled",
   },
 ];
 
-export default function SessionPage() {
-  const [showBooking, setShowBooking] = useState(false);
+export default function CoachSessionsPage() {
   const [upcomingSessions, setUpcomingSessions] = useState(mockUpcomingSessions);
   const [liveSession, setLiveSession] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [showInviteForm, setShowInviteForm] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState(null);
+  const [showBooking, setShowBooking] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem('wanacUser');
@@ -51,6 +50,7 @@ export default function SessionPage() {
       title: form.title.value,
       date: form.date.value,
       time: form.time.value,
+      link: form.link.value,
       status: "Scheduled",
     };
     setUpcomingSessions([...upcomingSessions, newSession]);
@@ -60,11 +60,11 @@ export default function SessionPage() {
   return (
     <div className="h-screen flex bg-gray-50 font-serif">
       {/* Sidebar */}
-      <Sidebar className="w-56 bg-white border-r border-gray-200" collapsed={collapsed} setCollapsed={setCollapsed} />
+      <CoachSidebar />
       {/* Main Area */}
       <div className="flex-1 flex flex-col h-full transition-all duration-300">
         {/* Top Bar */}
-        <ClientTopbar user={user} />
+        <ClientTopbar user={user || { name: "Coach" }} />
         {/* Main Content */}
         <main className="flex-1 h-0 overflow-y-auto px-2 md:px-8 py-6 bg-gray-50">
           <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -72,22 +72,56 @@ export default function SessionPage() {
             <section className="col-span-1 md:col-span-2 bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex items-center gap-4">
               <FaInfoCircle className="text-primary text-2xl" />
               <div>
-                <h1 className="text-xl font-bold mb-1">Welcome to Your Coaching Sessions</h1>
-                <p className="text-gray-600 text-sm">Book, join, record, and review your coaching sessions. Upload your recordings to get AI-powered transcripts, summaries, and actionable insights.</p>
+                <h1 className="text-xl font-bold mb-1">Welcome to Your Coaching Sessions Dashboard</h1>
+                <p className="text-gray-600 text-sm">Manage, book, join, record, and review your coaching sessions. Upload recordings to get AI-powered transcripts, summaries, and actionable insights for your clients.</p>
               </div>
             </section>
 
-            {/* Book a Session */}
+            {/* All Scheduled Meetings */}
+            <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-2">
+              <div className="flex items-center gap-2 mb-2">
+                <FaCalendar className="text-primary" />
+                <h2 className="text-lg font-semibold text-primary">All Scheduled Meetings</h2>
+              </div>
+              {upcomingSessions.length === 0 ? (
+                <p className="text-gray-500 text-sm">No meetings scheduled yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {upcomingSessions.map((session) => (
+                    <div
+                      key={session.id}
+                      className="border-l-4 border-primary pl-4 py-2 bg-primary/5 rounded"
+                    >
+                      <div className="flex justify-between">
+                        <div>
+                          <p className="font-medium text-gray-800">{session.title}</p>
+                          <p className="text-sm text-gray-600">Status: {session.status}</p>
+                          {session.link && (
+                            <a href={session.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-xs mt-1 inline-block">Join Meeting</a>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-gray-800">{session.date}</p>
+                          <p className="text-sm text-gray-600">{session.time}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Schedule a Session */}
             <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-2">
               <div className="flex items-center gap-2 mb-2">
                 <FaBookOpen className="text-primary" />
-                <h2 className="text-lg font-semibold text-primary">Book a Session</h2>
+                <h2 className="text-lg font-semibold text-primary">Schedule a Session</h2>
               </div>
               <button
                 className="px-4 py-2 bg-primary text-white rounded-md font-medium hover:bg-primary/90 transition-colors w-max"
                 onClick={() => setShowBooking(!showBooking)}
               >
-                {showBooking ? "Cancel" : "Book a Session"}
+                {showBooking ? "Cancel" : "Schedule a Session"}
               </button>
               {showBooking && (
                 <form
@@ -124,47 +158,27 @@ export default function SessionPage() {
                         style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
                       />
                     </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Meeting Link
+                      <input
+                        name="link"
+                        type="url"
+                        placeholder="https://meet.example.com/your-room"
+                        required
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
+                        style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
+                      />
+                    </label>
                   </div>
                   <div className="mt-4">
                     <button
                       type="submit"
                       className="px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors"
                     >
-                      Book
+                      Schedule
                     </button>
                   </div>
                 </form>
-              )}
-            </section>
-
-            {/* Upcoming Sessions */}
-            <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-2">
-              <div className="flex items-center gap-2 mb-2">
-                <FaCalendar className="text-primary" />
-                <h2 className="text-lg font-semibold text-primary">Upcoming Sessions</h2>
-              </div>
-              {upcomingSessions.length === 0 ? (
-                <p className="text-gray-500 text-sm">No upcoming sessions.</p>
-              ) : (
-                <div className="space-y-3">
-                  {upcomingSessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className="border-l-4 border-primary pl-4 py-2 bg-primary/5 rounded"
-                    >
-                      <div className="flex justify-between">
-                        <div>
-                          <p className="font-medium text-gray-800">{session.title}</p>
-                          <p className="text-sm text-gray-600">Status: {session.status}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-semibold text-gray-800">{session.date}</p>
-                          <p className="text-sm text-gray-600">{session.time}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               )}
             </section>
 
@@ -239,26 +253,6 @@ export default function SessionPage() {
                   />
                 </div>
               )}
-            </section>
-
-            {/* Session Recorder */}
-            <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-2">
-              <div className="flex items-center gap-2 mb-2">
-                <FaMicrophone className="text-primary" />
-                <h2 className="text-lg font-semibold text-primary">Record a Session</h2>
-              </div>
-              <SessionRecorder onRecordingComplete={(blob) => {
-                console.log("Recording complete. Blob:", blob);
-              }} />
-            </section>
-
-            {/* File Upload UI */}
-            <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-2">
-              <div className="flex items-center gap-2 mb-2">
-                <FaUpload className="text-primary" />
-                <h2 className="text-lg font-semibold text-primary">Upload a Recorded Session</h2>
-              </div>
-              <FileUpload />
             </section>
 
             {/* AI Results Placeholder */}

@@ -16,6 +16,7 @@ const excludedPaths = [
   '/life-score',
   '/pages/client',
   '/pages/breakoutroom',
+  '/pages/coach',
 ];
 
 export default function ClientLayoutWrapper({ children }) {

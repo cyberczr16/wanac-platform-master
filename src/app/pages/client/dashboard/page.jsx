@@ -1,4 +1,4 @@
-  'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -74,7 +74,10 @@ export default function ClientDashboard() {
   }, []);
 
   return (
-    <div className="h-screen flex bg-gray-50 font-serif">
+    <div
+      className="h-screen flex bg-white font-body text-foreground"
+      style={{ fontFamily: 'var(--font-body)' }}
+    >
       {/* Sidebar */}
       <Sidebar className="w-56 bg-white border-r border-gray-200" collapsed={collapsed} setCollapsed={setCollapsed} />
       {/* Main Area */}
@@ -82,15 +85,18 @@ export default function ClientDashboard() {
         {/* Top Bar */}
         <ClientTopbar user={user} />
         {/* Main Content */}
-        <main className="flex-1 h-0 overflow-y-auto px-4 md:px-12 py-8 bg-gray-50">
-          <div className="max-w-6xl mx-auto">
+        <main className="flex-1 h-0 overflow-y-auto px-2 md:px-8 py-6 bg-muted">
+          <div className="max-w-5xl mx-auto">
             <div className="flex flex-col lg:flex-row gap-8">
               {/* Main Content */}
               <div className="flex-1 space-y-8">
                 {/* Welcome Section */}
-                <section className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-none">
+                <section className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-md animate-fadeIn">
                   <div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-primary mb-1 tracking-tight">
+                    <h2
+                      className="text-2xl md:text-3xl font-bold mb-1 tracking-tight text-heading"
+                      style={{ fontFamily: 'var(--font-heading)' }}
+                    >
                       Welcome Back{user?.name ? `, ${user.name}` : ''}!
                     </h2>
                     <p className="text-gray-600 text-base md:text-lg">Your coaching journey starts here.</p>
@@ -98,7 +104,7 @@ export default function ClientDashboard() {
                   <img
                     src="/dashboard-illustration.svg"
                     alt="Dashboard"
-                    className="w-28 h-28 md:w-36 md:h-36 object-contain hidden md:block"
+                    className="w-24 h-24 md:w-32 md:h-32 object-contain hidden md:block drop-shadow-lg"
                   />
                 </section>
 
@@ -108,35 +114,35 @@ export default function ClientDashboard() {
                     icon={FaCalendar}
                     title="Schedule Session"
                     description="Book your next coaching session"
-                    href="/(dashboard)/appointments"
+                    href="/pages/client/session"
                     color="primary"
                   />
                   <QuickActionCard
                     icon={FaPenFancy}
                     title="New Journal Entry"
                     description="Record your thoughts and progress"
-                    href="/(dashboard)/journal"
+                    href="/pages/client/journal"
                     color="secondary"
                   />
                   <QuickActionCard
                     icon={FaRobot}
                     title="AI Assistant"
                     description="Get instant guidance and support"
-                    href="/(dashboard)/aichatbot"
+                    href="/pages/client/aichatbot"
                     color="accent"
                   />
                   <QuickActionCard
                     icon={FaChartLine}
                     title="Track Progress"
                     description="View your life score metrics"
-                    href="/(dashboard)/lifescore"
+                    href="/pages/client/lifescore"
                     color="warning"
                   />
                   <QuickActionCard
                     icon={FaUsers}
                     title="Breakout Room"
                     description="Group discussion and collaboration"
-                    href="/pages/breakoutroom"
+                    href="/pages/client/breakoutroom"
                     color="primary"
                   />
                 </section>
@@ -144,8 +150,11 @@ export default function ClientDashboard() {
                 {/* Content Grid */}
                 <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Upcoming Sessions */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-none">
-                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-md animate-fadeIn">
+                    <h3
+                      className="text-lg font-semibold mb-4 flex items-center gap-2 text-heading"
+                      style={{ fontFamily: 'var(--font-heading)' }}
+                    >
                       <FaCalendar className="text-primary" />
                       Upcoming Sessions
                     </h3>
@@ -156,7 +165,7 @@ export default function ClientDashboard() {
                         upcomingSessions.map((session) => (
                           <div
                             key={session.id}
-                            className="border-l-4 border-primary pl-4 py-3 bg-primary/5 rounded"
+                            className="border-l-4 border-primary pl-4 py-3 bg-primary/5 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
                           >
                             <div className="flex justify-between">
                               <div>
@@ -172,14 +181,17 @@ export default function ClientDashboard() {
                         ))
                       )}
                     </div>
-                    <button className="mt-4 text-primary hover:underline text-sm font-medium">
+                    <button className="mt-4 text-primary hover:underline text-sm font-medium transition-colors duration-150">
                       View All Sessions →
                     </button>
                   </div>
 
                   {/* Life Score */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-none">
-                    <h3 className="text-lg font-semibold text-warning mb-4 flex items-center gap-2">
+                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-md animate-fadeIn">
+                    <h3
+                      className="text-lg font-semibold mb-4 flex items-center gap-2 text-warning"
+                      style={{ fontFamily: 'var(--font-heading)' }}
+                    >
                       <FaChartLine className="text-warning" />
                       Life Score Overview
                     </h3>
@@ -199,7 +211,7 @@ export default function ClientDashboard() {
                         </div>
                       ))}
                     </div>
-                    <button className="mt-4 text-warning hover:underline text-sm font-medium">
+                    <button className="mt-4 text-warning hover:underline text-sm font-medium transition-colors duration-150">
                       View Detailed Analysis →
                     </button>
                   </div>
@@ -217,19 +229,20 @@ export default function ClientDashboard() {
 function QuickActionCard({ icon: Icon, title, description, href, color }) {
   // Use brand color classes from Tailwind config
   const colorClasses = {
-    primary: 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20',
-    secondary: 'bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20',
+    primary: 'bg-[#002147]/10 text-[#002147] border-[#002147]/20 hover:bg-[#002147]/20',
+    secondary: 'bg-orange-100 text-orange-600 border-orange-200 hover:bg-orange-200',
     accent: 'bg-accent/10 text-accent border-accent/20 hover:bg-accent/20',
-    warning: 'bg-warning/10 text-warning border-warning/20 hover:bg-warning/20',
+    warning: 'bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200',
   };
 
   return (
     <a
       href={href}
-      className={`flex-1 min-w-[180px] p-5 rounded-lg border transition-all duration-200 shadow-none hover:shadow-sm transform hover:scale-[1.01] flex flex-col items-start gap-2 ${colorClasses[color]}`}
+      className={`flex-1 min-w-[160px] p-4 rounded-xl border transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-[1.02] flex flex-col items-start gap-2 ${colorClasses[color]}`}
+      style={{ fontFamily: 'var(--font-body)' }}
     >
       <Icon className="text-2xl mb-1" />
-      <h3 className="text-base font-semibold mb-0.5">{title}</h3>
+      <h3 className="text-base font-semibold mb-0.5" style={{ fontFamily: 'var(--font-heading)' }}>{title}</h3>
       <p className="text-xs opacity-80">{description}</p>
     </a>
   );

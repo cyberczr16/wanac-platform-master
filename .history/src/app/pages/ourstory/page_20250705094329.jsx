@@ -50,7 +50,7 @@ const OurStory = () => {
     <section className="py-12 bg-white rounded-lg shadow-sm mb-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-[#002147] relative inline-block font-[Montserrat]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>
+          <h2 className="text-3xl font-bold text-[#002147] relative inline-block">
             {title}
             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-blue-600 rounded-full"></div>
           </h2>
@@ -80,7 +80,7 @@ const OurStory = () => {
                   </div>
                 </div>
                 
-                <h3 className="text-xl font-bold text-[#002147] mb-2 font-[Montserrat]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>{member.name}</h3>
+                <h3 className="text-xl font-bold text-[#002147] mb-2">{member.name}</h3>
                 <p className="text-blue-600 font-medium text-sm mb-3">{member.title}</p>
                 
                 <div className="h-px w-16 bg-gray-200 mb-3"></div>
@@ -112,7 +112,7 @@ const OurStory = () => {
   );
 
   return (
-    <div className="bg-gray-50" style={{ fontFamily: "'Source Sans Pro', Arial, sans-serif" }}>
+    <div className="bg-gray-50">
     
 
       {/* Main Content */}
@@ -128,7 +128,7 @@ const OurStory = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-br from-[#002147]/90 via-[#002147]/80 to-[#ff5e1a]/40"></div>
         <div className="relative z-10 py-20 px-4 w-full max-w-4xl mx-auto text-center flex flex-col items-center">
-          <h1 className="text-2xl md:text-3xl font-extrabold mb-2 leading-tight drop-shadow-lg font-[Montserrat]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>
+          <h1 className="text-2xl md:text-3xl font-extrabold mb-2 leading-tight drop-shadow-lg">
             OUR MISSION
           </h1>
           <p className="text-base md:text-lg max-w-2xl mx-auto mb-4 text-blue-100 font-medium drop-shadow">
@@ -178,21 +178,28 @@ their communities and beyond.
       </section>
 
         <section id="what-sets-apart" className="p-8 mb-12">
-          <div className="flex flex-col items-center max-w-4xl mx-auto gap-8">
+          <div className="flex flex-col md:flex-row items-stretch max-w-5xl mx-auto gap-8">
             {/* Text Content */}
-            <div className="flex flex-col items-center text-center w-full max-w-4xl">
-              <h1 className="text-2xl md:text-3xl font-extrabold mb-2 font-[Montserrat]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>
+            <div className="flex-1 flex flex-col justify-center text-left">
+              <h1 className="text-2xl md:text-3xl font-extrabold mb-2">
                 What Sets WANAC Apart
               </h1>
-              <p className="text-base md:text-lg mb-4 text-black font-medium drop-shadow w-full">
+              <p className="text-base md:text-lg max-w-2xl mb-4 text-black font-medium drop-shadow">
                 In today's rapidly evolving world, the ability to adapt, lead, and inspire others is more important than ever. At WANAC, we cultivate forward-thinking leaders who not only possess strategic insight and adaptability but also excel in emotional intelligence and resilience—key traits of transformative leadership.
               </p>
-              <p className="text-base md:text-lg mb-4 text-black font-medium drop-shadow w-full">
+              <p className="text-base md:text-lg max-w-2xl mb-4 text-black font-medium drop-shadow">
                 Our distinctive approach combines rigorous academic insights with real-world experiences, preparing our participants to confidently navigate life's transitions and professional challenges.
               </p>
             </div>
             {/* Image */}
-            
+            <div className="flex-1 flex items-center justify-center">
+              <img 
+                src="/community1.jpg" 
+                alt="What Sets WANAC Apart" 
+                className="shadow-lg w-full h-full object-cover max-h-[420px] md:max-h-none"
+                style={{ aspectRatio: '1/1', objectFit: 'cover' }}
+              />
+            </div>
           </div>
         </section>
         
@@ -210,7 +217,7 @@ their communities and beyond.
           />
           <div className="absolute inset-0 bg-gradient-to-br from-[#002147]/90 via-[#002147]/80 to-[#ff5e1a]/40"></div>
           <div className="relative z-10 w-full max-w-3xl mx-auto py-12 px-4 flex flex-col items-center">
-            <h2 className="text-3xl font-bold text-white mb-8 flex items-center justify-center relative font-[Montserrat]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>
+            <h2 className="text-3xl font-bold text-white mb-8 flex items-center justify-center relative">
               <span className="z-10">Our Core Pillars At WANAC</span>
             </h2>
             <div className="w-full">
@@ -290,7 +297,7 @@ their communities and beyond.
 
         {/* Strategic Aspirations Section */}
         <section id="aspirations" className="p-8 mb-12">
-          <h1 className="text-3xl md:text-4xl font-extrabold mb-4 leading-tight drop-shadow-lg text-[#002147] text-center font-[Montserrat]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>Our Strategic Aspirations</h1>
+          <h1 className="text-3xl md:text-4xl font-extrabold mb-4 leading-tight drop-shadow-lg text-[#002147] text-center">Our Strategic Aspirations</h1>
           {/* Simple Infographic Row */}
           <div className="w-full overflow-x-auto">
             <div className="flex md:grid md:grid-cols-5 gap-6 md:gap-8 items-stretch justify-center min-w-[600px] md:min-w-0">
@@ -358,7 +365,7 @@ their communities and beyond.
           />
           <div className="absolute inset-0 bg-gradient-to-br from-[#002147]/90 via-[#002147]/80 to-[#ff5e1a]/40"></div>
           <div className="relative z-10 w-full max-w-2xl mx-auto text-center flex flex-col items-center justify-center py-16 px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 drop-shadow-lg font-[Montserrat]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>Join the WANAC Community</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 drop-shadow-lg">Join the WANAC Community</h2>
             <p className="text-white max-w-xl mx-auto mb-6 text-lg md:text-xl drop-shadow">
               Become part of an empowered network dedicated to making meaningful, positive impacts in society. Connect with us
               to start your transformative journey today.
@@ -375,7 +382,7 @@ their communities and beyond.
         {/* Leadership Sections */}
         <div className="space-y-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-[#002147] mb-4 font-[Montserrat]" style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}>Our Leadership</h2>
+            <h2 className="text-4xl font-bold text-[#002147] mb-4">Our Leadership</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Meet the dedicated individuals who guide our mission and drive our success in empowering veterans and professionals.
             </p>

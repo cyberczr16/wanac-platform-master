@@ -173,7 +173,7 @@ export default function Footer({ hideFooter = false }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-[#002147] hover:bg-orange-300 text-white px-6 py-2 text-sm rounded-md hover:shadow-md transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
+                className="bg-[#002147] hover:bg-orange text-white px-6 py-2 text-sm rounded-md hover:shadow-md transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">

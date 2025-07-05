@@ -3,45 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { fetchCommunityById, addCommunityFeedPost, addEvent } from "../../../../../services/api/community.service";
-
-const sampleMeetups = [
-  {
-    id: 1,
-    date: "Friday, Jan 31, 6:00 AM (PST)",
-    duration: "60 minutes",
-    title: "Leaders: Let's Connect & Collaborate. What book and mentors have shaped your style?",
-    host: { name: "Jaclyn Zolnik", avatar: "/user34.jpg" },
-    rsvps: 2,
-    image: "/globe.svg",
-  },
-  {
-    id: 2,
-    date: "Friday, Jan 31, 8:00 AM (PST)",
-    duration: "60 minutes",
-    title: "Everything They Forgot to Tell You When You Started Your Business",
-    host: { name: "Kevin McKamey", avatar: "/jamesthompson.jpg" },
-    rsvps: 21,
-    image: "/veteran1.jpg",
-  },
-  {
-    id: 3,
-    date: "Friday, Jan 31, 9:00 AM (PST)",
-    duration: "30 minutes",
-    title: "Reclaim Your Relationship With Money - Making It Positive",
-    host: { name: "Elizabeth Rosenberg", avatar: "/veterancommunity3.png" },
-    rsvps: 17,
-    image: "/veterancommunity.png",
-  },
-  {
-    id: 4,
-    date: "Friday, Jan 31, 9:30 AM (PST)",
-    duration: "30 minutes",
-    title: "Mental Health Success Habits",
-    host: { name: "Sarah Lee", avatar: "/testimonial1.jpg" },
-    rsvps: 10,
-    image: "/testimonial2.jpg",
-  },
-];
+import { updateEvent } from "../../../../../services/api/events.service";
+import axios from "axios";
 
 export default function CommunityDetailPage() {
   const router = useRouter();
@@ -65,16 +28,16 @@ export default function CommunityDetailPage() {
   const [comments, setComments] = useState({});
   const [newComment, setNewComment] = useState({});
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [eventForm, setEventForm] = useState({ title: '', date: '', time: '', description: '', type: 'online', link: '', location: '' });
   const [eventLoading, setEventLoading] = useState(false);
   const [eventError, setEventError] = useState("");
+  const [events, setEvents] = useState([]);
+  const [rsvps, setRsvps] = useState({});
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState("");
 
   useEffect(() => {
-    if (!communityId) {
-      setError("No community ID provided.");
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     fetchCommunityById(communityId)
       .then((data) => {
@@ -96,7 +59,32 @@ export default function CommunityDetailPage() {
         setUser(null);
       }
     }
+
+    // Fetch all scheduled events using updateEvent API
+    setEventsLoading(true);
+    updateEvent(undefined, {})
+      .then(data => {
+        let eventList = Array.isArray(data) ? data : (Array.isArray(data.events) ? data.events : []);
+        setEvents(eventList);
+        setEventsError("");
+      })
+      .catch(() => {
+        setEventsError("Failed to load events.");
+        setEvents([]);
+      })
+      .finally(() => setEventsLoading(false));
   }, [communityId]);
+
+  // Show animation when modal opens
+  useEffect(() => {
+    if (showScheduleModal) {
+      setModalVisible(true);
+    } else {
+      // Delay hiding for animation
+      const timeout = setTimeout(() => setModalVisible(false), 200);
+      return () => clearTimeout(timeout);
+    }
+  }, [showScheduleModal]);
 
   if (loading) {
     return <div className="p-8 text-center">Loading community...</div>;
@@ -110,6 +98,16 @@ export default function CommunityDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Back to Communities Button */}
+      <div className="max-w-6xl mx-auto px-4 pt-6 pb-2">
+        <button
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium text-base mb-2"
+          onClick={() => router.back()}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          Back to Communities
+        </button>
+      </div>
       {/* Top Tabs */}
       <div className="flex justify-center border-b bg-white sticky top-0 z-10">
         {['Feed', 'Chat', 'Meetups'].map(tab => (
@@ -126,7 +124,7 @@ export default function CommunityDetailPage() {
         {/* Sidebar */}
         <aside className="w-56 flex-shrink-0">
           <div className="bg-white rounded-lg shadow p-4 mb-6">
-            {['Explore', 'Going', 'Hosting'].map(tab => (
+            {['Explore'].map(tab => (
               <button
                 key={tab}
                 className={`block w-full text-left px-4 py-2 rounded mb-1 font-medium transition-colors duration-150 ${sidebarTab === tab.toLowerCase() ? 'bg-blue-100 text-blue-700 border-l-4 border-blue-600' : 'text-gray-700 hover:bg-blue-50'}`}
@@ -147,25 +145,36 @@ export default function CommunityDetailPage() {
         <main className="flex-1">
           {activeTab === "meetups" && (
             <div className="space-y-4">
-              {sampleMeetups.map(event => (
-                <div key={event.id} className="flex bg-white rounded-lg shadow p-6 items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-gray-500 mb-1">{event.date} • {event.duration}</div>
-                    <div className="text-lg font-semibold mb-2">{event.title}</div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <img src={event.host.avatar} alt={event.host.name} className="w-8 h-8 rounded-full object-cover" />
-                      <span className="text-sm font-medium text-gray-700">{event.host.name}</span>
+              {eventsLoading ? (
+                <div className="text-center text-gray-500">Loading events...</div>
+              ) : eventsError ? (
+                <div className="text-center text-red-500">{eventsError}</div>
+              ) : events.length === 0 ? (
+                <div className="text-center text-gray-400 italic">No events scheduled yet. Be the first to schedule one!</div>
+              ) : (
+                events.map(event => (
+                  <div key={event.id} className="flex bg-white rounded-lg shadow p-6 items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-gray-500 mb-1">{event.date} • {event.time}</div>
+                      <div className="text-lg font-semibold mb-2">{event.title}</div>
+                      {event.description && <div className="text-gray-700 mb-2">{event.description}</div>}
+                      {event.type && <div className="text-xs text-blue-700 mb-1">{event.type === 'Physical' ? 'In Person' : 'Online'}</div>}
+                      {event.location && <div className="text-xs text-gray-500">Location: {event.location}</div>}
+                      {event.link && <div className="text-xs text-blue-600">Link: <a href={event.link} target="_blank" rel="noopener noreferrer" className="underline">{event.link}</a></div>}
+                    </div>
+                    <div className="flex flex-col items-end gap-2 ml-6">
+                      <span className="text-gray-500 text-sm mb-2">{event.rsvpCount || 0} RSVPs</span>
+                      <button
+                        className={`bg-blue-600 text-white px-4 py-1 rounded-full font-semibold hover:bg-blue-700 transition ${rsvps[event.id] ? 'opacity-50' : ''}`}
+                        disabled={rsvps[event.id]}
+                        onClick={() => setRsvps(prev => ({ ...prev, [event.id]: true }))}
+                      >
+                        {rsvps[event.id] ? 'RSVPed' : 'RSVP'}
+                      </button>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2 ml-6">
-                    <img src={event.image} alt="event" className="w-20 h-20 object-cover rounded mb-2" />
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500 text-sm">{event.rsvps} RSVPs</span>
-                      <button className="bg-blue-600 text-white px-4 py-1 rounded-full font-semibold hover:bg-blue-700 transition">RSVP</button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
           {activeTab === "feed" && (
@@ -326,9 +335,17 @@ export default function CommunityDetailPage() {
         </main>
       </div>
       {/* Schedule Event Modal */}
-      {showScheduleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+      {(showScheduleModal || modalVisible) && (
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-10 transition-opacity duration-200 ${showScheduleModal ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          onClick={e => {
+            if (e.target === e.currentTarget) setShowScheduleModal(false);
+          }}
+        >
+          <div
+            className={`bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative transform transition-all duration-200 ${showScheduleModal ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+            onClick={e => e.stopPropagation()}
+          >
             <h2 className="text-xl font-bold mb-4">Schedule Event</h2>
             <form
               className="flex flex-col gap-4"
@@ -343,10 +360,26 @@ export default function CommunityDetailPage() {
                     time: eventForm.time,
                     location: eventForm.type === 'inperson' ? eventForm.location : undefined,
                     link: eventForm.type === 'online' ? eventForm.link : undefined,
+                    title: eventForm.title,
+                    description: eventForm.description,
+                    community_id: communityId,
                   };
                   await addEvent(payload);
                   setShowScheduleModal(false);
                   setEventForm({ title: '', date: '', time: '', description: '', type: 'online', link: '', location: '' });
+                  // Refresh all events after scheduling
+                  setEventsLoading(true);
+                  updateEvent(undefined, {})
+                    .then(data => {
+                      let eventList = Array.isArray(data) ? data : (Array.isArray(data.events) ? data.events : []);
+                      setEvents(eventList);
+                      setEventsError("");
+                    })
+                    .catch(() => {
+                      setEventsError("Failed to load events.");
+                      setEvents([]);
+                    })
+                    .finally(() => setEventsLoading(false));
                 } catch (err) {
                   setEventError("Failed to schedule event. Please try again.");
                 } finally {

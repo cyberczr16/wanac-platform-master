@@ -34,6 +34,7 @@ export default function Navbar({ hideNavbar = false }) {
     '/settings',
     '/mycoach',
     '/library',
+    '/pages/coach',
   ];
   
   // Check if current path starts with any of the excluded paths

@@ -116,26 +116,24 @@ export default function Footer({ hideFooter = false }) {
               <h3 className="font-bold text-[#002147] text-sm mb-4 pb-2 border-b border-[#002147]/10">CONNECT WITH US</h3>
               <div className="flex items-center gap-6 text-lg justify-center">
                 <div className="group">
-                  <FaFacebookF className="text-[#1877F2] hover:text-[#0d65e1] transform group-hover:scale-110 transition-all duration-300 cursor-pointer" />
-                  <div className="w-full h-0.5 bg-[#1877F2] scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                  <FaFacebookF className="text-slate-600 hover:text-[#002147] transform group-hover:scale-110 transition-all duration-300 cursor-pointer" />
+                  <div className="w-full h-0.5 bg-[#002147] scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </div>
                 <div className="group">
-                  <FaXTwitter className="text-[#000000] hover:text-[#14171A] transform group-hover:scale-110 transition-all duration-300 cursor-pointer" />
-                  <div className="w-full h-0.5 bg-[#000000] scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                  <FaXTwitter className="text-slate-600 hover:text-[#002147] transform group-hover:scale-110 transition-all duration-300 cursor-pointer" />
+                  <div className="w-full h-0.5 bg-[#002147] scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </div>
                 <div className="group">
-                  
-                  <FaYoutube className="text-[#FF0000] hover:text-[#cc0000] transform group-hover:scale-110 transition-all duration-300 cursor-pointer" />
-                  <div className="w-full h-0.5 bg-[#FF0000] scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                  <FaYoutube className="text-slate-600 hover:text-[#002147] transform group-hover:scale-110 transition-all duration-300 cursor-pointer" />
+                  <div className="w-full h-0.5 bg-[#002147] scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </div>
                 <div className="group">
-                  <FaInstagram className="text-[#E4405F] hover:text-[#d1264a] transform group-hover:scale-110 transition-all duration-300 cursor-pointer" />
-                  <div className="w-full h-0.5 bg-[#E4405F] scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                  <FaInstagram className="text-slate-600 hover:text-[#002147] transform group-hover:scale-110 transition-all duration-300 cursor-pointer" />
+                  <div className="w-full h-0.5 bg-[#002147] scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </div>
                 <div className="group">
-                  
-                  <FaLinkedinIn className="text-[#0A66C2] hover:text-[#084c91] transform group-hover:scale-110 transition-all duration-300 cursor-pointer" />
-                  <div className="w-full h-0.5 bg-[#0A66C2] scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                  <FaLinkedinIn className="text-slate-600 hover:text-[#002147] transform group-hover:scale-110 transition-all duration-300 cursor-pointer" />
+                  <div className="w-full h-0.5 bg-[#002147] scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </div>
               </div>
             </div>
@@ -173,7 +171,7 @@ export default function Footer({ hideFooter = false }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-[#002147] hover:bg-orange-300 text-white px-6 py-2 text-sm rounded-md hover:shadow-md transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
+                className="bg-[#002147] hover:bg-[#002147]/90 text-white px-6 py-2 text-sm rounded-md hover:shadow-md transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">

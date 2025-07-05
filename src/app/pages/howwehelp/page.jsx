@@ -64,8 +64,7 @@ export default function HowWeHelp() {
   ];
 
   return (
-    <div>
-
+    <div style={{ fontFamily: "var(--font-body)" }}>
       {/* Hero Section */}
       <header className="relative bg-[#002147] text-white min-h-[420px] flex items-center justify-center overflow-hidden">
         <div 
@@ -79,7 +78,7 @@ export default function HowWeHelp() {
         />
         <div className="absolute inset-0 bg-gradient-to-br from-[#002147]/90 via-[#002147]/80 to-[#ff5e1a]/40"></div>
         <div className="relative z-10 py-20 px-4 w-full max-w-4xl mx-auto text-center flex flex-col items-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight drop-shadow-lg">
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight drop-shadow-lg" style={{ fontFamily: "var(--font-heading)" }}>
             Empowering Your Next Chapter
           </h1>
           <p className="text-lg md:text-2xl max-w-2xl mx-auto mb-6 text-blue-100 font-medium drop-shadow">
@@ -171,7 +170,7 @@ export default function HowWeHelp() {
           </div>
           {/* Section Text */}
           <div className="max-w-md mx-auto text-center md:text-left">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#002147] mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-[#002147] mb-4" style={{ fontFamily: "var(--font-heading)" }}>
               Understanding Your Challenges
             </h2>
             <p className="text-lg text-[#002147] mb-6">
@@ -203,7 +202,7 @@ export default function HowWeHelp() {
         <div className="relative z-10">
         <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">
+            <h2 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-heading)" }}>
               Our Programs
             </h2>
             <p className="text-lg text-white">
@@ -215,7 +214,7 @@ export default function HowWeHelp() {
             <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-500 p-4 border border-gray-100 overflow-hidden min-h-[220px] flex flex-col justify-between">
               <div className="flex items-center mb-2">
                 <MdBusiness size={32} className="text-orange-400 mr-2" />
-                <h3 className="text-lg font-bold text-brand-navy">VSO Claim Support</h3>
+                <h3 className="text-lg font-bold text-brand-navy" style={{ fontFamily: "var(--font-heading)" }}>VSO Claim Support</h3>
               </div>
               <p className="text-xs text-brand-blue mb-2">Streamlined Support for VA Claims</p>
               <ul className="list-disc list-inside text-gray-700 space-y-1 mb-2 text-xs">
@@ -230,7 +229,7 @@ export default function HowWeHelp() {
             <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-500 p-4 border border-gray-100 overflow-hidden min-h-[220px] flex flex-col justify-between">
               <div className="flex items-center mb-2">
                 <MdSchool size={32} className="text-orange-400 mr-2" />
-                <h3 className="text-lg font-bold text-brand-navy">Promise Land Education Pathway (PLEP)</h3>
+                <h3 className="text-lg font-bold text-brand-navy" style={{ fontFamily: "var(--font-heading)" }}>Promise Land Education Pathway (PLEP)</h3>
               </div>
               <p className="text-xs text-brand-blue mb-2">Navigate Your Educational Journey</p>
               <ul className="list-disc list-inside text-gray-700 space-y-1 mb-2 text-xs">
@@ -245,7 +244,7 @@ export default function HowWeHelp() {
             <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-500 p-4 border border-gray-100 overflow-hidden min-h-[220px] flex flex-col justify-between">
               <div className="flex items-center mb-2">
                 <MdWork size={32} className="text-orange-400 mr-2" />
-                <h3 className="text-lg font-bold text-brand-navy">Promise Land Career Accelerator (PLCA)</h3>
+                <h3 className="text-lg font-bold text-brand-navy" style={{ fontFamily: "var(--font-heading)" }}>Promise Land Career Accelerator (PLCA)</h3>
               </div>
               <p className="text-xs text-brand-blue mb-2">Accelerate Your Professional Success</p>
               <ul className="list-disc list-inside text-gray-700 space-y-1 mb-2 text-xs">
@@ -260,7 +259,7 @@ export default function HowWeHelp() {
             <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-500 p-4 border border-gray-100 overflow-hidden min-h-[220px] flex flex-col justify-between">
               <div className="flex items-center mb-2">
                 <MdStar size={32} className="text-orange-400 mr-2" />
-                <h3 className="text-lg font-bold text-brand-navy">Peak Performance Coaching (PPC)</h3>
+                <h3 className="text-lg font-bold text-brand-navy" style={{ fontFamily: "var(--font-heading)" }}>Peak Performance Coaching (PPC)</h3>
               </div>
               <p className="text-xs text-brand-blue mb-2">Master Personal & Professional Excellence</p>
               <ul className="list-disc list-inside text-gray-700 space-y-1 mb-2 text-xs">
@@ -275,7 +274,7 @@ export default function HowWeHelp() {
             <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-500 p-4 border border-gray-100 overflow-hidden min-h-[220px] flex flex-col justify-between">
               <div className="flex items-center mb-2">
                 <FaUserGraduate size={32} className="text-orange-400 mr-2" />
-                <h3 className="text-lg font-bold text-brand-navy">Certified Peak Performance Coach (CPPC)</h3>
+                <h3 className="text-lg font-bold text-brand-navy" style={{ fontFamily: "var(--font-heading)" }}>Certified Peak Performance Coach (CPPC)</h3>
               </div>
               <p className="text-xs text-brand-blue mb-2">Become a Recognized Coaching Leader</p>
               <ul className="list-disc list-inside text-gray-700 space-y-1 mb-2 text-xs">
@@ -290,7 +289,7 @@ export default function HowWeHelp() {
             <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-500 p-4 border border-gray-100 overflow-hidden min-h-[220px] flex flex-col justify-between">
               <div className="flex items-center mb-2">
                 <MdBusiness size={32} className="text-orange-400 mr-2" />
-                <h3 className="text-lg font-bold text-brand-navy">Vetrepreneurship Academy (VETA)</h3>
+                <h3 className="text-lg font-bold text-brand-navy" style={{ fontFamily: "var(--font-heading)" }}>Vetrepreneurship Academy (VETA)</h3>
               </div>
               <p className="text-xs text-brand-blue mb-2">Build Your Entrepreneurial Legacy</p>
               <ul className="list-disc list-inside text-gray-700 space-y-1 mb-2 text-xs">
@@ -325,20 +324,20 @@ export default function HowWeHelp() {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 z-10">
             <div className="text-center">
               <div className="max-w-3xl mx-auto">
-                <h3 className="text-3xl md:text-4xl font-bold text-white mb-8">
+                <h3 className="text-3xl md:text-4xl font-bold text-white mb-8" style={{ fontFamily: "var(--font-heading)" }}>
                   Why Choose WANAC?
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                   <div className="bg-white rounded-xl shadow p-6 border border-gray-100 text-left flex flex-col justify-between">
-                    <h4 className="font-semibold text-xl mb-2 text-[#002147]">Tailored Programs</h4>
+                    <h4 className="font-semibold text-xl mb-2 text-[#002147]" style={{ fontFamily: "var(--font-heading)" }}>Tailored Programs</h4>
                     <p className="text-gray-700">Specifically designed for transitioning service members, veterans, and professionals.</p>
                   </div>
                   <div className="bg-white rounded-xl shadow p-6 border border-gray-100 text-left flex flex-col justify-between">
-                    <h4 className="font-semibold text-xl mb-2 text-[#002147]">Proven Results</h4>
+                    <h4 className="font-semibold text-xl mb-2 text-[#002147]" style={{ fontFamily: "var(--font-heading)" }}>Proven Results</h4>
                     <p className="text-gray-700">Structured, actionable frameworks delivering measurable outcomes.</p>
                   </div>
                   <div className="bg-white rounded-xl shadow p-6 border border-gray-100 text-left flex flex-col justify-between">
-                    <h4 className="font-semibold text-xl mb-2 text-[#002147]">Dedicated Support</h4>
+                    <h4 className="font-semibold text-xl mb-2 text-[#002147]" style={{ fontFamily: "var(--font-heading)" }}>Dedicated Support</h4>
                     <p className="text-gray-700">Ongoing mentorship, community connections, and robust resources.</p>
                   </div>
                 </div>

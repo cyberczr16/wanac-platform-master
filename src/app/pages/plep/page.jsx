@@ -78,7 +78,7 @@ const PlepPage = () => {
   
 
   return (
-    <div className="bg-white">
+    <div className="bg-white font-sans" style={{ fontFamily: "'Source Sans Pro', 'Montserrat', Arial, sans-serif" }}>
       {/* Hero Section */}
       <header className="relative bg-[#002147] text-white">
         <div 
@@ -227,8 +227,12 @@ journey.
   
     <div className="grid md:grid-cols-2 gap-12 items-center">
       {/* Left Infographic Chart (placeholder for now) */}
-      <div className="relative w-full flex justify-center">
-      
+      <div className="w-full flex justify-center items-center">
+        <img 
+          src="/promiselandtransition.jpg" 
+          alt="Promise Land Infographic" 
+          className="rounded-lg shadow-lg max-w-xs md:max-w-sm lg:max-w-md w-full h-auto object-cover border-4 border-orange-200"
+        />
       </div>
 
       {/* Right Step List */}

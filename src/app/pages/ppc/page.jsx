@@ -7,7 +7,7 @@ const PpcPage = () => {
   const [activePhase, setActivePhase] = useState(1);
 
   return (
-    <div className="bg-white">
+    <div className="bg-white" style={{ fontFamily: "var(--font-body)" }}>
       {/* Hero Section */}
       <header className="relative bg-[#002147] text-white">
         <div 
