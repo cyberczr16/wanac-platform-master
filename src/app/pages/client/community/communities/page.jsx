@@ -1,12 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { fetchCommunityById, addCommunityFeedPost, addEvent } from "../../../../../services/api/community.service";
 import { updateEvent } from "../../../../../services/api/events.service";
 import axios from "axios";
 
 export default function CommunityDetailPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CommunityDetailPageInner />
+    </Suspense>
+  );
+}
+
+function CommunityDetailPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const communityId = searchParams.get("id");
