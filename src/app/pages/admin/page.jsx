@@ -12,9 +12,8 @@ import {
   FaUserShield,
   FaUserEdit,
 } from 'react-icons/fa';
-import Sidebar from '../../../../components/dashboardcomponents/adminsidebar';
 import { useState, useEffect } from 'react';
-import AdminSidebar from '../../../../components/dashboardcomponents/adminsidebar';
+import AdminSidebar from '../../../components/dashboardcomponents/adminsidebar';
   
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
