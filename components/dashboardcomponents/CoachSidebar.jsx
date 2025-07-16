@@ -17,7 +17,7 @@ import {
 
 const coachNavItems = [
   { name: 'Dashboard', href: '/pages/coach', icon: <FaChartBar size={18} /> },
-  { name: 'Upcoming Sessions', href: '/pages/coach/sessions', icon: <FaCalendarAlt size={18} /> },
+  { name: 'Sessions', href: '/pages/coach/sessions', icon: <FaCalendarAlt size={18} /> },
   { name: 'Clients', href: '/pages/coach/clients', icon: <FaUserFriends size={18} /> },
   { name: 'Session Notes', href: '/pages/coach/session-notes', icon: <FaClipboardList size={18} /> },
   { name: 'Coaching Tips', href: '/pages/coach/tips', icon: <FaLightbulb size={18} /> },

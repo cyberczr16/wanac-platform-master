@@ -13,6 +13,12 @@ const mockUpcomingSessions = [
     date: "2025-06-15",
     time: "10:00 AM",
     status: "Scheduled",
+    link: "https://meet.jit.si/wanac-career-guidance",
+    resources: [
+      { name: "Career Guide PDF", url: "https://example.com/career-guide.pdf" },
+      { name: "Preparation Checklist", url: "https://example.com/checklist.pdf" }
+    ],
+    notes: "Prepare your resume and list your career questions."
   },
   {
     id: 2,
@@ -20,6 +26,11 @@ const mockUpcomingSessions = [
     date: "2025-06-18",
     time: "2:00 PM",
     status: "Scheduled",
+    link: "https://meet.jit.si/wanac-personal-development",
+    resources: [
+      { name: "Self-Assessment Worksheet", url: "https://example.com/self-assessment.pdf" }
+    ],
+    notes: "Think about your personal goals for the next 6 months."
   },
 ];
 
@@ -52,6 +63,9 @@ export default function SessionPage() {
       date: form.date.value,
       time: form.time.value,
       status: "Scheduled",
+      link: form.link?.value || "https://meet.jit.si/wanac-demo-room",
+      resources: [], // Could be extended to allow resource input
+      notes: form.notes?.value || "",
     };
     setUpcomingSessions([...upcomingSessions, newSession]);
     setShowBooking(false);
@@ -77,68 +91,8 @@ export default function SessionPage() {
               </div>
             </section>
 
-            {/* Book a Session */}
-            <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-2">
-              <div className="flex items-center gap-2 mb-2">
-                <FaBookOpen className="text-primary" />
-                <h2 className="text-lg font-semibold text-primary">Book a Session</h2>
-              </div>
-              <button
-                className="px-4 py-2 bg-primary text-white rounded-md font-medium hover:bg-primary/90 transition-colors w-max"
-                onClick={() => setShowBooking(!showBooking)}
-              >
-                {showBooking ? "Cancel" : "Book a Session"}
-              </button>
-              {showBooking && (
-                <form
-                  onSubmit={handleBookSession}
-                  className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4"
-                >
-                  <div className="grid grid-cols-1 gap-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Title
-                      <input
-                        name="title"
-                        required
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
-                        style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
-                      />
-                    </label>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date
-                      <input
-                        name="date"
-                        type="date"
-                        required
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
-                        style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
-                      />
-                    </label>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Time
-                      <input
-                        name="time"
-                        type="time"
-                        required
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
-                        style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
-                      />
-                    </label>
-                  </div>
-                  <div className="mt-4">
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors"
-                    >
-                      Book
-                    </button>
-                  </div>
-                </form>
-              )}
-            </section>
-
             {/* Upcoming Sessions */}
-            <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-2">
+            <section className="col-span-1 md:col-span-2 bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-2">
               <div className="flex items-center gap-2 mb-2">
                 <FaCalendar className="text-primary" />
                 <h2 className="text-lg font-semibold text-primary">Upcoming Sessions</h2>
@@ -156,10 +110,34 @@ export default function SessionPage() {
                         <div>
                           <p className="font-medium text-gray-800">{session.title}</p>
                           <p className="text-sm text-gray-600">Status: {session.status}</p>
+                          <p className="text-sm text-gray-600 mt-1">Notes: {session.notes || "-"}</p>
+                          {session.resources && session.resources.length > 0 && (
+                            <div className="mt-1">
+                              <span className="text-xs font-semibold text-gray-700">Resources:</span>
+                              <ul className="list-disc list-inside text-xs text-blue-700">
+                                {session.resources.map((res, idx) => (
+                                  <li key={idx}>
+                                    <a href={res.url} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">{res.name}</a>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex flex-col items-end gap-1">
                           <p className="text-sm font-semibold text-gray-800">{session.date}</p>
                           <p className="text-sm text-gray-600">{session.time}</p>
+                          {session.link && (
+                            <a
+                              href={session.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 bg-orange text-white rounded-md font-medium hover:bg-secondary transition-colors w-max mt-1 text-xs text-center"
+                              style={{ display: 'inline-block' }}
+                            >
+                              Join Session
+                            </a>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -240,27 +218,6 @@ export default function SessionPage() {
                 </div>
               )}
             </section>
-
-            {/* Session Recorder */}
-            <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-2">
-              <div className="flex items-center gap-2 mb-2">
-                <FaMicrophone className="text-primary" />
-                <h2 className="text-lg font-semibold text-primary">Record a Session</h2>
-              </div>
-              <SessionRecorder onRecordingComplete={(blob) => {
-                console.log("Recording complete. Blob:", blob);
-              }} />
-            </section>
-
-            {/* File Upload UI */}
-            <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-2">
-              <div className="flex items-center gap-2 mb-2">
-                <FaUpload className="text-primary" />
-                <h2 className="text-lg font-semibold text-primary">Upload a Recorded Session</h2>
-              </div>
-              <FileUpload />
-            </section>
-
             {/* AI Results Placeholder */}
             <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-2 md:col-span-2">
               <div className="flex items-center gap-2 mb-2">

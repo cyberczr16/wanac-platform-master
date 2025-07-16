@@ -143,10 +143,10 @@ export default function Homepage() {
             <div className="mt-4 flex justify-center">
               <Link
                 href={
-                  title.includes('PLEP') ? '/plep' :
-                  title.includes('PLCA') ? '/plca' :
-                  title.includes('PPC') ? '/ppc' :
-                  title.includes('VETA') ? '/veta' :
+                  title.includes('PLEP') ? '/pages/plep' :
+                  title.includes('PLCA') ? '/pages/plca' :
+                  title.includes('PPC') ? '/pages/ppc' :
+                  title.includes('VETA') ? '/pages/veta' :
                   '#'
                 }
                 className="inline-block px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg shadow hover:bg-orange-600 transition-colors duration-300 text-sm"

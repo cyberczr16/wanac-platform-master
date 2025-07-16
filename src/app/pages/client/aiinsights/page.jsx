@@ -6,6 +6,40 @@ import ClientTopbar from '../../../../../components/dashboardcomponents/clientto
 import DashboardSidebar from '../../../../../components/dashboardcomponents/DashboardSidebar';
 import AIChatbot from '../../../../../components/dashboardcomponents/AIChatbot';
 
+// Mock data for insights
+const mockInsights = [
+  {
+    id: 1,
+    title: 'Boost Your Productivity',
+    description: 'Try the Pomodoro technique to stay focused and take regular breaks for better results.',
+    date: '2024-06-01',
+  },
+  {
+    id: 2,
+    title: 'Wellness Tip',
+    description: 'Remember to take a few minutes each day for mindful breathing to reduce stress.',
+    date: '2024-06-02',
+  },
+  {
+    id: 3,
+    title: 'AI Suggestion',
+    description: 'Based on your recent activity, consider setting a new weekly goal to track your progress.',
+    date: '2024-06-03',
+  },
+];
+
+const mockStats = {
+  insightsThisWeek: 5,
+  activeSessions: 2,
+  lastActive: '2 hours ago',
+};
+
+const mockTips = [
+  'Set clear, achievable goals for the week.',
+  'Use the AI assistant to brainstorm solutions.',
+  'Review your progress every Friday.',
+];
+
 export default function AIInsightsPage() {
   const [user, setUser] = useState(null);
 
@@ -52,9 +86,43 @@ export default function AIInsightsPage() {
                 <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-none min-h-[300px] flex flex-col justify-center items-center">
                   <AIChatbot />
                 </section>
+                {/* Insights Section */}
+                <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-none">
+                  <h3 className="text-xl font-semibold mb-4 text-primary">Recent AI Insights</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {mockInsights.map((insight) => (
+                      <div key={insight.id} className="border border-gray-100 rounded-lg p-4 bg-gray-50 hover:shadow-md transition">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-400">{new Date(insight.date).toLocaleDateString()}</span>
+                        </div>
+                        <h4 className="text-lg font-bold text-gray-800 mb-1">{insight.title}</h4>
+                        <p className="text-gray-600 text-sm">{insight.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
               </div>
               {/* Dashboard Widgets Sidebar */}
-              
+              <aside className="w-full lg:w-72 flex-shrink-0 space-y-6">
+                {/* Stats Widget */}
+                <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-none">
+                  <h5 className="text-md font-semibold mb-2 text-primary">Your Stats</h5>
+                  <ul className="text-gray-700 text-sm space-y-1">
+                    <li>Insights this week: <span className="font-bold">{mockStats.insightsThisWeek}</span></li>
+                    <li>Active sessions: <span className="font-bold">{mockStats.activeSessions}</span></li>
+                    <li>Last active: <span className="font-bold">{mockStats.lastActive}</span></li>
+                  </ul>
+                </div>
+                {/* Quick Tips Widget */}
+                <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-none">
+                  <h5 className="text-md font-semibold mb-2 text-primary">Quick Tips</h5>
+                  <ul className="list-disc pl-5 text-gray-700 text-sm space-y-1">
+                    {mockTips.map((tip, idx) => (
+                      <li key={idx}>{tip}</li>
+                    ))}
+                  </ul>
+                </div>
+              </aside>
             </div>
           </div>
         </main>
