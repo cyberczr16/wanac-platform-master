@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import CoachSidebar from '../../../../../components/dashboardcomponents/CoachSidebar';
 import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
 import { FaCalendar, FaVideo, FaMicrophone, FaUpload, FaRobot, FaBookOpen, FaInfoCircle } from 'react-icons/fa';
@@ -13,12 +12,8 @@ export default function CoachSessionsPage() {
   const [liveSession, setLiveSession] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [collapsed, setCollapsed] = useState(false);
-  const router = useRouter();
-  // Ensure user is always defined
-  const [user, setUser] = useState({ name: "Coach" });
+  const [user, setUser] = useState(null);
   const [showBooking, setShowBooking] = useState(false);
-  const [meetingLink, setMeetingLink] = useState("");
-  const [minDate, setMinDate] = useState("");
 
   useEffect(() => {
     const userData = localStorage.getItem('wanacUser');
@@ -26,38 +21,31 @@ export default function CoachSessionsPage() {
       try {
         setUser(JSON.parse(userData));
       } catch (e) {
-        setUser({ name: "Coach" });
+        setUser(null);
       }
-    } else {
-      setUser({ name: "Coach" });
     }
     
-    // Set min date for booking form (client only)
-    setMinDate(new Date().toISOString().split('T')[0]);
     // Fetch existing sessions
     const fetchSessions = async () => {
       try {
         const sessions = await sessionsService.getSessions();
-        setUpcomingSessions(sessions.map(session => {
-          // Use fixed formatting for date/time
-          const d = new Date(session.date);
-          const pad = n => n.toString().padStart(2, '0');
-          const date = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-          const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-          return {
-            ...session,
-            time,
-            date,
-            link: session.meeting_link || '',
-            resources: session.resources || '',
-            notes: session.description || '',
-            status: session.status || 'Scheduled'
-          };
-        }));
+        setUpcomingSessions(sessions.map(session => ({
+          ...session,
+          time: new Date(session.date).toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          date: new Date(session.date).toLocaleDateString(),
+          link: session.meeting_link || '',
+          resources: session.resources || '',
+          notes: session.description || '',
+          status: session.status || 'Scheduled'
+        })));
       } catch (error) {
         console.error('Error fetching sessions:', error);
-    }
+      }
     };
+    
     fetchSessions();
   }, []);
 
@@ -70,38 +58,33 @@ export default function CoachSessionsPage() {
     const time = form.time.value;
     const resources = form.resources.value;
     const notes = form.notes.value;
+    
     try {
       // Generate meeting link
-      const slug = title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-') .replace(/(^-|-$)/g, '') : 'session';
+      const slug = title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : 'session';
       const randomString = Math.random().toString(36).substring(2, 8);
       const link = `https://meet.jit.si/wanac-${slug}-${randomString}`;
-
+      
       const sessionData = {
         client_id: clientId,
         coach_id: user?.id || 'temp-coach-id',
         scheduled_at: `${date} ${time}`
       };
-
+      
       const newSession = await sessionsService.addSession(sessionData);
-
+      
       // Add to local state for immediate UI update
-      // Use fixed formatting for date/time
-      const d = new Date(sessionData.scheduled_at);
-      const pad = n => n.toString().padStart(2, '0');
-      const formattedDate = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-      const formattedTime = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
       setUpcomingSessions([...upcomingSessions, {
         ...newSession,
         title: title || `Session with Client ${clientId}`,
-        date: formattedDate,
-        time: formattedTime,
+        date: new Date(sessionData.scheduled_at).toLocaleDateString(),
+        time: new Date(sessionData.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
         link,
         resources,
         notes,
         status: "Scheduled"
       }]);
-
-      setMeetingLink(link); // Show the generated link after scheduling
+      
       setShowBooking(false);
       form.reset();
     } catch (error) {
@@ -226,9 +209,9 @@ export default function CoachSessionsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Client email <a href=""></a>
                       <input
-                        name="client_id"
+                        name="example@123.com"
                         required
-                        placeholder="Email"
+                        placeholder="Enter client ID"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
                         style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
                       />
@@ -248,7 +231,7 @@ export default function CoachSessionsPage() {
                         name="date"
                         type="date"
                         required
-                        min={minDate}
+                        min={new Date().toISOString().split('T')[0]}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
                         style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
                       />
@@ -310,41 +293,78 @@ export default function CoachSessionsPage() {
                   </div>
                 </form>
               )}
-              {/* Show meeting link after scheduling */}
-              {meetingLink && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Meeting Link:</label>
-                  <input
-                    type="text"
-                    value={meetingLink}
-                    readOnly
-                    className="block w-full text-xs bg-gray-100 border border-gray-300 rounded px-2 py-1 mt-1 text-blue-700 cursor-pointer focus:outline-none"
-                    onFocus={e => e.target.select()}
-                    onClick={e => e.target.select()}
-                  />
-                  <a
-                    href={meetingLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline text-xs mt-1 inline-block"
-                  >
-                    Join Meeting
-                  </a>
-                </div>
-              )}
             </section>
-            {/* Live Video Meeting (navigates to separate screen) */}
+            {/* Live Video Meeting */}
             <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-2 md:col-span-2">
               <div className="flex items-center gap-2 mb-2">
                 <FaVideo className="text-primary" />
                 <h2 className="text-lg font-semibold text-primary">Live One-on-One Video Meeting</h2>
               </div>
               <button
-                onClick={() => router.push("/pages/coach/sessions/live-session")}
+                onClick={() => setLiveSession(!liveSession)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors w-max mb-4"
               >
-                Start Live Video Meeting
+                {liveSession ? "Close Video Section" : "Start Live Video Meeting"}
               </button>
+              {liveSession && (
+                <div className="border border-gray-200 rounded-lg p-4 mt-2">
+                  <div className="flex flex-col md:flex-row gap-4 mb-4">
+                    <div className="flex-1">
+                      <h3 className="font-medium mb-2">Send an Invite</h3>
+                      <div className="flex gap-2">
+                        <input
+                          type="email"
+                          value={inviteEmail}
+                          onChange={(e) => setInviteEmail(e.target.value)}
+                          placeholder="Enter email address"
+                          className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20"
+                          style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
+                        />
+                        <button
+                          onClick={() => {
+                            alert(`Invite sent to ${inviteEmail}`);
+                            setInviteEmail("");
+                          }}
+                          className="px-3 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors"
+                          disabled={!inviteEmail}
+                        >
+                          Send
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium mb-2">Meeting Link</h3>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value="https://meet.jit.si/wanac-demo-room"
+                          readOnly
+                          className="flex-1 bg-gray-50 rounded-md border-gray-300"
+                          style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
+                        />
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText("https://meet.jit.si/wanac-demo-room");
+                            alert("Link copied to clipboard");
+                          }}
+                          className="px-3 py-2 bg-gray-600 text-white rounded-md font-medium hover:bg-gray-700 transition-colors"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <iframe
+                    title="Live Video Meeting"
+                    src="https://meet.jit.si/wanac-demo-room"
+                    width="100%"
+                    height="400"
+                    allow="camera; microphone; fullscreen"
+                    className="rounded-md"
+                    style={{ border: 0 }}
+                  />
+                </div>
+              )}
             </section>
 
             {/* AI Results Placeholder */}
