@@ -149,7 +149,7 @@ export default function CoachSessionsPage() {
                 <p className="text-gray-500 text-sm">No meetings scheduled yet.</p>
               ) : (
                 <div className="space-y-3">
-                  {(upcomingSessions.slice(0, 3)).map((session) => (
+                  {(upcomingSessions.slice(0, 2)).map((session) => (
                     <div
                       key={session.id}
                       className="border-l-4 border-primary pl-4 py-2 bg-primary/5 rounded cursor-pointer hover:bg-primary/10 transition"
@@ -212,11 +212,11 @@ export default function CoachSessionsPage() {
                       </div>
                     </div>
                   ))}
-                  {upcomingSessions.length > 3 && (
+                  {upcomingSessions.length > 2 && (
                     <div className="text-right mt-2">
                       <button
                         className="text-blue-600 underline text-sm font-medium hover:text-blue-800"
-                        onClick={() => router.push("/pages/coach/sessions/all")}
+                        onClick={() => router.push("/coach/sessions/all")}
                       >
                         View More
                       </button>

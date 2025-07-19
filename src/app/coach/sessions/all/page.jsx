@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import CoachSidebar from '../../../../../../components/dashboardcomponents/CoachSidebar';
-import ClientTopbar from '../../../../../../components/dashboardcomponents/clienttopbar';
+import CoachSidebar from '../../../../../components/dashboardcomponents/CoachSidebar';
+import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
 import { FaCalendar, FaInfoCircle } from 'react-icons/fa';
-import { sessionsService } from '../../../../../services/api/sessions.service';
+import { sessionsService } from '../../../../services/api/sessions.service';
 
 export default function AllCoachSessionsPage() {
   const [sessions, setSessions] = useState([]);
