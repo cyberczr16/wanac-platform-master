@@ -67,20 +67,21 @@ export default function CoachSessionsPage() {
     const title = form.title.value;
     const notes = form.notes.value;
     const date = form.date.value;
-    const time = form.time.value;
+    const formatted = date.toLocaleString('sv-SE', { hour12: false }).replace(' ', 'T');
+
+
     try {
       // Generate a unique Jitsi meeting link using the session title
       const slug = title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-') .replace(/(^-|-$)/g, '') : 'session';
       const randomString = Math.random().toString(36).substring(2, 8);
-      const session_link = `https://meet.jit.si/wanac-${slug}-${randomString}`;
       // Combine date and time into ISO string for scheduled_at
-      const scheduled_at = new Date(`${date}T${time}`).toISOString();
+      const scheduled_at = formatted;
 
       const sessionData = {
         title: title || `Session`,
         description: notes || '',
         scheduled_at,
-        session_link,
+
       };
 
       const newSession = await sessionsService.addSession(sessionData);
@@ -269,23 +270,14 @@ export default function CoachSessionsPage() {
                       Date
                       <input
                         name="date"
-                        type="date"
+                        type="datetime-local"
                         required
                         min={minDate}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
                         style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
                       />
                     </label>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Time
-                      <input
-                        name="time"
-                        type="time"
-                        required
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
-                        style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
-                      />
-                    </label>
+              
                   </div>
                   <div className="mt-4">
                     <button
