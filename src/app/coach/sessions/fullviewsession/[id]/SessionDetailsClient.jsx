@@ -30,6 +30,15 @@ export default function SessionDetailsClient({ sessionId }) {
   const [addParticipantError, setAddParticipantError] = useState("");
   const [clientsLoading, setClientsLoading] = useState(false);
   const [clientsError, setClientsError] = useState("");
+  const [resourceName, setResourceName] = useState("");
+  const [resourceDescription, setResourceDescription] = useState("");
+  const [resourceFile, setResourceFile] = useState(null);
+  const [resourceLink, setResourceLink] = useState("");
+  const [addResourceLoading, setAddResourceLoading] = useState(false);
+  const [addResourceError, setAddResourceError] = useState("");
+  const [noteText, setNoteText] = useState("");
+  const [addNoteLoading, setAddNoteLoading] = useState(false);
+  const [addNoteError, setAddNoteError] = useState("");
 
   // Fetch clients when modal opens
   useEffect(() => {
@@ -213,18 +222,46 @@ export default function SessionDetailsClient({ sessionId }) {
                 placeholder="Enter your session observations, participant feedback, or action items here..."
                 className="w-full border border-gray-300 rounded-lg p-3 mb-3 resize-none focus:outline-none focus:ring focus:ring-blue-100"
                 rows={4}
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                disabled={addNoteLoading}
               />
-              <button className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 mb-4">
-                + Add Note
+              <button
+                className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 mb-4 disabled:opacity-60"
+                onClick={async () => {
+                  if (!noteText.trim()) {
+                    setAddNoteError("Note cannot be empty.");
+                    return;
+                  }
+                  setAddNoteLoading(true);
+                  setAddNoteError("");
+                  try {
+                    await sessionsService.addNote({ session_id: sessionId, content: noteText });
+                    setNoteText("");
+                    // Refresh session data
+                    setLoading(true);
+                    const data = await sessionsService.getSession(sessionId);
+                    setSession(data.session);
+                  } catch (err) {
+                    setAddNoteError("Failed to add note. Please try again.");
+                  } finally {
+                    setAddNoteLoading(false);
+                  }
+                }}
+                disabled={addNoteLoading}
+              >
+                {addNoteLoading ? "Adding..." : "+ Add Note"}
               </button>
-
+              {addNoteError && (
+                <div className="text-red-600 text-sm mb-2">{addNoteError}</div>
+              )}
               <div className="space-y-3">
                 {session.session_notes?.map((note, i) => (
                   <div key={i} className="bg-yellow-100 rounded-lg p-4 shadow-sm">
-                    <div className="text-gray-800">{note.note}</div>
+                    <div className="text-gray-800">{note.note || note.content}</div>
                     <div className="text-xs text-gray-600 mt-2">
                       <FaStickyNote className="inline mr-1" />
-                      {new Date(note.created_at).toLocaleString()}
+                      {note.created_at ? new Date(note.created_at).toLocaleString() : null}
                     </div>
                   </div>
                 ))}
@@ -366,18 +403,129 @@ export default function SessionDetailsClient({ sessionId }) {
       {showAddResource && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-sm">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
-            <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700" onClick={() => setShowAddResource(false)}>
+            <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700" onClick={() => {
+              setShowAddResource(false);
+              setResourceName("");
+              setResourceDescription("");
+              setResourceFile(null);
+              setResourceLink("");
+              setAddResourceError("");
+            }}>
               <FaTimes />
             </button>
             <h3 className="text-lg font-semibold mb-4">Add Resource</h3>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={async (e) => {
+              e.preventDefault();
+              setAddResourceError("");
+              if (!resourceName) {
+                setAddResourceError("Resource name is required.");
+                return;
+              }
+              if (!resourceFile && !resourceLink) {
+                setAddResourceError("Please provide a file or a link.");
+                return;
+              }
+              if (resourceFile && resourceLink) {
+                setAddResourceError("Please provide only one: file or link, not both.");
+                return;
+              }
+              setAddResourceLoading(true);
+              try {
+                await sessionsService.addSessionResource({
+                  session_id: sessionId,
+                  name: resourceName,
+                  description: resourceDescription,
+                  file: resourceFile,
+                  link: resourceLink
+                });
+                setShowAddResource(false);
+                setResourceName("");
+                setResourceDescription("");
+                setResourceFile(null);
+                setResourceLink("");
+                // Refresh session data
+                setLoading(true);
+                const data = await sessionsService.getSession(sessionId);
+                setSession(data.session);
+              } catch (err) {
+                setAddResourceError("Failed to add resource. Please try again.");
+              } finally {
+                setAddResourceLoading(false);
+              }
+            }}>
+              <div>
+                <label className="block text-sm font-medium mb-1">Resource Name</label>
+                <input
+                  type="text"
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Enter resource name"
+                  value={resourceName}
+                  onChange={e => setResourceName(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description (optional)</label>
+                <textarea
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Enter description"
+                  value={resourceDescription}
+                  onChange={e => setResourceDescription(e.target.value)}
+                  rows={2}
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-1">File Upload</label>
-                <input type="file" className="w-full" disabled />
+                <input
+                  type="file"
+                  className="w-full"
+                  onChange={e => {
+                    setResourceFile(e.target.files[0] || null);
+                    if (e.target.files[0]) setResourceLink("");
+                  }}
+                  disabled={!!resourceLink}
+                />
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Or Link</label>
+                <input
+                  type="url"
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="https://example.com/resource"
+                  value={resourceLink}
+                  onChange={e => {
+                    setResourceLink(e.target.value);
+                    if (e.target.value) setResourceFile(null);
+                  }}
+                  disabled={!!resourceFile}
+                />
+              </div>
+              {addResourceError && (
+                <div className="text-red-600 text-sm">{addResourceError}</div>
+              )}
               <div className="flex justify-end gap-2 mt-4">
-                <button type="button" className="px-4 py-2 bg-gray-200 rounded" onClick={() => setShowAddResource(false)}>Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gray-200 rounded"
+                  onClick={() => {
+                    setShowAddResource(false);
+                    setResourceName("");
+                    setResourceDescription("");
+                    setResourceFile(null);
+                    setResourceLink("");
+                    setAddResourceError("");
+                  }}
+                  disabled={addResourceLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  disabled={addResourceLoading}
+                >
+                  {addResourceLoading ? "Adding..." : "Add"}
+                </button>
               </div>
             </form>
           </div>

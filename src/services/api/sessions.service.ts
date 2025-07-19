@@ -63,4 +63,29 @@ export const sessionsService = {
     });
     return response.data;
   },
+
+  // Add Session Resource with file upload support
+  async addSessionResource({ session_id, name, description, file, link }: { session_id: string | number, name: string, description?: string, file?: File | null, link?: string }): Promise<any> {
+    let formData;
+    let headers = {};
+    if (file) {
+      formData = new FormData();
+      formData.append('session_id', String(session_id));
+      formData.append('name', name);
+      if (description) formData.append('description', description);
+      if (link) formData.append('link', link);
+      formData.append('file', file);
+      headers = { 'Content-Type': 'multipart/form-data' };
+    } else {
+      formData = {
+        session_id,
+        name,
+        ...(description ? { description } : {}),
+        ...(link ? { link } : {})
+      };
+      headers = { 'Content-Type': 'application/json' };
+    }
+    const response = await apiClient.post('/api/v1/sessions/resources/add', formData, { headers });
+    return response.data;
+  },
 }; 
