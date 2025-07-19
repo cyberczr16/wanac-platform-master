@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import CoachSidebar from '../../../../../components/dashboardcomponents/CoachSidebar';
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
+import CoachSidebar from '../../../../components/dashboardcomponents/CoachSidebar';
+import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
 import { FaUserFriends, FaUserEdit, FaUserTimes } from "react-icons/fa";
 
 // Example mock data for clients

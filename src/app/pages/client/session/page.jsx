@@ -5,38 +5,12 @@ import ClientTopbar from '../../../../../components/dashboardcomponents/clientto
 import { FaCalendar, FaVideo, FaMicrophone, FaUpload, FaRobot, FaBookOpen, FaInfoCircle } from 'react-icons/fa';
 import SessionRecorder from "./SessionRecorder";
 import FileUpload from "./FileUpload";
-
-const mockUpcomingSessions = [
-  {
-    id: 1,
-    title: "Career Guidance",
-    date: "2025-06-15",
-    time: "10:00 AM",
-    status: "Scheduled",
-    link: "https://meet.jit.si/wanac-career-guidance",
-    resources: [
-      { name: "Career Guide PDF", url: "https://example.com/career-guide.pdf" },
-      { name: "Preparation Checklist", url: "https://example.com/checklist.pdf" }
-    ],
-    notes: "Prepare your resume and list your career questions."
-  },
-  {
-    id: 2,
-    title: "Personal Development",
-    date: "2025-06-18",
-    time: "2:00 PM",
-    status: "Scheduled",
-    link: "https://meet.jit.si/wanac-personal-development",
-    resources: [
-      { name: "Self-Assessment Worksheet", url: "https://example.com/self-assessment.pdf" }
-    ],
-    notes: "Think about your personal goals for the next 6 months."
-  },
-];
+import { sessionsService } from '../../../../services/api/sessions.service';
+import { useRouter } from 'next/navigation';
 
 export default function SessionPage() {
   const [showBooking, setShowBooking] = useState(false);
-  const [upcomingSessions, setUpcomingSessions] = useState(mockUpcomingSessions);
+  const [upcomingSessions, setUpcomingSessions] = useState([]); // Start with empty
   const [liveSession, setLiveSession] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [showInviteForm, setShowInviteForm] = useState(false);
@@ -47,7 +21,20 @@ export default function SessionPage() {
     const userData = localStorage.getItem('wanacUser');
     if (userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        // Fetch sessions for this user
+        sessionsService.getSessions().then((sessions) => {
+          console.log('Fetched sessions:', sessions); // DEBUG
+          const sessionArray = sessions?.sessions?.data || [];
+          const filtered = sessionArray.filter(
+            (session) =>
+              (session.coach && session.coach.user_id === parsedUser.id) ||
+              (session.coach_id && session.coach_id === parsedUser.id) ||
+              (session.user_id && session.user_id === parsedUser.id)
+          );
+          setUpcomingSessions(filtered);
+        });
       } catch (e) {
         setUser(null);
       }
@@ -70,6 +57,8 @@ export default function SessionPage() {
     setUpcomingSessions([...upcomingSessions, newSession]);
     setShowBooking(false);
   };
+
+  const router = useRouter();
 
   return (
     <div className="h-screen flex bg-gray-50 font-serif">
@@ -101,47 +90,56 @@ export default function SessionPage() {
                 <p className="text-gray-500 text-sm">No upcoming sessions.</p>
               ) : (
                 <div className="space-y-3">
-                  {upcomingSessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className="border-l-4 border-primary pl-4 py-2 bg-primary/5 rounded"
-                    >
-                      <div className="flex justify-between">
-                        <div>
-                          <p className="font-medium text-gray-800">{session.title}</p>
-                          <p className="text-sm text-gray-600">Status: {session.status}</p>
-                          <p className="text-sm text-gray-600 mt-1">Notes: {session.notes || "-"}</p>
-                          {session.resources && session.resources.length > 0 && (
-                            <div className="mt-1">
-                              <span className="text-xs font-semibold text-gray-700">Resources:</span>
-                              <ul className="list-disc list-inside text-xs text-blue-700">
-                                {session.resources.map((res, idx) => (
-                                  <li key={idx}>
-                                    <a href={res.url} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">{res.name}</a>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-right flex flex-col items-end gap-1">
-                          <p className="text-sm font-semibold text-gray-800">{session.date}</p>
-                          <p className="text-sm text-gray-600">{session.time}</p>
-                          {session.link && (
-                            <a
-                              href={session.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-4 py-2 bg-orange text-white rounded-md font-medium hover:bg-secondary transition-colors w-max mt-1 text-xs text-center"
-                              style={{ display: 'inline-block' }}
-                            >
-                              Join Session
-                            </a>
-                          )}
+                  {upcomingSessions.map((session) => {
+                    // Determine if user is a coach for this session
+                    const isCoach = (user && ((session.coach && session.coach.user_id === user.id) || (session.coach_id && session.coach_id === user.id)));
+                    return (
+                      <div
+                        key={session.id}
+                        className="border-l-4 border-primary pl-4 py-2 bg-primary/5 rounded cursor-pointer hover:bg-primary/10 transition"
+                        onClick={() => {
+                          const url = `/coach/sessions/fullviewsessio/${session.id}` + (isCoach ? '' : '?readonly=true');
+                          router.push(url);
+                        }}
+                      >
+                        <div className="flex justify-between">
+                          <div>
+                            <p className="font-medium text-gray-800">{session.title}</p>
+                            <p className="text-sm text-gray-600">Status: {session.status}</p>
+                            <p className="text-sm text-gray-600 mt-1">Notes: {session.notes || "-"}</p>
+                            {session.resources && session.resources.length > 0 && (
+                              <div className="mt-1">
+                                <span className="text-xs font-semibold text-gray-700">Resources:</span>
+                                <ul className="list-disc list-inside text-xs text-blue-700">
+                                  {session.resources.map((res, idx) => (
+                                    <li key={idx}>
+                                      <a href={res.url} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">{res.name}</a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-right flex flex-col items-end gap-1">
+                            <p className="text-sm font-semibold text-gray-800">{session.date}</p>
+                            <p className="text-sm text-gray-600">{session.time}</p>
+                            {session.session_link && (
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  window.open(session.session_link, '_blank');
+                                }}
+                                className="px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors w-max mt-1 text-xs text-center"
+                                style={{ display: 'inline-block' }}
+                              >
+                                Join Meeting
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </section>

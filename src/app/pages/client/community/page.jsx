@@ -37,17 +37,16 @@ export default function CommunityPage() {
       }
     }
     async function fetchData() {
-      setLoading(true);
+      setLoadingCommunities(true);
       try {
         const communities = await fetchCommunities();
         setCommunities(Array.isArray(communities) ? communities : []);
-        const posts = await fetchCommunityPosts();
-        setPosts(Array.isArray(posts) ? posts : []);
+        // Removed fetchCommunityPosts and setPosts as they are not defined
       } catch (e) {
         setCommunities([]);
-        setPosts([]);
+        // Removed setPosts as it is not defined
       }
-      setLoading(false);
+      setLoadingCommunities(false);
     }
     fetchData();
   }, []);
@@ -184,7 +183,11 @@ export default function CommunityPage() {
                             className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded transition"
                             onClick={(e) => {
                               e.stopPropagation();
-                              router.push(`/pages/client/community/communities?id=${comm.id}`);
+                              if (comm.id) {
+                                router.push(`/pages/client/community/communities?id=${comm.id}`);
+                              } else {
+                                alert("Community ID is missing!");
+                              }
                             }}
                           >
                             View Community

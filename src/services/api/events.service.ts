@@ -11,3 +11,9 @@ export async function deleteEvent(eventId: number | string) {
   const res = await apiClient.delete(`https://wanac-api.kuzasports.com/api/v1/events/delete/${eventId}`);
   return res.data;
 }
+
+// Fetch all events
+export async function getEvents() {
+  const res = await apiClient.get('https://wanac-api.kuzasports.com/api/v1/events');
+  return res.data;
+}

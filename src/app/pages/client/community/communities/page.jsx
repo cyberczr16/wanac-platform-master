@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { fetchCommunityById, addCommunityFeedPost, addEvent } from "../../../../../services/api/community.service";
-import { updateEvent } from "../../../../../services/api/events.service";
+import { updateEvent, getEvents } from "../../../../../services/api/events.service";
 import axios from "axios";
 
 export default function CommunityDetailPage() {
@@ -68,9 +68,9 @@ function CommunityDetailPageInner() {
       }
     }
 
-    // Fetch all scheduled events using updateEvent API
+    // Fetch all scheduled events using getEvents API
     setEventsLoading(true);
-    updateEvent(undefined, {})
+    getEvents()
       .then(data => {
         let eventList = Array.isArray(data) ? data : (Array.isArray(data.events) ? data.events : []);
         setEvents(eventList);
@@ -377,7 +377,7 @@ function CommunityDetailPageInner() {
                   setEventForm({ title: '', date: '', time: '', description: '', type: 'online', link: '', location: '' });
                   // Refresh all events after scheduling
                   setEventsLoading(true);
-                  updateEvent(undefined, {})
+                  getEvents()
                     .then(data => {
                       let eventList = Array.isArray(data) ? data : (Array.isArray(data.events) ? data.events : []);
                       setEvents(eventList);
