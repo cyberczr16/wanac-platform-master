@@ -12,6 +12,7 @@ import {
   FaTimes
 } from "react-icons/fa";
 import { sessionsService } from "../../../../../services/api/sessions.service";
+import { clientsService } from '../../../../../services/api/clients.service';
 import CoachSidebar from "../../../../../../components/dashboardcomponents/CoachSidebar";
 import ClientTopbar from "../../../../../../components/dashboardcomponents/clienttopbar";
 
@@ -20,6 +21,34 @@ export default function SessionDetailsClient({ sessionId }) {
   const [loading, setLoading] = useState(true);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [showAddResource, setShowAddResource] = useState(false);
+  const [participantName, setParticipantName] = useState("");
+  const [participantEmail, setParticipantEmail] = useState("");
+  const [clients, setClients] = useState([]);
+  const [clientSearch, setClientSearch] = useState("");
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [addParticipantLoading, setAddParticipantLoading] = useState(false);
+  const [addParticipantError, setAddParticipantError] = useState("");
+  const [clientsLoading, setClientsLoading] = useState(false);
+  const [clientsError, setClientsError] = useState("");
+
+  // Fetch clients when modal opens
+  useEffect(() => {
+    if (showAddParticipant) {
+      setClientsLoading(true);
+      setClientsError("");
+      clientsService.getClients()
+        .then((data) => setClients(Array.isArray(data.clients) ? data.clients : []))
+        .catch(() => setClientsError("Failed to fetch clients."))
+        .finally(() => setClientsLoading(false));
+    }
+  }, [showAddParticipant]);
+
+  // Filtered clients for autocomplete
+  const filteredClients = Array.isArray(clients) ? clients.filter(
+    (client) =>
+      (client.user && client.user.name && client.user.name.toLowerCase().includes(clientSearch.toLowerCase())) ||
+      (client.user && client.user.email && client.user.email.toLowerCase().includes(clientSearch.toLowerCase()))
+  ) : [];
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -228,24 +257,107 @@ export default function SessionDetailsClient({ sessionId }) {
       {showAddParticipant && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-sm">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
-            <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700" onClick={() => setShowAddParticipant(false)}>
+            <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700" onClick={() => {
+              setShowAddParticipant(false);
+              setClientSearch("");
+              setSelectedClient(null);
+              setAddParticipantError("");
+            }}>
               <FaTimes />
             </button>
             <h3 className="text-lg font-semibold mb-4">Add Participant</h3>
-            <form className="space-y-4">
+            {clientsLoading ? (
+              <div className="text-gray-500 text-sm">Loading clients...</div>
+            ) : clientsError ? (
+              <div className="text-red-600 text-sm">{clientsError}</div>
+            ) : (
+            <form className="space-y-4" onSubmit={async (e) => {
+              e.preventDefault();
+              if (!selectedClient) {
+                setAddParticipantError("Please select a client.");
+                return;
+              }
+              setAddParticipantLoading(true);
+              setAddParticipantError("");
+              try {
+                await sessionsService.addSessionMember(sessionId, selectedClient.id);
+                setShowAddParticipant(false);
+                setClientSearch("");
+                setSelectedClient(null);
+                // Refresh session data
+                setLoading(true);
+                const data = await sessionsService.getSession(sessionId);
+                setSession(data.session);
+              } catch (err) {
+                setAddParticipantError("Failed to add participant. Please try again.");
+              } finally {
+                setAddParticipantLoading(false);
+              }
+            }}>
               <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
-                <input type="text" className="w-full border rounded px-3 py-2" placeholder="Participant Name" />
+                <label className="block text-sm font-medium mb-1">Search Client</label>
+                <input
+                  type="text"
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Type name or email..."
+                  value={clientSearch}
+                  onChange={(e) => {
+                    setClientSearch(e.target.value);
+                    setSelectedClient(null);
+                  }}
+                  autoComplete="off"
+                />
+                {clientSearch && (
+                  <div className="border rounded bg-white mt-1 max-h-40 overflow-y-auto shadow">
+                    {filteredClients.length === 0 && (
+                      <div className="p-2 text-gray-500 text-sm">No clients found.</div>
+                    )}
+                    {filteredClients.map((client) => (
+                      <div
+                        key={client.id}
+                        className={`p-2 cursor-pointer hover:bg-green-100 ${selectedClient?.id === client.id ? "bg-green-50" : ""}`}
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setClientSearch((client.user?.name || "") + (client.user?.email ? " (" + client.user.email + ")" : ""));
+                        }}
+                      >
+                        <div className="font-medium">{client.user?.name}</div>
+                        <div className="text-xs text-gray-500">{client.user?.email}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {selectedClient && (
+                  <div className="mt-2 text-green-700 text-sm">Selected: {selectedClient.user?.name} ({selectedClient.user?.email})</div>
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input type="email" className="w-full border rounded px-3 py-2" placeholder="Email Address" />
-              </div>
+              {addParticipantError && (
+                <div className="text-red-600 text-sm">{addParticipantError}</div>
+              )}
               <div className="flex justify-end gap-2 mt-4">
-                <button type="button" className="px-4 py-2 bg-gray-200 rounded" onClick={() => setShowAddParticipant(false)}>Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Add</button>
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gray-200 rounded"
+                  onClick={() => {
+                    setShowAddParticipant(false);
+                    setClientSearch("");
+                    setSelectedClient(null);
+                    setAddParticipantError("");
+                  }}
+                  disabled={addParticipantLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  disabled={addParticipantLoading}
+                >
+                  {addParticipantLoading ? "Adding..." : "Add"}
+                </button>
               </div>
             </form>
+            )}
           </div>
         </div>
       )}

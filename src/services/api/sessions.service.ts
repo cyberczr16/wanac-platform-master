@@ -55,4 +55,12 @@ export const sessionsService = {
   async deleteResource(id: string): Promise<void> {
     await apiClient.delete(`/api/v1/sessions/resources/delete/${id}`);
   },
+
+  async addSessionMember(sessionId: string, clientId: number): Promise<any> {
+    const response = await apiClient.post('/api/v1/sessions/members/add', {
+      session_id: sessionId,
+      client_id: clientId,
+    });
+    return response.data;
+  },
 }; 
