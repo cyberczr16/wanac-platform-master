@@ -22,7 +22,7 @@ export default function SessionDetailsClient({ sessionId }) {
     const fetchSession = async () => {
       try {
         const data = await sessionsService.getSession(sessionId);
-        setSession(data);
+        setSession(data.session)
       } catch (err) {
         console.error("Failed to fetch session", err);
       } finally {
