@@ -1,11 +1,30 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FaCalendarAlt, FaLink, FaCheckCircle } from 'react-icons/fa';
+import { sessionsService } from '../../../../../services/api/sessions.service';
 
-export default function SessionDetailsClient({ session }) {
+export default function SessionDetailsClient({ sessionId }) {
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const data = await sessionsService.getSession(sessionId);
+        setSession(data.session)
+      } catch (err) {
+        console.error("Failed to fetch session", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSession();
+  }, [sessionId]);
+
+  if (loading) return <div className="p-8">Loading session...</div>;
   if (!session) return <div className="p-8">Session not found.</div>;
 
-  // Format date/time if available
   const dateObj = session.scheduled_at ? new Date(session.scheduled_at) : (session.date ? new Date(session.date) : null);
   const dateStr = dateObj ? dateObj.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
   const timeStr = dateObj ? dateObj.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '';
@@ -31,12 +50,13 @@ export default function SessionDetailsClient({ session }) {
             </button>
           )}
         </div>
+
         {/* Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-4 flex flex-col items-start border border-gray-200">
             <div className="flex items-center gap-2 mb-2 text-blue-600"><FaCalendarAlt /> Scheduled</div>
             <div className="font-semibold text-lg">{dateStr}</div>
-            <div className="text-gray-500 text-sm">{timeStr} &bull; {duration}</div>
+            <div className="text-gray-500 text-sm">{timeStr} • {duration}</div>
           </div>
           <div className="bg-white rounded-lg shadow p-4 flex flex-col items-start border border-gray-200">
             <div className="flex items-center gap-2 mb-2 text-emerald-600"><FaLink /> Session Link</div>
@@ -44,12 +64,7 @@ export default function SessionDetailsClient({ session }) {
             <div className="text-gray-500 text-sm break-all">{session.session_link || 'N/A'}</div>
           </div>
         </div>
-        {/* Show all available session fields for debugging/development */}
-        <div className="bg-gray-50 rounded-lg shadow p-4 border border-gray-200 mt-8">
-          <div className="font-semibold mb-2">Session Data (Debug):</div>
-          <pre className="text-xs text-gray-700 overflow-x-auto">{JSON.stringify(session, null, 2)}</pre>
-        </div>
       </div>
     </div>
   );
-} 
+}
