@@ -21,6 +21,11 @@ export const sessionsService = {
     await apiClient.delete(`/api/v1/sessions/delete/${id}`);
   },
 
+  async getSession(id: string): Promise<Session> {
+    const response = await apiClient.get<Session>(`/api/v1/sessions/${id}`);
+    return response.data;
+  },
+
   // Session Notes
   async addNote(data: Partial<SessionNote>): Promise<SessionNote> {
     const response = await apiClient.post<SessionNote>('/api/v1/sessions/notes/add', data);

@@ -17,7 +17,7 @@ export default function CoachSessionsPage() {
   // Ensure user is always defined
   const [user, setUser] = useState({ name: "Coach" });
   const [showBooking, setShowBooking] = useState(false);
-  const [meetingLink, setMeetingLink] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [minDate, setMinDate] = useState("");
 
   useEffect(() => {
@@ -64,46 +64,49 @@ export default function CoachSessionsPage() {
   const handleBookSession = async (e) => {
     e.preventDefault();
     const form = e.target;
-    const clientId = form.client_id.value;
     const title = form.title.value;
+    const notes = form.notes.value;
     const date = form.date.value;
     const time = form.time.value;
-    const resources = form.resources.value;
-    const notes = form.notes.value;
     try {
-      // Generate meeting link
+      // Generate a unique Jitsi meeting link using the session title
       const slug = title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-') .replace(/(^-|-$)/g, '') : 'session';
       const randomString = Math.random().toString(36).substring(2, 8);
-      const link = `https://meet.jit.si/wanac-${slug}-${randomString}`;
+      const session_link = `https://meet.jit.si/wanac-${slug}-${randomString}`;
+      // Combine date and time into ISO string for scheduled_at
+      const scheduled_at = new Date(`${date}T${time}`).toISOString();
 
       const sessionData = {
-        client_id: clientId,
-        coach_id: user?.id || 'temp-coach-id',
-        scheduled_at: `${date} ${time}`
+        title: title || `Session`,
+        description: notes || '',
+        scheduled_at,
+        session_link,
       };
 
       const newSession = await sessionsService.addSession(sessionData);
 
-      // Add to local state for immediate UI update
-      // Use fixed formatting for date/time
-      const d = new Date(sessionData.scheduled_at);
-      const pad = n => n.toString().padStart(2, '0');
-      const formattedDate = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-      const formattedTime = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
       setUpcomingSessions([...upcomingSessions, {
         ...newSession,
-        title: title || `Session with Client ${clientId}`,
-        date: formattedDate,
-        time: formattedTime,
-        link,
-        resources,
+        title: title || `Session`,
         notes,
         status: "Scheduled"
       }]);
 
-      setMeetingLink(link); // Show the generated link after scheduling
       setShowBooking(false);
+      setSuccessMessage("Session scheduled successfully!");
       form.reset();
+
+      // Clear the success message after 2 seconds
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 2000);
+
+      // After 1 second, navigate to the session detail/edit page
+      setTimeout(() => {
+        if (newSession.id) {
+          router.push(`/pages/coach/sessions/${newSession.id}`);
+        }
+      }, 1000);
     } catch (error) {
       console.error('Error booking session:', error);
       alert('Failed to book session. Please try again.');
@@ -140,10 +143,11 @@ export default function CoachSessionsPage() {
                 <p className="text-gray-500 text-sm">No meetings scheduled yet.</p>
               ) : (
                 <div className="space-y-3">
-                  {upcomingSessions.map((session) => (
+                  {(upcomingSessions.slice(0, 3)).map((session) => (
                     <div
                       key={session.id}
-                      className="border-l-4 border-primary pl-4 py-2 bg-primary/5 rounded"
+                      className="border-l-4 border-primary pl-4 py-2 bg-primary/5 rounded cursor-pointer hover:bg-primary/10 transition"
+                      onClick={() => router.push(`/pages/coach/sessions/fullviewsession/${session.id}`)}
                     >
                       <div className="flex justify-between">
                         <div>
@@ -202,6 +206,16 @@ export default function CoachSessionsPage() {
                       </div>
                     </div>
                   ))}
+                  {upcomingSessions.length > 3 && (
+                    <div className="text-right mt-2">
+                      <button
+                        className="text-blue-600 underline text-sm font-medium hover:text-blue-800"
+                        onClick={() => router.push("/pages/coach/sessions/all")}
+                      >
+                        View More
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </section>
@@ -213,10 +227,18 @@ export default function CoachSessionsPage() {
               </div>
               <button
                 className="px-4 py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600 transition-colors w-max"
-                onClick={() => setShowBooking(!showBooking)}
+                onClick={() => {
+                  setShowBooking(!showBooking);
+                  if (!showBooking) setSuccessMessage(""); // Clear success message when opening form
+                }}
               >
                 {showBooking ? "Cancel" : "Schedule a Session"}
               </button>
+              {successMessage && !showBooking && (
+                <div className="mt-4 p-3 bg-green-100 border border-green-300 text-green-800 rounded">
+                  {successMessage}
+                </div>
+              )}
               {showBooking && (
                 <form
                   onSubmit={handleBookSession}
@@ -224,22 +246,23 @@ export default function CoachSessionsPage() {
                 >
                   <div className="grid grid-cols-1 gap-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Client email <a href=""></a>
+                      Title
                       <input
-                        name="client_id"
+                        name="title"
+                        placeholder="Session title"
                         required
-                        placeholder="Email"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
                         style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
                       />
                     </label>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Title
-                      <input
-                        name="title"
-                        placeholder="Session title"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
+                      Description
+                      <textarea
+                        name="notes"
+                        placeholder="Session description (optional)"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
                         style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
+                        rows={2}
                       />
                     </label>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -263,42 +286,6 @@ export default function CoachSessionsPage() {
                         style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
                       />
                     </label>
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Resources & Files
-                      </label>
-                      <input
-                        name="resources"
-                        type="text"
-                        placeholder="Links or materials (optional)"
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
-                        style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
-                      />
-                      <input
-                        name="files"
-                        type="file"
-                        multiple
-                        className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Notes & Additional Files
-                      </label>
-                      <textarea
-                        name="notes"
-                        placeholder="Session notes (optional)"
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
-                        style={{padding: '0.5rem 0.75rem', border: '1px solid #d1d5db'}}
-                        rows={2}
-                      />
-                      <input
-                        name="additional_files"
-                        type="file"
-                        multiple
-                        className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
-                      />
-                    </div>
                   </div>
                   <div className="mt-4">
                     <button
@@ -309,28 +296,6 @@ export default function CoachSessionsPage() {
                     </button>
                   </div>
                 </form>
-              )}
-              {/* Show meeting link after scheduling */}
-              {meetingLink && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Meeting Link:</label>
-                  <input
-                    type="text"
-                    value={meetingLink}
-                    readOnly
-                    className="block w-full text-xs bg-gray-100 border border-gray-300 rounded px-2 py-1 mt-1 text-blue-700 cursor-pointer focus:outline-none"
-                    onFocus={e => e.target.select()}
-                    onClick={e => e.target.select()}
-                  />
-                  <a
-                    href={meetingLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline text-xs mt-1 inline-block"
-                  >
-                    Join Meeting
-                  </a>
-                </div>
               )}
             </section>
             {/* Live Video Meeting (navigates to separate screen) */}
