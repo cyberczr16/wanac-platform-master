@@ -1,7 +1,7 @@
 "use client";
-import CoachSidebar from '../../../../../components/dashboardcomponents/CoachSidebar';
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
-import ChatComponentV2 from '../../../../../components/ChatComponentV2';
+import CoachSidebar from '../../../../components/dashboardcomponents/CoachSidebar';
+import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
+import ChatComponentV2 from '../../../../components/ChatComponentV2';
 import { useState, useEffect } from 'react';
 
 export default function CoachMessagesPage() {
