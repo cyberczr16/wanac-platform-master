@@ -115,23 +115,29 @@ const WorkshopsPage = () => {
       <section>
           <div className="relative w-full h-16 bg-[#002147] overflow-hidden flex items-center justify-center">
             <nav className="relative z-10 flex space-x-8 px-4">
-              <Link href="#Featured-Workshop" className="text-white hover:text-blue-300 transition-colors text-sm font-bold flex flex-col items-center gap-0.5">
-                Featured Workshop
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
+              <Link href="#Featured-Workshop" className="group flex flex-col items-center justify-center text-white text-base font-medium transition-colors flex-none no-underline hover:no-underline">
+                <div className="flex flex-col items-center w-full h-full px-6 py-3 transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                  <span className="whitespace-nowrap text-center w-full">Featured Workshop</span>
+                  <svg className="w-4 h-4 mt-1 transition-colors" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </Link>
-              <Link href="#Upcoming-Workshops" className="text-white hover:text-blue-300 transition-colors text-sm font-bold flex flex-col items-center gap-0.5">
-                Upcoming Workshops
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
+              <Link href="#Upcoming-Workshops" className="group flex flex-col items-center justify-center text-white text-base font-medium transition-colors flex-none no-underline hover:no-underline">
+                <div className="flex flex-col items-center w-full h-full px-6 py-3 transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                  <span className="whitespace-nowrap text-center w-full">Upcoming Workshops</span>
+                  <svg className="w-4 h-4 mt-1 transition-colors" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </Link>
-              <Link href="#Frequently-Asked-Questions" className="text-white hover:text-blue-300 transition-colors text-sm font-bold flex flex-col items-center gap-0.5">
-                Past Workshops
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
+              <Link href="#Frequently-Asked-Questions" className="group flex flex-col items-center justify-center text-white text-base font-medium transition-colors flex-none no-underline hover:no-underline">
+                <div className="flex flex-col items-center w-full h-full px-6 py-3 transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                  <span className="whitespace-nowrap text-center w-full">Past Workshops</span>
+                  <svg className="w-4 h-4 mt-1 transition-colors" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </Link>
             </nav>
             <div 

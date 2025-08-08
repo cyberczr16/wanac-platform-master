@@ -47,23 +47,29 @@ combines cutting-edge coaching methodologies with comprehensive support to help 
       <section>
         <div className="relative w-full h-16 bg-[#002147] overflow-hidden flex items-center justify-center">
           <nav className="relative z-10 flex space-x-8 px-4">
-            <a href="#program-overview" className="text-white hover:text-blue-300 transition-colors text-sm font-bold flex flex-col items-center gap-0.5">
-              Program Overview
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
+            <a href="#program-overview" className="group flex flex-col items-center justify-center text-white text-base font-medium transition-colors flex-none no-underline hover:no-underline">
+              <div className="flex flex-col items-center w-full h-full px-6 py-3 transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                <span className="whitespace-nowrap text-center w-full">Program Overview</span>
+                <svg className="w-4 h-4 mt-1 transition-colors" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </a>
-            <a href="#phases" className="text-white hover:text-blue-300 transition-colors text-sm font-bold flex flex-col items-center gap-0.5">
-              Program Phases
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
+            <a href="#phases" className="group flex flex-col items-center justify-center text-white text-base font-medium transition-colors flex-none no-underline hover:no-underline">
+              <div className="flex flex-col items-center w-full h-full px-6 py-3 transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                <span className="whitespace-nowrap text-center w-full">Program Phases</span>
+                <svg className="w-4 h-4 mt-1 transition-colors" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </a>
-            <a href="#experience" className="text-white hover:text-blue-300 transition-colors text-sm font-bold flex flex-col items-center gap-0.5">
-              Experience
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
+            <a href="#experience" className="group flex flex-col items-center justify-center text-white text-base font-medium transition-colors flex-none no-underline hover:no-underline">
+              <div className="flex flex-col items-center w-full h-full px-6 py-3 transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                <span className="whitespace-nowrap text-center w-full">Experience</span>
+                <svg className="w-4 h-4 mt-1 transition-colors" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </a>
           </nav>
           <div 
@@ -198,7 +204,7 @@ combines cutting-edge coaching methodologies with comprehensive support to help 
         </div>
       </section>
 
-      {/* Interactive Experience Section */}
+
       <section id="experience" className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold mb-12 text-center text-[#002147]">Customized Coaching Experience</h2>

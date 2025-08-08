@@ -265,7 +265,7 @@ const handleNavigation = (href) => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden mt-4 bg-white">
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto md:hidden">
           {Object.entries(navigation).map(([key, section]) => (
             <div key={key} className="border-b border-gray-200">
               <button

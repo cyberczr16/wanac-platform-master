@@ -6,6 +6,32 @@ import { Dialog } from "@headlessui/react";
 import { FaCalendar } from 'react-icons/fa';
 import { sessionsService } from '../../../../services/api/sessions.service';
 
+function GoogleCalendarConnect() {
+  const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const cookies = document.cookie.split(';').map(c => c.trim());
+      const tokenCookie = cookies.find(c => c.startsWith('google_tokens='));
+      setConnected(!!tokenCookie);
+    }
+  }, []);
+
+  return connected ? (
+    <div className="flex items-center gap-2 mb-4">
+      <span className="inline-block w-3 h-3 bg-green-500 rounded-full" />
+      <span className="text-green-700 font-medium">Connected to Google Calendar</span>
+    </div>
+  ) : (
+    <button
+      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded mb-4 transition-colors duration-150"
+      onClick={() => window.location.href = '/api/auth/google'}
+    >
+      Connect Google Calendar
+    </button>
+  );
+}
+
 const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -79,6 +105,7 @@ const CalendarPage = () => {
               <div className="flex-1 space-y-8">
                 <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-none">
                   <h1 className="text-2xl font-bold mb-4">Calendar View</h1>
+                  <GoogleCalendarConnect />
                   
                   {/* Simple Calendar Grid */}
                   <div className="mb-4">

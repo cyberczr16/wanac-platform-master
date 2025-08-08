@@ -84,17 +84,37 @@ const VolunteerPage = () => {
       <section>
           <div className="relative w-full h-16 bg-[#002147] overflow-hidden flex items-center justify-center">
             <nav className="relative z-10 flex space-x-16 px-16">
-              <Link href="#How-to-Volunteer" className="text-white hover:text-blue-300 transition-colors text-sm font-bold">
-                HOW TO VOLUNTEER
+              <Link href="#How-to-Volunteer" className="group flex flex-col items-center justify-center text-white text-base font-medium transition-colors flex-none no-underline hover:no-underline">
+                <div className="flex flex-col items-center w-full h-full px-6 py-3 transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                  <span className="whitespace-nowrap text-center w-full">HOW TO VOLUNTEER</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mt-1 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </Link>
-              <Link href="#Volunteer-Stories" className="text-white hover:text-blue-300 transition-colors text-sm font-bold">
-                VOLUNTEER STORIES
+              <Link href="#Volunteer-Stories" className="group flex flex-col items-center justify-center text-white text-base font-medium transition-colors flex-none no-underline hover:no-underline">
+                <div className="flex flex-col items-center w-full h-full px-6 py-3 transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                  <span className="whitespace-nowrap text-center w-full">VOLUNTEER STORIES</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mt-1 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </Link>
-              <Link href="#Frequently-Asked-Questions" className="text-white hover:text-blue-300 transition-colors text-sm font-bold">
-                FREQUENTLY ASKED QUESTIONS
+              <Link href="#Frequently-Asked-Questions" className="group flex flex-col items-center justify-center text-white text-base font-medium transition-colors flex-none no-underline hover:no-underline">
+                <div className="flex flex-col items-center w-full h-full px-6 py-3 transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                  <span className="whitespace-nowrap text-center w-full">FREQUENTLY ASKED QUESTIONS</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mt-1 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </Link>
-              <Link href="#Ready-to-Make-a-Difference" className="text-white hover:text-blue-300 transition-colors text-sm font-bold">
-                READY TO MAKE A DIFFERENCE?
+              <Link href="#Ready-to-Make-a-Difference" className="group flex flex-col items-center justify-center text-white text-base font-medium transition-colors flex-none no-underline hover:no-underline">
+                <div className="flex flex-col items-center w-full h-full px-6 py-3 transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                  <span className="whitespace-nowrap text-center w-full">READY TO MAKE A DIFFERENCE?</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mt-1 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </Link>
             </nav>
             <div 
