@@ -14,14 +14,18 @@ import {
   FaUserShield,
   FaUserEdit,
   FaSignOutAlt,
+  FaGraduationCap,
 } from 'react-icons/fa';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import GroupsIcon from '@mui/icons-material/Groups';
 
 const adminNavItems = [
   { name: 'Dashboard', href: '/pages/admin', icon: <FaUserShield size={18} /> },
   { name: 'User Management', href: '/pages/admin/manageusers', icon: <FaUsers size={18} /> },
   { name: 'Coach Services', href: '/pages/admin/managecoaches', icon: <FaUserTie size={18} /> },
+  { name: 'Course Management', href: '/pages/admin/coursemanagement', icon: <FaGraduationCap size={18} /> },
+  { name: 'Fireteam Management', href: '/pages/admin/fireteammanagement', icon: <GroupsIcon fontSize="small" /> },
   { name: 'Client Services', href: '/pages/admin/manageclients', icon: <FaUserEdit size={18} /> },
   { name: 'Sessions', href: '/pages/admin/sessions', icon: <FaCalendarAlt size={18} /> },
   { name: 'Analytics', href: '/pages/admin/analytics', icon: <FaChartPie size={18} /> },

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import CoachSidebar from '../../../../components/dashboardcomponents/CoachSidebar';
 import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
 import { FaUserCircle, FaChartLine, FaHeartbeat } from "react-icons/fa";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from "@mui/material";
 
 // Mock clients and progress data
 const mockClients = [
@@ -35,6 +36,26 @@ const mockClients = [
 export default function CoachProgressPage() {
   const [clients, setClients] = useState([]);
   const [user, setUser] = useState(null);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [coachNotes, setCoachNotes] = useState("");
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const handleOpenModal = (client) => {
+    setSelectedClient(client);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedClient(null);
+  };
+
+  const handleSaveCoachNotes = () => {
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2000);
+    // Here you would send coachNotes to backend or update client object
+  };
 
   useEffect(() => {
     // TODO: Replace with API call to fetch coach's clients and their progress
@@ -66,7 +87,11 @@ export default function CoachProgressPage() {
                 <div className="col-span-full text-center text-gray-500">No clients found.</div>
               ) : (
                 clients.map((client) => (
-                  <div key={client.id} className="bg-white border border-gray-200 rounded-lg p-6 shadow hover:shadow-lg transition flex flex-col gap-4">
+                  <div
+                    key={client.id}
+                    className="bg-white border border-gray-200 rounded-lg p-6 shadow hover:shadow-lg transition flex flex-col gap-4 cursor-pointer"
+                    onClick={() => handleOpenModal(client)}
+                  >
                     <div className="flex items-center gap-3 mb-2">
                       <FaUserCircle className="text-3xl text-blue-400" />
                       <div>
@@ -103,6 +128,66 @@ export default function CoachProgressPage() {
             </div>
           </div>
         </main>
+        {/* Client Details Modal */}
+        <Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+          <DialogTitle>Client Details</DialogTitle>
+          <DialogContent dividers>
+            {selectedClient && (
+              <div className="flex flex-col gap-4">
+                <div>
+                  <span className="font-bold">Name:</span> {selectedClient.name}
+                </div>
+                <div>
+                  <span className="font-bold">Email:</span> {selectedClient.email}
+                </div>
+                <div>
+                  <span className="font-bold">Whole Life Score:</span> {selectedClient.wholeLife.score}/10 ({selectedClient.wholeLife.month})
+                  <div className="ml-4 text-sm text-gray-700">
+                    {Object.entries(selectedClient.wholeLife.details).map(([k, v]) => (
+                      <div key={k}>{k}: <span className="font-semibold">{v}</span></div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <span className="font-bold">Daily Habit Score:</span> {selectedClient.dailyHabit.score}/5 ({selectedClient.dailyHabit.date})
+                  <div className="ml-4 text-sm text-gray-700">
+                    {Object.entries(selectedClient.dailyHabit.details).map(([k, v]) => (
+                      <div key={k}>{k}: <span className="font-semibold">{v}</span></div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <span className="font-bold">Insight:</span> {selectedClient.insight}
+                </div>
+                <div>
+                  <span className="font-bold">Coach's Additional Notes:</span>
+                  <TextField
+                    multiline
+                    minRows={3}
+                    maxRows={6}
+                    fullWidth
+                    value={coachNotes}
+                    onChange={e => setCoachNotes(e.target.value)}
+                    placeholder="Add more details about this client..."
+                    variant="outlined"
+                    sx={{ mt: 1 }}
+                  />
+                  {saveSuccess && (
+                    <div className="text-green-600 text-sm mt-1">Notes saved!</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleSaveCoachNotes} color="success" variant="contained">
+              Save Notes
+            </Button>
+            <Button onClick={handleCloseModal} color="primary" variant="contained">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </div>
   );

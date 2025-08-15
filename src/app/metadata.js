@@ -1,4 +1,4 @@
 export const metadata = {
-  title: 'WANAC Coaching Platform',
+  title: 'WANAC COACHING PLATFORM',
   description: 'Empowering veterans with coaching, community, and AI tools.',
 };

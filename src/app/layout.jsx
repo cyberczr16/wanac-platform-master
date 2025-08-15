@@ -11,6 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className="bg-[#002147] text-gray-800">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <link rel="icon" href="/WANAC N 8 Old Glory.svg" type="image/svg+xml" />
       </head>
       <body className="min-h-screen flex flex-col">
         <Toaster position="top-center" toastOptions={{

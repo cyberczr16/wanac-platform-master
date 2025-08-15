@@ -59,7 +59,6 @@ export default function CoachResourcesPage() {
           <div className="max-w-4xl mx-auto">
             <section className="mb-8">
               <div className="flex items-center gap-3 mb-2">
-                <FaBook className="text-blue-600 text-2xl" />
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-heading" style={{ fontFamily: 'var(--font-heading)' }}>
                   Coach Resources
                 </h1>

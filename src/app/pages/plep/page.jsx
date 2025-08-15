@@ -6,6 +6,7 @@ import InfographicWheel from '../../../../components/infographicWheel';
 import { VerticalTimeline, VerticalTimelineElement } from 'react-vertical-timeline-component';
 import 'react-vertical-timeline-component/style.min.css';
 import { FaCheckCircle, FaStar, FaFlag } from 'react-icons/fa'; // Example icons
+import { Tooltip } from 'react-tooltip';
 
 
 const PlepPage = () => {
@@ -273,7 +274,19 @@ journey.
           icon={stepIcons[index % stepIcons.length]}
           date={<span className="font-bold text-orange-500">{`Step 0${step.number}`}</span>}
         >
-          <h3 className="vertical-timeline-element-title text-xl font-bold text-orange-700">{step.title}</h3>
+          <h3
+            className="vertical-timeline-element-title text-xl font-bold text-orange-700 cursor-pointer"
+            data-tooltip-id={`roadmap-step-${index}`}
+          >
+            {step.title}
+          </h3>
+          <Tooltip
+            id={`roadmap-step-${index}`}
+            place="top"
+            effect="solid"
+            style={{ maxWidth: 320, whiteSpace: 'pre-line' }}
+            content={<ul className="list-disc pl-5 text-left">{step.details.map((d, i) => <li key={i}>{d}</li>)}</ul>}
+          />
           <p className="text-gray-700 text-base">{step.description}</p>
         </VerticalTimelineElement>
       ))}
@@ -282,18 +295,18 @@ journey.
 </section>
 
       {/* Who Should Enroll Section */}
-      <section id="who-should-enroll" className="py-16 bg-gradient-to-r from-orange-100 via-white to-blue-100 relative overflow-hidden">
+      <section id="who-should-enroll" className="py-16 bg-gradient-to-r from-orange-500 to-[#002147] text-white relative overflow-hidden">
         {/* Background image overlay */}
         <div className="absolute inset-0 w-full h-full z-0" style={{
           backgroundImage: 'url("/background4.jpg")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          opacity: 0.15
+          opacity: 0.25
         }}></div>
         <div className="container mx-auto px-4 relative z-10">
-          <h2 className="text-3xl font-bold mb-8 text-center">Who Should Enroll?</h2>
-          <p className="text-lg text-center text-gray-600 mb-10 max-w-3xl mx-auto">
+          <h2 className="text-3xl text-white font-bold mb-8 text-center">Who Should Enroll?</h2>
+          <p className="text-lg text-center text-white mb-10 max-w-3xl mx-auto">
             PLEP is specifically designed for
           </p>
           

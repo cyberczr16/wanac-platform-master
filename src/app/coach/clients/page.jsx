@@ -20,7 +20,7 @@ export default function CoachClientsPage() {
     async function fetchClients() {
       try {
         const data = await clientsService.getClients();
-        setClients(data);
+        setClients(Array.isArray(data) ? data : []); // Defensive: always set an array
       } catch (error) {
         setClients([]);
       }

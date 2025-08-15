@@ -32,6 +32,26 @@ export default function Slide({ step }) {
     );
   }
 
+  // Custom content for AI-generated Results step
+  if (step.title === "AI-generated Results") {
+    return (
+      <div className="bg-yellow-400 rounded-xl shadow-lg p-10 text-center w-full mx-auto h-[420px] md:h-[520px] lg:h-[620px]">
+        <h1 className="text-3xl font-black leading-tight mb-4">{step.title}</h1>
+        <p className="text-md font-medium mb-4">{step.subtitle}</p>
+        <p className="text-sm text-gray-700 mb-6">Duration: {step.duration}</p>
+        <button
+          className="bg-black text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-gray-800 transition"
+          onClick={() => alert('Detailed AI Report coming soon!')}
+        >
+          View Detailed AI Report
+        </button>
+        <div className="mt-6">
+          <span className="inline-block text-3xl"></span>
+        </div>
+      </div>
+    );
+  }
+
   // Placeholder for other steps
   return (
     <div className="bg-yellow-400 rounded-xl shadow-lg p-10 text-center w-full mx-auto h-[420px] md:h-[520px] lg:h-[620px]">
