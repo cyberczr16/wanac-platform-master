@@ -52,7 +52,7 @@ export default function Navbar({ hideNavbar = false }) {
         { label: "Our Story", href: "/pages/ourstory" },
         { label: "Core Pillars", href: "/pages/ourstory#corepillars" },
         { label: "Strategic Aspirations", href: "/pages/ourstory#strategicaspirations" },
-        { label: "Board of Directors", href: "/pages/ourstory#boardofdirectors" },
+        //{ label: "Board of Directors", href: "/pages/ourstory#boardofdirectors" },
         { label: "Executive Staff", href: "/pages/ourstory#executivestaff" }
       ]
     },

@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
 import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
+import SectionSidebar from '../../../../../components/dashboardcomponents/SectionSidebar';
+import { BookOpen, Briefcase, Users, ClipboardList, CheckCircle, Home, FolderOpen, BarChart2, Image, Video, FileText, Search, ShoppingCart } from 'lucide-react';
 
 // Sample/mock data for demonstration
 const courses = [
@@ -170,8 +172,28 @@ export default function MyEducationCompassPage() {
 
   return (
     <div className="h-screen flex bg-gray-50 font-serif">
-      {/* Sidebar */}
+      {/* Main Sidebar */}
       <Sidebar />
+      {/* Section Sidebar for Programs */}
+      <SectionSidebar
+        title="Education Compass"
+        items={[
+          { name: 'Home', href: '#home', icon: <Home size={18} /> },
+          { name: 'Syllabus', href: '#syllabus', icon: <BookOpen size={18} /> },
+          { name: 'Modules', href: '#modules', icon: <FolderOpen size={18} /> },
+          { name: 'Assignments', href: '#assignments', icon: <ClipboardList size={18} /> },
+          { name: 'Quizzes', href: '#quizzes', icon: <CheckCircle size={18} /> },
+          { name: 'Grades', href: '#grades', icon: <BarChart2 size={18} /> },
+          { name: 'Media Gallery', href: '#media-gallery', icon: <Image size={18} /> },
+          { name: 'Zoom', href: '#zoom', icon: <Video size={18} /> },
+          { name: 'Course Reader Solutions', href: '#reader-solutions', icon: <FileText size={18} /> },
+          { name: 'Library Resources', href: '#library-resources', icon: <BookOpen size={18} /> },
+          { name: 'Store Course Materials', href: '#store-materials', icon: <ShoppingCart size={18} /> },
+          { name: 'Media Reserves', href: '#media-reserves', icon: <FolderOpen size={18} /> },
+          { name: 'Search', href: '#search', icon: <Search size={18} /> },
+        ]}
+        collapsedDefault={true}
+      />
       {/* Main Area */}
       <div className="flex-1 flex flex-col h-full transition-all duration-300">
         {/* Top Bar */}

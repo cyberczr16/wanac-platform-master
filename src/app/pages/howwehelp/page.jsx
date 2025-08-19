@@ -337,15 +337,15 @@ export default function HowWeHelp() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                   <div className="bg-white rounded-xl shadow p-6 border border-gray-100 text-left flex flex-col justify-between">
-                    <h4 className="font-semibold text-xl mb-2 text-[#002147]" style={{ fontFamily: "var(--font-heading)" }}>Tailored Programs</h4>
+                    <h4 className="font-semibold text-xl mb-2 text-[#002147] whitespace-nowrap" style={{ fontFamily: "var(--font-heading)", whiteSpace: "nowrap" }}>Tailored Programs</h4>
                     <p className="text-gray-700">Specifically designed for transitioning service members, veterans, and professionals.</p>
                   </div>
                   <div className="bg-white rounded-xl shadow p-6 border border-gray-100 text-left flex flex-col justify-between">
-                    <h4 className="font-semibold text-xl mb-2 text-[#002147]" style={{ fontFamily: "var(--font-heading)" }}>Proven Results</h4>
+                    <h4 className="font-semibold text-xl mb-2 text-[#002147] whitespace-nowrap" style={{ fontFamily: "var(--font-heading)", whiteSpace: "nowrap" }}>Proven Results</h4>
                     <p className="text-gray-700">Structured, actionable frameworks delivering measurable outcomes.</p>
                   </div>
                   <div className="bg-white rounded-xl shadow p-6 border border-gray-100 text-left flex flex-col justify-between">
-                    <h4 className="font-semibold text-xl mb-2 text-[#002147]" style={{ fontFamily: "var(--font-heading)" }}>Dedicated Support</h4>
+                    <h4 className="font-semibold text-xl mb-2 text-[#002147] whitespace-nowrap" style={{ fontFamily: "var(--font-heading)", whiteSpace: "nowrap" }}>Dedicated Support</h4>
                     <p className="text-gray-700">Ongoing mentorship, community connections, and robust resources.</p>
                   </div>
                 </div>
