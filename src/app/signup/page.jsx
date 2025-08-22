@@ -146,7 +146,24 @@ export default function Signup() {
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       setSocialLoading(prev => ({ ...prev, google: true }));
-      const response = await googleAuthService.loginWithGoogle(credentialResponse.credential);
+      const googleUser = await googleAuthService.getGoogleUser(credentialResponse.credential); // You may need to implement this if not present
+      const response = await fetch(
+        "https://wanac-api.kuzasports.com/api/v1/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: googleUser.name,
+            email: googleUser.email,
+            role: userType,
+            social: true,
+            provider: "google",
+            provider_id: googleUser.sub // or id, depending on Google payload
+          }),
+        }
+      );
       
       if (response.token) {
         localStorage.setItem('auth_token', response.token);
@@ -206,11 +223,6 @@ export default function Signup() {
       }
     }
     
-    // Log any validation errors
-    if (Object.keys(newErrors).length > 0) {
-      console.log('Validation errors:', newErrors);
-    }
-    
     return newErrors;
   };
 
@@ -237,6 +249,7 @@ export default function Signup() {
           password: form.password,
           password_confirmation: form.password_confirmation,
           role: userType.toLowerCase(),
+          social: false,
           phone: form.phone ? (form.phone.startsWith('+') ? form.phone : `+${form.phone}`)?.trim() : undefined,
           timezone: form.timezone === 'Eastern Time (ET)' ? 'America/New_York' : form.timezone,
           bio: form.bio?.trim() || undefined,

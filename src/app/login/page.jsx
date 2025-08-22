@@ -75,6 +75,7 @@ export default function Login() {
               email: form.email,
               password: form.password,
               role: userType,
+              social: false
             }),
           }
         );
@@ -137,21 +138,46 @@ export default function Login() {
   const handleGoogleSuccess = async (credentialResponse) => {
     setSocialLoading({ google: true });
     try {
-      const response = await googleAuthService.loginWithGoogle(credentialResponse.credential);
-      if (response.token) {
-        localStorage.setItem('wanacUser', JSON.stringify({ ...response.user, userType: response.user.role }));
-        localStorage.setItem('auth_token', response.token);
-        toast.success('Successfully signed in with Google!');
-        const dashboardPaths = {
-          client: '/pages/client/dashboard',
-          coach: '/coach',
-          admin: '/pages/admin',
-        };
-        const dashboardPath = dashboardPaths[response.user.role] || '/';
-        router.push(dashboardPath);
-      } else {
-        toast.error('Google login failed.');
+      const googleUser = await googleAuthService.getGoogleUser(credentialResponse.credential); // You may need to implement this if not present
+      const response = await fetch(
+        "https://wanac-api.kuzasports.com/api/v1/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: googleUser.email,
+            role: userType,
+            social: true,
+            provider: "google",
+            provider_id: googleUser.sub // or id, depending on Google payload
+          }),
+        }
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data?.errors) {
+          handleValidationErrors(data.errors);
+        } else if (data?.error) {
+          toast.error(data.error);
+        } else {
+          toast.error('Google login failed.');
+        }
+        return;
       }
+
+      localStorage.setItem('wanacUser', JSON.stringify({ ...data.user, userType: response.user.role }));
+      localStorage.setItem('auth_token', data.token);
+      toast.success('Successfully signed in with Google!');
+      const dashboardPaths = {
+        client: '/pages/client/dashboard',
+        coach: '/coach',
+        admin: '/pages/admin',
+      };
+      const dashboardPath = dashboardPaths[response.user.role] || '/';
+      router.push(dashboardPath);
     } catch (error) {
       console.error('Google login error:', error);
       toast.error('Failed to sign in with Google. Please try again.');

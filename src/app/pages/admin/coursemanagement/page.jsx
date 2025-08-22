@@ -92,7 +92,7 @@ export default function AdminCourseManagementPage() {
     <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar />
       <main className="flex-1 p-8 ml-16 md:ml-56">
-        <Typography variant="h4" sx={{ mb: 4, fontWeight: 700 }}>Course Management</Typography>
+        <Typography variant="h4" sx={{ mb: 4, fontWeight: 700 }}>Program Management</Typography>
         <Button variant="contained" color="primary" startIcon={<FaPlus />} sx={{ mb: 3 }} onClick={handleOpenAddCourse}>
           Add Course
         </Button>
