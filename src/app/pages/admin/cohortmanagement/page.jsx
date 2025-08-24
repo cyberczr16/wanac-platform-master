@@ -6,6 +6,7 @@ import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, S
 import { FaUsers, FaEdit, FaPlus, FaUserTie } from "react-icons/fa";
 import { ProgramsService } from '../../../../services/api/programs.service';
 import { clientsService } from '../../../../services/api/clients.service';
+import { cohortService } from '../../../../services/api/cohort.service';
 
 // Remove mock data
 // const mockCoaches = [
@@ -24,7 +25,15 @@ export default function AdminCohortManagementPage() {
   const [clients, setClients] = useState([]);
   const [selectedCohort, setSelectedCohort] = useState(null);
   const [showCohortDialog, setShowCohortDialog] = useState(false);
-  const [cohortForm, setCohortForm] = useState({ program_id: '', name: '', description: '', coaches: [], clients: [] });
+  const [cohortForm, setCohortForm] = useState({
+    program_id: '',
+    name: '',
+    description: '',
+    coaches: [],
+    clients: [],
+    start_date: '',
+    end_date: ''
+  });
   const [programs, setPrograms] = useState([]);
 
   useEffect(() => {
@@ -53,17 +62,37 @@ export default function AdminCohortManagementPage() {
       }
     }
     fetchClients();
+    // Fetch cohorts from API
+    async function fetchCohorts() {
+      try {
+        const data = await cohortService.getCohorts();
+        // Try to support both { cohorts: [...] } and just an array
+        const cohortArray = Array.isArray(data) ? data : (Array.isArray(data.cohorts) ? data.cohorts : []);
+        setCohorts(cohortArray);
+      } catch (error) {
+        setCohorts([]);
+      }
+    }
+    fetchCohorts();
     // TODO: Fetch coaches from API when endpoint is available
   }, []);
 
   // Handlers
   const handleOpenAddCohort = () => {
-    setCohortForm({ program_id: '', name: '', description: '', coaches: [], clients: [] });
+    setCohortForm({ program_id: '', name: '', description: '', coaches: [], clients: [], start_date: '', end_date: '' });
     setSelectedCohort(null);
     setShowCohortDialog(true);
   };
   const handleOpenEditCohort = (cohort) => {
-    setCohortForm({ program_id: cohort.program_id || '', name: cohort.name, description: cohort.description, coaches: cohort.coaches, clients: cohort.clients });
+    setCohortForm({
+      program_id: cohort.program_id || '',
+      name: cohort.name,
+      description: cohort.description,
+      coaches: cohort.coaches,
+      clients: cohort.clients,
+      start_date: cohort.start_date || '',
+      end_date: cohort.end_date || ''
+    });
     setSelectedCohort(cohort);
     setShowCohortDialog(true);
   };
@@ -77,7 +106,8 @@ export default function AdminCohortManagementPage() {
     setCohortForm({ ...cohortForm, clients: value.map(c => c.id) });
   };
   // Add cohort to API
-  const addCohort = async ({ program_id, name, description, coaches, clients }) => {
+  const addCohort = async ({ program_id, name, description, coaches, clients, start_date, end_date }) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
     const response = await axios.post(
       "https://wanac-api.kuzasports.com/api/v1/programs/cohort/add",
       {
@@ -86,11 +116,14 @@ export default function AdminCohortManagementPage() {
         description,
         coaches, // array of coach IDs
         clients, // array of client IDs
+        start_date,
+        end_date,
       },
       {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       }
     );
@@ -139,8 +172,8 @@ export default function AdminCohortManagementPage() {
     }
   };
   // Helper to get names from IDs
-  const getCoachNames = (ids) => ids.map(id => coaches.find(c => c.id === id)?.name).filter(Boolean);
-  const getClientNames = (ids) => ids.map(id => clients.find(c => c.id === id)?.name).filter(Boolean);
+  const getCoachNames = (ids = []) => Array.isArray(ids) ? ids.map(id => coaches.find(c => c.id === id)?.name).filter(Boolean) : [];
+  const getClientNames = (ids = []) => Array.isArray(ids) ? ids.map(id => clients.find(c => c.id === id)?.name).filter(Boolean) : [];
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -159,8 +192,8 @@ export default function AdminCohortManagementPage() {
                 <Button size="small" variant="outlined" startIcon={<FaEdit />} onClick={() => handleOpenEditCohort(cohort)}>Edit</Button>
               </Stack>
               <Typography variant="body2" sx={{ mt: 1, mb: 1 }}>Description: {cohort.description}</Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>Assigned Coaches: {getCoachNames(cohort.coaches).join(', ') || <em>None</em>}</Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>Assigned Clients: {getClientNames(cohort.clients).join(', ') || <em>None</em>}</Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>Assigned Coaches: {getCoachNames(cohort.coaches || []).join(', ') || <em>None</em>}</Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>Assigned Clients: {getClientNames(cohort.clients || []).join(', ') || <em>None</em>}</Typography>
             </Box>
           ))}
         </Stack>
@@ -205,11 +238,35 @@ export default function AdminCohortManagementPage() {
               onChange={handleCohortFormChange}
               sx={{ mb: 2 }}
             />
+            <TextField
+              margin="dense"
+              name="start_date"
+              label="Start Date"
+              type="date"
+              fullWidth
+              variant="outlined"
+              value={cohortForm.start_date}
+              onChange={handleCohortFormChange}
+              InputLabelProps={{ shrink: true }}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              margin="dense"
+              name="end_date"
+              label="End Date"
+              type="date"
+              fullWidth
+              variant="outlined"
+              value={cohortForm.end_date}
+              onChange={handleCohortFormChange}
+              InputLabelProps={{ shrink: true }}
+              sx={{ mb: 2 }}
+            />
             <Autocomplete
               multiple
               options={coaches}
               getOptionLabel={option => option.name}
-              value={coaches.filter(c => cohortForm.coaches.includes(c.id))}
+              value={coaches.filter(c => (cohortForm.coaches || []).includes(c.id))}
               onChange={handleCohortCoachChange}
               renderTags={(value, getTagProps) =>
                 value.map((option, index) => (
@@ -225,7 +282,7 @@ export default function AdminCohortManagementPage() {
               multiple
               options={clients}
               getOptionLabel={option => option.name}
-              value={clients.filter(c => cohortForm.clients.includes(c.id))}
+              value={clients.filter(c => (cohortForm.clients || []).includes(c.id))}
               onChange={(event, value) => setCohortForm({ ...cohortForm, clients: value.map(c => c.id) })}
               isOptionEqualToValue={(option, value) => option.id === value.id}
               renderTags={(value, getTagProps) =>
