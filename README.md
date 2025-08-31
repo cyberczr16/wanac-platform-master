@@ -86,3 +86,14 @@ Learn More
 License
 
 This project is under a private agreement as outlined in the WANAC Software Development Agreement. All rights reserved by Clarence Narcisse, Project Sponsor.
+
+## AI Service Environment Variables
+
+To use the AI service, add the following to your `.env.local` file in the project root:
+
+```
+NEXT_PUBLIC_AI_API_KEY=your_ai_api_key_here
+NEXT_PUBLIC_AI_API_URL=https://your-ai-api-endpoint.com
+```
+
+Replace `your_ai_api_key_here` and the URL with your actual AI provider credentials and endpoint.
