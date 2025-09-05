@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import AdminSidebar from "../../../../../components/dashboardcomponents/adminsidebar";
+import AdminSidebar from "../../../../components/dashboardcomponents/adminsidebar";
 import { Plus, Search, Edit, Trash2, Users, User, Calendar, X } from "lucide-react";
-import { sessionsService } from "../../../../services/api/sessions.service";
+import { sessionsService } from "../../../services/api/sessions.service";
 
 export default function SessionManagement() {
   const [sessions, setSessions] = useState([]);

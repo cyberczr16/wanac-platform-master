@@ -109,7 +109,7 @@ export default function Login() {
         const dashboardPaths = {
           client: '/pages/client/dashboard',
           coach: '/coach',
-          admin: '/pages/admin'
+          admin: '/admin'
         };
 
         const dashboardPath = dashboardPaths[userType];
@@ -175,7 +175,7 @@ export default function Login() {
       const dashboardPaths = {
         client: '/pages/client/dashboard',
         coach: '/coach',
-        admin: '/pages/admin',
+        admin: '/admin',
       };
       const dashboardPath = dashboardPaths[response.user.role] || '/';
       router.push(dashboardPath);

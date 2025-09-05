@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import { MessageSquare, X, Send } from 'lucide-react';
 
 const AI_AVATAR = (
@@ -55,23 +56,22 @@ export default function ChatComponent({ user }) {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/chatbot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const { data } = await axios.post(
+        "/api/chat",
+        {
           message: input,
           userId: user?.id,
-        }),
-      });
-      const data = await res.json();
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
       setMessages((msgs) => [
         ...msgs,
-        { sender: "ai", text: data.message || "No response." },
+        { sender: "ai", text: data.reply || "No response." },
       ]);
     } catch (err) {
       setMessages((msgs) => [
         ...msgs,
-        { sender: "ai", text: "Error: " + err.message },
+        { sender: "ai", text: "Error: " + (err?.response?.data?.error || err.message) },
       ]);
     }
     setInput("");

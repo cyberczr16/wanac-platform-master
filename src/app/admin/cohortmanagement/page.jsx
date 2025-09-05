@@ -1,12 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import AdminSidebar from '../../../../../components/dashboardcomponents/adminsidebar';
-import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack, Typography, Box, IconButton, Autocomplete, Chip, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import AdminSidebar from '../../../../components/dashboardcomponents/adminsidebar';
+import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack, Typography, Box, IconButton, Autocomplete, Chip, Select, MenuItem, InputLabel, FormControl, Table, TableHead, TableBody, TableRow, TableCell } from '@mui/material';
 import { FaUsers, FaEdit, FaPlus, FaUserTie } from "react-icons/fa";
-import { ProgramsService } from '../../../../services/api/programs.service';
-import { clientsService } from '../../../../services/api/clients.service';
-import { cohortService } from '../../../../services/api/cohort.service';
+import { ProgramsService } from '../../../services/api/programs.service';
+import { clientsService } from '../../../services/api/clients.service';
+import { cohortService } from '../../../services/api/cohort.service';
+import { useRouter } from 'next/navigation';
 
 // Remove mock data
 // const mockCoaches = [
@@ -35,6 +36,7 @@ export default function AdminCohortManagementPage() {
     end_date: ''
   });
   const [programs, setPrograms] = useState([]);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -183,20 +185,39 @@ export default function AdminCohortManagementPage() {
         <Button variant="contained" color="primary" startIcon={<FaPlus />} sx={{ mb: 3 }} onClick={handleOpenAddCohort}>
           Add Cohort
         </Button>
-        <Stack spacing={3}>
-          {cohorts.map(cohort => (
-            <Box key={cohort.id} sx={{ border: '1px solid #e0e0e0', borderRadius: 2, p: 3, bgcolor: '#fff' }}>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <FaUsers size={24} />
-                <Typography variant="h6" sx={{ flex: 1 }}>{cohort.name}</Typography>
-                <Button size="small" variant="outlined" startIcon={<FaEdit />} onClick={() => handleOpenEditCohort(cohort)}>Edit</Button>
-              </Stack>
-              <Typography variant="body2" sx={{ mt: 1, mb: 1 }}>Description: {cohort.description}</Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>Assigned Coaches: {getCoachNames(cohort.coaches || []).join(', ') || <em>None</em>}</Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>Assigned Clients: {getClientNames(cohort.clients || []).join(', ') || <em>None</em>}</Typography>
-            </Box>
-          ))}
-        </Stack>
+        <Box sx={{ bgcolor: '#fff', borderRadius: 2, p: 2, boxShadow: 1 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Members</TableCell>
+                <TableCell>Start Date</TableCell>
+                <TableCell>End Date</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {cohorts.map((cohort) => {
+                const membersCount = (Array.isArray(cohort.clients) ? cohort.clients.length : 0) + (Array.isArray(cohort.coaches) ? cohort.coaches.length : 0);
+                const startDate = cohort.start_date ? new Date(cohort.start_date).toLocaleDateString() : '—';
+                const endDate = cohort.end_date ? new Date(cohort.end_date).toLocaleDateString() : '—';
+                return (
+                  <TableRow key={cohort.id} hover sx={{ cursor: 'pointer' }} onClick={() => router.push(`/admin/cohortmanagement/${cohort.id}`)}>
+                    <TableCell>{cohort.name}</TableCell>
+                    <TableCell>{cohort.description || '—'}</TableCell>
+                    <TableCell>{membersCount}</TableCell>
+                    <TableCell>{startDate}</TableCell>
+                    <TableCell>{endDate}</TableCell>
+                    <TableCell align="right">
+                      <Button size="small" variant="outlined" startIcon={<FaEdit />} onClick={(e) => { e.stopPropagation(); handleOpenEditCohort(cohort); }}>Edit</Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Box>
         {/* Add/Edit Cohort Dialog */}
         <Dialog open={showCohortDialog} onClose={() => setShowCohortDialog(false)}>
           <DialogTitle>{selectedCohort ? 'Edit Cohort' : 'Add Cohort'}</DialogTitle>

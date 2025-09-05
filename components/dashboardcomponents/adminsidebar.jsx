@@ -21,19 +21,19 @@ import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import GroupsIcon from '@mui/icons-material/Groups';
 
 const adminNavItems = [
-  { name: 'Dashboard', href: '/pages/admin', icon: <FaUserShield size={18} /> },
-  { name: 'User Management', href: '/pages/admin/manageusers', icon: <FaUsers size={18} /> },
-  { name: 'Coach Services', href: '/pages/admin/managecoaches', icon: <FaUserTie size={18} /> },
-  { name: 'Program Management', href: '/pages/admin/programmanagement', icon: <FaGraduationCap size={18} /> },
-  { name: 'Cohort Management', href: '/pages/admin/cohortmanagement', icon: <FaGraduationCap size={18} /> },
-  { name: 'Fireteam Management', href: '/pages/admin/fireteammanagement', icon: <GroupsIcon fontSize="small" /> },
-  { name: 'Client Services', href: '/pages/admin/manageclients', icon: <FaUserEdit size={18} /> },
-  { name: 'Sessions', href: '/pages/admin/sessions', icon: <FaCalendarAlt size={18} /> },
-  { name: 'Analytics', href: '/pages/admin/analytics', icon: <FaChartPie size={18} /> },
-  { name: 'Feedback', href: '/pages/admin/feedback', icon: <FaClipboardCheck size={18} /> },
-  { name: 'Resources', href: '/pages/admin/resources', icon: <FaBook size={18} /> },
-  { name: 'Announcements', href: '/pages/admin/announcements', icon: <FaEnvelope size={18} /> },
-  { name: 'Settings', href: '/pages/admin/settings', icon: <FaCogs size={18} /> },
+  { name: 'Dashboard', href: '/admin', icon: <FaUserShield size={18} /> },
+  { name: 'User Management', href: '/admin/manageusers', icon: <FaUsers size={18} /> },
+  { name: 'Coach Services', href: '/admin/managecoaches', icon: <FaUserTie size={18} /> },
+  { name: 'Program Management', href: '/admin/programmanagement', icon: <FaGraduationCap size={18} /> },
+  { name: 'Cohort Management', href: '/admin/cohortmanagement', icon: <FaGraduationCap size={18} /> },
+  { name: 'Fireteam Management', href: '/admin/fireteammanagement', icon: <GroupsIcon fontSize="small" /> },
+  { name: 'Client Services', href: '/admin/manageclients', icon: <FaUserEdit size={18} /> },
+  { name: 'Sessions', href: '/admin/sessions', icon: <FaCalendarAlt size={18} /> },
+  { name: 'Analytics', href: '/admin/analytics', icon: <FaChartPie size={18} /> },
+  { name: 'Feedback', href: '/admin/feedback', icon: <FaClipboardCheck size={18} /> },
+  { name: 'Resources', href: '/admin/resources', icon: <FaBook size={18} /> },
+  { name: 'Announcements', href: '/admin/announcements', icon: <FaEnvelope size={18} /> },
+  { name: 'Settings', href: '/admin/settings', icon: <FaCogs size={18} /> },
 ];
 
 export default function AdminSidebar() {

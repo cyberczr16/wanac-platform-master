@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import AdminSidebar from '../../../../../components/dashboardcomponents/adminsidebar';
+import AdminSidebar from '../../../../components/dashboardcomponents/adminsidebar';
 import { FaUserPlus, FaUserEdit, FaUserTimes, FaSearch } from "react-icons/fa";
-import { clientsService } from '../../../../services/api/clients.service';
+import { clientsService } from '../../../services/api/clients.service';
 
 export default function ManageClients() {
   const [clients, setClients] = useState([]);

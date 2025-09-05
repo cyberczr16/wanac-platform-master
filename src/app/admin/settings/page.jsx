@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import AdminSidebar from "../../../../../components/dashboardcomponents/adminsidebar";
+import AdminSidebar from "../../../../components/dashboardcomponents/adminsidebar";
 import { FaCogs, FaRegBell, FaUserShield, FaComments, FaRobot, FaCreditCard, FaUsers, FaBook, FaCalendarAlt, FaShieldAlt, FaUniversity } from "react-icons/fa";
 
 export default function AdminSettings() {

@@ -1,8 +1,8 @@
 "use client";
-import AdminSidebar from '../../../../../components/dashboardcomponents/adminsidebar';
+import AdminSidebar from '../../../../components/dashboardcomponents/adminsidebar';
 import { useState, useEffect } from 'react';
 import { FaUserPlus, FaUserEdit, FaUserTimes } from 'react-icons/fa';
-import { clientsService } from '../../../../services/api/clients.service';
+import { clientsService } from '../../../services/api/clients.service';
 
 export default function ManageUsersPage() {
   const [users, setUsers] = useState([]);

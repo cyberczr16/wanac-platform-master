@@ -1,40 +1,22 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 
-const mockFireteams = [
-  {
-    id: 1,
-    name: "Alpha Team",
-    description: "Handles onboarding clients.",
-    type: "client",
-    members: ["Jane Doe", "John Smith"],
-    admin: "Jane Doe",
-  },
-  {
-    id: 2,
-    name: "Bravo Team",
-    description: "Coach support group.",
-    type: "coach",
-    members: ["Alice Brown", "Bob White"],
-    admin: "Alice Brown",
-  },
-];
-
-export default function AdminFireteamHomePage({ onAdd, onEdit, onDelete }) {
+export default function AdminFireteamHomePage({ fireteams = [], onAdd, onEdit, onDelete }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All Fireteams");
-  const [fireteams, setFireteams] = useState(mockFireteams);
 
-  const filteredFireteams = fireteams.filter((f) => {
-    const matchesSearch =
-      f.name.toLowerCase().includes(search.toLowerCase()) ||
-      f.description.toLowerCase().includes(search.toLowerCase());
-    const matchesFilter =
-      filter === "All Fireteams" ||
-      (filter === "Client" && f.type === "client") ||
-      (filter === "Coach" && f.type === "coach");
-    return matchesSearch && matchesFilter;
-  });
+  const filteredFireteams = useMemo(() => {
+    return fireteams.filter((f) => {
+      const matchesSearch =
+        f.name.toLowerCase().includes(search.toLowerCase()) ||
+        (f.description || "").toLowerCase().includes(search.toLowerCase());
+      const matchesFilter =
+        filter === "All Fireteams" ||
+        (filter === "Client" && f.type === "client") ||
+        (filter === "Coach" && f.type === "coach");
+      return matchesSearch && matchesFilter;
+    });
+  }, [fireteams, search, filter]);
 
   return (
     <div className="bg-gray-50 min-h-screen p-8">

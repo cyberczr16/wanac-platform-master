@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CoachSidebar from '../../../../components/dashboardcomponents/CoachSidebar';
 import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
 import { FaBook, FaEdit, FaPlus, FaUsers, FaLayerGroup, FaBullhorn, FaClipboardList, FaUser, FaChartLine } from "react-icons/fa";
@@ -19,35 +19,79 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import LinkIcon from '@mui/icons-material/Link';
+import { ProgramsService } from '../../../services/api/programs.service';
+import { cohortService } from '../../../services/api/cohort.service';
 
-// Mock data
-const mockCourses = [
-  { id: 1, name: "Leadership 101", syllabus: "Intro to Leadership", resources: 3, announcements: 2 },
-  { id: 2, name: "Resilience Training", syllabus: "Building Resilience", resources: 2, announcements: 1 },
-];
-const mockUnits = [
-  { id: 1, courseId: 1, name: "Unit 1: Foundations", resources: 2 },
-  { id: 2, courseId: 1, name: "Unit 2: Practice", resources: 1 },
-  { id: 3, courseId: 2, name: "Unit 1: Mindset", resources: 1 },
-];
-const mockClassRoster = [
-  { id: 1, name: "Mary Johnson", email: "mary@client.com" },
-  { id: 2, name: "Peter Lee", email: "peter@client.com" },
-  { id: 3, name: "Grace Kim", email: "grace@client.com" },
-];
+// Data comes from API services (Programs, Cohorts)
 
 export default function CourseManagementPage() {
   const [user, setUser] = useState({ name: "Coach" });
-  const [selectedCourse, setSelectedCourse] = useState(mockCourses[0]);
+  const [programs, setPrograms] = useState([]);
+  const [selectedProgram, setSelectedProgram] = useState(null);
+  const [programUnits, setProgramUnits] = useState([]);
+  const [cohorts, setCohorts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [showAddEditCourse, setShowAddEditCourse] = useState(false);
   const [showAddEditUnit, setShowAddEditUnit] = useState(false);
   const [courseForm, setCourseForm] = useState({ name: '', syllabus: '', resources: [] });
   const [newResource, setNewResource] = useState({ type: 'link', title: '', url: '', file: null });
   const [unitForm, setUnitForm] = useState({ name: '', resources: [] });
   const [newUnitResource, setNewUnitResource] = useState({ type: 'link', title: '', url: '', file: null });
-  const [classRoster, setClassRoster] = useState([...mockClassRoster]);
+  const [classRoster, setClassRoster] = useState([]);
   const [showStudentDialog, setShowStudentDialog] = useState(false);
   const [studentForm, setStudentForm] = useState({ name: '', email: '', idx: null });
+  const [showCohortDialog, setShowCohortDialog] = useState(false);
+  const [selectedCohort, setSelectedCohort] = useState(null);
+
+  // Fetch programs and cohorts
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await ProgramsService.getAll();
+        const programsArray = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : (Array.isArray(data.programs) ? data.programs : []));
+        setPrograms(programsArray);
+        if (programsArray.length > 0) {
+          setSelectedProgram(programsArray[0]);
+        }
+      } catch (e) {
+        setError('Failed to fetch programs');
+        setPrograms([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    const fetchCohorts = async () => {
+      try {
+        const data = await cohortService.getCohorts();
+        const cohortArray = Array.isArray(data) ? data : (Array.isArray(data.cohorts) ? data.cohorts : []);
+        setCohorts(cohortArray);
+      } catch (e) {
+        setCohorts([]);
+      }
+    };
+    fetchData();
+    fetchCohorts();
+  }, []);
+
+  // Fetch units when selected program changes
+  useEffect(() => {
+    const fetchUnits = async () => {
+      if (!selectedProgram) {
+        setProgramUnits([]);
+        return;
+      }
+      try {
+        const units = await ProgramsService.getUnitsByProgramId(selectedProgram.id);
+        setProgramUnits(Array.isArray(units) ? units : []);
+      } catch (e) {
+        setProgramUnits([]);
+      }
+    };
+    fetchUnits();
+  }, [selectedProgram]);
 
   // Handler functions must be defined before return
   const handleOpenAddCourse = () => {
@@ -163,8 +207,10 @@ export default function CourseManagementPage() {
     setClassRoster(classRoster.filter((_, i) => i !== idx));
   };
 
-  // Filter units for selected course
-  const courseUnits = mockUnits.filter(u => u.courseId === selectedCourse.id);
+  // Filter cohorts by selected program
+  const filteredCohorts = Array.isArray(cohorts) && selectedProgram
+    ? cohorts.filter(c => c.program_id === selectedProgram.id)
+    : [];
 
   return (
     <div className="h-screen flex bg-white font-body text-foreground" style={{ fontFamily: 'var(--font-body)' }}>
@@ -181,28 +227,34 @@ export default function CourseManagementPage() {
             <section className="mb-8">
               <div className="flex items-center gap-3 mb-2">
             
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-heading">Courses Overview</h1>
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-heading">Programs Overview</h1>
                 <button className="ml-auto bg-blue-500 text-white px-3 py-1 rounded flex items-center gap-1 hover:bg-blue-600" onClick={handleOpenAddCourse}>
                   <FaPlus /> Add Course
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {mockCourses.map(course => (
-                  <div key={course.id} className={`bg-white border border-gray-100 rounded-xl p-4 shadow flex flex-col gap-2 ${selectedCourse.id === course.id ? 'ring-2 ring-blue-400' : ''}`}
-                    onClick={() => setSelectedCourse(course)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-lg">{course.name}</span>
-                      <button className="ml-auto text-blue-500 hover:text-blue-700" onClick={e => { e.stopPropagation(); handleOpenAddCourse(); }} title="Edit Course">
-                        <FaEdit />
-                      </button>
+                {loading ? (
+                  <div className="text-gray-500">Loading programs...</div>
+                ) : (Array.isArray(programs) && programs.length > 0 ? (
+                  programs.map(program => (
+                    <div key={program.id} className={`bg-white border border-gray-100 rounded-xl p-4 shadow flex flex-col gap-2 ${selectedProgram && selectedProgram.id === program.id ? 'ring-2 ring-blue-400' : ''}`}
+                      onClick={() => setSelectedProgram(program)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-lg">{program.title || program.name}</span>
+                        <button className="ml-auto text-blue-500 hover:text-blue-700" onClick={e => { e.stopPropagation(); handleOpenAddCourse(); }} title="Edit Program">
+                          <FaEdit />
+                        </button>
+                      </div>
+                      <div className="text-sm text-gray-600">{program.description || '—'}</div>
+                      <div className="flex gap-4 text-xs text-gray-500">
+                        <span>Units: {Array.isArray(programUnits) && selectedProgram && selectedProgram.id === program.id ? programUnits.length : 0}</span>
+                        <span>Cohorts: {Array.isArray(cohorts) ? cohorts.filter(c => c.program_id === program.id).length : 0}</span>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600">Syllabus: {course.syllabus}</div>
-                    <div className="flex gap-4 text-xs text-gray-500">
-                      <span>Resources: {course.resources}</span>
-                      <span>Announcements: {course.announcements}</span>
-                    </div>
-                  </div>
+                  ))
+                ) : (
+                  <div className="text-gray-500">No programs found.</div>
                 ))}
               </div>
             </section>
@@ -211,16 +263,16 @@ export default function CourseManagementPage() {
             <section className="mb-8">
               <div className="flex items-center gap-3 mb-2">
                 <FaLayerGroup className="text-green-600" />
-                <h2 className="text-xl font-bold text-heading">Units/Modules Management</h2>
+                <h2 className="text-xl font-bold text-heading">Units/Modules</h2>
                 <button className="ml-auto bg-green-500 text-white px-3 py-1 rounded flex items-center gap-1 hover:bg-green-600" onClick={handleOpenAddUnit}>
                   <FaPlus /> Add Unit
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {courseUnits.length === 0 ? (
-                  <div className="col-span-full text-gray-500">No units for this course.</div>
+                {(!selectedProgram || !Array.isArray(programUnits) || programUnits.length === 0) ? (
+                  <div className="col-span-full text-gray-500">No units for this program.</div>
                 ) : (
-                  courseUnits.map(unit => (
+                  programUnits.map(unit => (
                     <div key={unit.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow flex flex-col gap-2">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-base">{unit.name}</span>
@@ -228,7 +280,7 @@ export default function CourseManagementPage() {
                           <FaEdit />
                         </button>
                       </div>
-                      <div className="text-xs text-gray-600">Resources: {unit.resources}</div>
+                      <div className="text-xs text-gray-600">{unit.description || '—'}</div>
                       <div className="flex gap-2 mt-1">
                         <button className="text-blue-500 hover:underline text-xs">Attach Resource</button>
                         <button className="text-blue-500 hover:underline text-xs">View Assignments</button>
@@ -243,34 +295,51 @@ export default function CourseManagementPage() {
             <section>
               <div className="flex items-center gap-3 mb-2">
                 <FaUsers className="text-purple-600" />
-                <h2 className="text-xl font-bold text-heading">Class/Intake Management</h2>
+                <h2 className="text-xl font-bold text-heading">Cohorts</h2>
                 <button className="ml-auto bg-purple-500 text-white px-3 py-1 rounded flex items-center gap-1 hover:bg-purple-600" onClick={handleOpenAddStudent}>
                   <FaPlus /> Add Student
                 </button>
               </div>
               <div className="bg-white border border-gray-100 rounded-xl p-4 shadow">
-                <div className="mb-2 font-semibold text-gray-700">Class Roster</div>
-                <ul className="mb-4">
-                  {classRoster.map((student, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm py-1 border-b last:border-b-0">
-                      <FaUser className="text-gray-400" />
-                      <span>{student.name}</span>
-                      <span className="ml-2 text-xs text-gray-500">{student.email}</span>
-                      <IconButton size="small" color="primary" onClick={() => handleOpenEditStudent(student, idx)}><FaEdit /></IconButton>
-                      <IconButton size="small" color="error" onClick={() => handleRemoveStudent(idx)}><DeleteIcon /></IconButton>
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex gap-4">
-                  <button className="bg-blue-100 text-blue-700 px-3 py-1 rounded flex items-center gap-1 text-xs hover:bg-blue-200">
-                    <FaClipboardList /> Attendance
-                  </button>
-                  <button className="bg-green-100 text-green-700 px-3 py-1 rounded flex items-center gap-1 text-xs hover:bg-green-200">
-                    <FaChartLine /> Progress
-                  </button>
-                </div>
+                <div className="mb-2 font-semibold text-gray-700">{selectedProgram ? `Cohorts for ${selectedProgram.title || selectedProgram.name}` : 'Select a program to view cohorts'}</div>
+                {(!selectedProgram || filteredCohorts.length === 0) ? (
+                  <div className="text-gray-500">No cohorts found.</div>
+                ) : (
+                  <ul className="mb-4">
+                    {filteredCohorts.map((cohort) => (
+                      <li key={cohort.id} className="flex items-center gap-2 text-sm py-1 border-b last:border-b-0 cursor-pointer" onClick={() => { setSelectedCohort(cohort); setShowCohortDialog(true); }}>
+                        <FaUser className="text-gray-400" />
+                        <span>{cohort.name}</span>
+                        <span className="ml-2 text-xs text-gray-500">{cohort.description || '—'}</span>
+                        <span className="ml-auto text-xs text-gray-500">
+                          {cohort.start_date ? new Date(cohort.start_date).toLocaleDateString() : '—'}
+                          {cohort.end_date ? ` - ${new Date(cohort.end_date).toLocaleDateString()}` : ''}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </section>
+            {/* Cohort Details Modal */}
+            <Dialog open={showCohortDialog} onClose={() => setShowCohortDialog(false)}>
+              <DialogTitle>{selectedCohort?.name || 'Cohort Details'}</DialogTitle>
+              <DialogContent>
+                <div className="space-y-2">
+                  <div><span className="font-semibold">Description:</span> {selectedCohort?.description || '—'}</div>
+                  <div><span className="font-semibold">Program:</span> {selectedProgram?.title || selectedProgram?.name || '—'}</div>
+                  <div>
+                    <span className="font-semibold">Dates:</span> {selectedCohort?.start_date ? new Date(selectedCohort.start_date).toLocaleDateString() : '—'}
+                    {selectedCohort?.end_date ? ` - ${new Date(selectedCohort.end_date).toLocaleDateString()}` : ''}
+                  </div>
+                  <div><span className="font-semibold">Coaches:</span> {Array.isArray(selectedCohort?.coaches) ? selectedCohort.coaches.length : 0}</div>
+                  <div><span className="font-semibold">Clients:</span> {Array.isArray(selectedCohort?.clients) ? selectedCohort.clients.length : 0}</div>
+                </div>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setShowCohortDialog(false)} color="secondary">Close</Button>
+              </DialogActions>
+            </Dialog>
             {/* Add/Edit Student Modal */}
             <Dialog open={showStudentDialog} onClose={() => setShowStudentDialog(false)}>
               <DialogTitle>{studentForm.idx === null ? 'Add Student' : 'Edit Student'}</DialogTitle>

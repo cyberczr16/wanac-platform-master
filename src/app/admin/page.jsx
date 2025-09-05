@@ -1,7 +1,7 @@
 "use client";
 // Admin Dashboard for WANAC Coaching Platform
 import React, { useState, useEffect } from 'react';
-import AdminSidebar from '../../../../components/dashboardcomponents/adminsidebar';
+import AdminSidebar from '../../../components/dashboardcomponents/adminsidebar';
 import { Box, Grid, Card, CardContent, Typography, Button, Avatar, Paper } from '@mui/material';
 import { People, Event, PieChart, SupervisorAccount, Edit, BarChart } from '@mui/icons-material';
 

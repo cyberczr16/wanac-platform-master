@@ -1,27 +1,12 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import AdminSidebar from '../../../../../components/dashboardcomponents/adminsidebar';
-import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Stack, Select, MenuItem, InputLabel, FormControl, Autocomplete, Chip, Box, Typography } from '@mui/material';
+import AdminSidebar from '../../../../components/dashboardcomponents/adminsidebar';
+import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Stack, Select, MenuItem, InputLabel, FormControl, Autocomplete, Chip, Box, Typography, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
 import { FaBook, FaEdit, FaPlus, FaUsers, FaLayerGroup, FaUser } from "react-icons/fa";
 import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
-import { ProgramsService } from '../../../../services/api/programs.service';
-
-// Remove mock data
-// const mockCoaches = [
-//   { id: 1, name: "Jane Doe", email: "jane@wanac.org" },
-//   { id: 2, name: "John Smith", email: "john@wanac.org" },
-//   { id: 3, name: "Alice Brown", email: "alice@wanac.org" },
-// ];
-// const mockCoursesInit = [
-//   { id: 1, name: "Leadership 101", syllabus: "Intro to Leadership", coaches: [1], units: [1, 2] },
-//   { id: 2, name: "Resilience Training", syllabus: "Building Resilience", coaches: [], units: [3] },
-// ];
-// const mockUnitsInit = [
-//   { id: 1, courseId: 1, name: "Unit 1: Foundations", coaches: [2] },
-//   { id: 2, courseId: 1, name: "Unit 2: Practice", coaches: [] },
-//   { id: 3, courseId: 2, name: "Unit 1: Mindset", coaches: [1, 3] },
-// ];
+import { ProgramsService } from '../../../services/api/programs.service';
+import { useRouter } from 'next/navigation';
 
 export default function AdminProgramManagementPage() {
   const [loading, setLoading] = useState(false);
@@ -36,6 +21,7 @@ export default function AdminProgramManagementPage() {
   const [programForm, setProgramForm] = useState({ title: '', description: '' });
   const [sessionForm, setSessionForm] = useState({ name: '', type: '', programId: '', coaches: [] });
   const addButtonRef = useRef(null);
+  const router = useRouter();
 
   // Fetch programs from API on mount
   useEffect(() => {
@@ -180,38 +166,44 @@ export default function AdminProgramManagementPage() {
           <Typography>Loading programs...</Typography>
         ) : (
           Array.isArray(programs) && programs.length > 0 ? (
-            <Stack spacing={3}>
+            <Box sx={{ bgcolor: '#fff', borderRadius: 2, p: 2, boxShadow: 1 }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Title</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Assigned Coaches</TableCell>
+                    <TableCell>Sessions</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
               {programs.map(program => (
-                <Box key={program.id} sx={{ border: '1px solid #e0e0e0', borderRadius: 2, p: 3, bgcolor: '#fff' }}>
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <FaBook size={24} />
-                    <Typography variant="h6" sx={{ flex: 1 }}>{program.title}</Typography>
-                    <Button size="small" variant="outlined" startIcon={<FaEdit />} onClick={() => handleOpenEditProgram(program)}>Edit</Button>
-                    <Button size="small" variant="contained" color="success" startIcon={<FaPlus />} onClick={() => handleOpenAddSession(program.id)}>Add Session</Button>
-                    <IconButton aria-label="delete" color="error" onClick={() => handleDeleteProgram(program.id)}><DeleteIcon /></IconButton>
-                  </Stack>
-                  <Typography variant="body2" sx={{ mt: 1 }}>Assigned Coaches: {getCoachNames(program.coaches).join(', ') || <em>None</em>}</Typography>
-                  <Box sx={{ mt: 2, ml: 4 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}><FaLayerGroup style={{ marginRight: 6 }} />Sessions</Typography>
-                    <Stack spacing={1}>
-                      {sessions.filter(s => s.programId === program.id).length === 0 && (
-                        <Typography variant="body2" color="text.secondary">No sessions for this program.</Typography>
-                      )}
-                      {sessions.filter(s => s.programId === program.id).map(session => (
-                        <Box key={session.id} sx={{ border: '1px solid #f0f0f0', borderRadius: 1, p: 2, bgcolor: '#fafafa' }}>
-                          <Stack direction="row" alignItems="center" spacing={1}>
-                            <FaLayerGroup size={18} />
-                            <Typography variant="body2" sx={{ flex: 1 }}>{session.name} <em>({session.type})</em></Typography>
-                            <Button size="small" variant="outlined" startIcon={<FaEdit />} onClick={() => handleOpenEditSession(session)}>Edit</Button>
-                          </Stack>
-                          <Typography variant="body2" sx={{ mt: 1 }}>Assigned Coaches: {getCoachNames(session.coaches).join(', ') || <em>None</em>}</Typography>
-                        </Box>
-                      ))}
-                    </Stack>
-                  </Box>
+                    <TableRow
+                      key={program.id}
+                      hover
+                      sx={{ cursor: 'pointer' }}
+                      onClick={() => router.push(`/admin/programmanagement/programdetails?id=${program.id}`)}
+                    >
+                      <TableCell>{program.title}</TableCell>
+                      <TableCell>{program.description}</TableCell>
+                      <TableCell>{getCoachNames(program.coaches).join(', ') || <em>None</em>}</TableCell>
+                      <TableCell>
+                        {sessions.filter(s => s.programId === program.id).length === 0
+                          ? <em>None</em>
+                          : sessions.filter(s => s.programId === program.id).map(s => s.name).join(', ')
+                        }
+                      </TableCell>
+                      <TableCell align="right">
+                        <Button size="small" variant="outlined" startIcon={<FaEdit />} onClick={e => { e.stopPropagation(); handleOpenEditProgram(program); }} sx={{ mr: 1 }}>Edit</Button>
+                        <Button size="small" variant="contained" color="success" startIcon={<FaPlus />} onClick={e => { e.stopPropagation(); handleOpenAddSession(program.id); }} sx={{ mr: 1 }}>Add Session</Button>
+                        <IconButton aria-label="delete" color="error" onClick={e => { e.stopPropagation(); handleDeleteProgram(program.id); }}><DeleteIcon /></IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
                 </Box>
-              ))}
-            </Stack>
           ) : (
             <Typography>No programs found.</Typography>
           )
