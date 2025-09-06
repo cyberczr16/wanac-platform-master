@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
+import Sidebar from '../../../../components/dashboardcomponents/sidebar';
+import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
 import { FaCalendar, FaVideo, FaMicrophone, FaUpload, FaRobot, FaBookOpen, FaInfoCircle } from 'react-icons/fa';
 import SessionRecorder from "./SessionRecorder";
 import FileUpload from "./FileUpload";
-import { sessionsService } from '../../../../services/api/sessions.service';
+import { sessionsService } from '../../../services/api/sessions.service';
 import { useRouter } from 'next/navigation';
 
 export default function SessionPage() {

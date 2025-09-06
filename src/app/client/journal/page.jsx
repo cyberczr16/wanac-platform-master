@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from "../../../../../components/dashboardcomponents/sidebar";
-import ClientTopbar from "../../../../../components/dashboardcomponents/clienttopbar";
+import Sidebar from "../../../../components/dashboardcomponents/sidebar";
+import ClientTopbar from "../../../../components/dashboardcomponents/clienttopbar";
 import {
   FaBold,
   FaItalic,
@@ -13,7 +13,7 @@ import {
   FaMinus,
 } from "react-icons/fa";
 import { Tooltip } from "react-tooltip";
-import { journalService } from "../../../../services/api/journal.service";
+import { journalService } from "../../../services/api/journal.service";
 
 const tabs = [
   { key: "morning", label: " Morning Mindset" },

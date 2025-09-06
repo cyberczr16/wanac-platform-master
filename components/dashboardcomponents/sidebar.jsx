@@ -7,21 +7,21 @@ import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import { useState, useEffect } from 'react'
 
 const navItems = [
-  { name: 'Dashboard', href: '/pages/client/dashboard', icon: <Home size={18} /> },
-  { name: 'Calendar', href: '/pages/client/calendar', icon: <Calendar size={18} /> },
+  { name: 'Dashboard', href: '/client/dashboard', icon: <Home size={18} /> },
+  { name: 'Calendar', href: '/client/calendar', icon: <Calendar size={18} /> },
   
-  { name: 'Lifescores', href: '/pages/client/lifescores', icon: <HeartPulse size={18} /> },
-  { name: 'Journal', href: '/pages/client/journal', icon: <BookOpen size={18} /> },
-  { name: 'Fireteam', href: '/pages/client/fireteam', icon: <Users size={18} /> },
-  { name: 'Task Management', href: '/pages/client/taskmanagement', icon: <CheckSquare size={18} /> },
-  { name: 'AI Insights', href: '/pages/client/aiinsights', icon: <Brain size={18} /> },
-  { name: 'Community', href: '/pages/client/community', icon: <MessageCircle size={18} /> },
-  { name: 'AI Chat Bot', href: '/pages/client/aichatbot', icon: <Bot size={18} /> },
-  { name: 'Students', href: '/pages/client/students', icon: <Users size={18} /> },
-  { name: 'Account Settings', href: '/pages/client/accountsettings', icon: <UserCog size={18} /> },
-  { name: 'Sessions', href: '/pages/client/session', icon: <Video size={18} /> }, // <-- Changed to Video icon
-  { name: 'My Career Compass', href: '/pages/client/mycareercompass', icon: <Briefcase size={18} /> },
-  { name: 'My Education Compass', href: '/pages/client/myeducationcompass', icon: <GraduationCap size={18} /> },
+  { name: 'Lifescores', href: '/client/lifescores', icon: <HeartPulse size={18} /> },
+  { name: 'Journal', href: '/client/journal', icon: <BookOpen size={18} /> },
+  { name: 'Fireteam', href: '/client/fireteam', icon: <Users size={18} /> },
+  { name: 'Task Management', href: '/client/taskmanagement', icon: <CheckSquare size={18} /> },
+  { name: 'AI Insights', href: '/client/aiinsights', icon: <Brain size={18} /> },
+  { name: 'Community', href: '/client/community', icon: <MessageCircle size={18} /> },
+  { name: 'AI Chat Bot', href: '/client/aichatbot', icon: <Bot size={18} /> },
+  { name: 'Students', href: '/client/students', icon: <Users size={18} /> },
+  { name: 'Account Settings', href: '/client/accountsettings', icon: <UserCog size={18} /> },
+  { name: 'Sessions', href: '/client/session', icon: <Video size={18} /> }, // <-- Changed to Video icon
+  { name: 'My Career Compass', href: '/client/mycareercompass', icon: <Briefcase size={18} /> },
+  { name: 'My Education Compass', href: '/client/myeducationcompass', icon: <GraduationCap size={18} /> },
   { name: 'Reports', href: '/client/reports', icon: <BarChart2 size={18} /> },
 ]
 

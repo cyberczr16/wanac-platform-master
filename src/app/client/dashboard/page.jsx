@@ -8,11 +8,11 @@ import {
   FaChartLine,
   FaUsers,
 } from 'react-icons/fa';
-import Sidebar from '../../../../../components/dashboardcomponents/sidebar'
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
+import Sidebar from '../../../../components/dashboardcomponents/sidebar'
+import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
 import { useRouter } from 'next/navigation';
-import { sessionsService } from '../../../../services/api/sessions.service';
-import { habitsService } from '../../../../services/api/habits.service';
+import { sessionsService } from '../../../services/api/sessions.service';
+import { habitsService } from '../../../services/api/habits.service';
 
 // Simple Notifications Widget
 function NotificationsWidget() {
@@ -35,6 +35,7 @@ function NotificationsWidget() {
     </div>
   );
 }
+
 
 export default function ClientDashboard() {
   const [collapsed, setCollapsed] = useState(false);
@@ -253,6 +254,7 @@ export default function ClientDashboard() {
                       View Detailed Analysis →
                     </button>
                   </div>
+
                 </section>
               </div>
             </div>

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
-import { profileService } from '../../../../services/api/profile.service';
+import Sidebar from '../../../../components/dashboardcomponents/sidebar';
+import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
+import { profileService } from '../../../services/api/profile.service';
 
 export default function AccountSettingsPage() {
   const [user, setUser] = useState(null);

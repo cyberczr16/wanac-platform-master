@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
-import LifeScorePreview from '../../../../../components/LifeScorePreview';
-import InfographicWheel from '../../../../../components/infographicWheel';
+import Sidebar from '../../../../components/dashboardcomponents/sidebar';
+import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
+import LifeScorePreview from '../../../../components/LifeScorePreview';
+import InfographicWheel from '../../../../components/infographicWheel';
 import { FaChartLine, FaHistory } from "react-icons/fa";
 import { Button, LinearProgress, Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts';
-import { habitsService } from '../../../../services/api/habits.service';
+import { habitsService } from '../../../services/api/habits.service';
 import { handleValidationErrors } from "@/lib/error";
 import toast from "react-hot-toast";
 

@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "../../../../../components/dashboardcomponents/sidebar";
-import ClientTopbar from "../../../../../components/dashboardcomponents/clienttopbar";
+import Sidebar from "../../../../components/dashboardcomponents/sidebar";
+import ClientTopbar from "../../../../components/dashboardcomponents/clienttopbar";
 import { FaLock, FaCalendarAlt, FaPlus, FaUsers } from "react-icons/fa";
 import {
   fetchCommunities,
   createCommunity,
-} from "../../../../../src/services/api/community.service";
+} from "../../../../src/services/api/community.service";
 
 export default function CommunityPage() {
   const [collapsed, setCollapsed] = useState(false);

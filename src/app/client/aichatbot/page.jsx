@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Sidebar from "../../../../../components/dashboardcomponents/sidebar";
-import ClientTopbar from "../../../../../components/dashboardcomponents/clienttopbar";
+import Sidebar from "../../../../components/dashboardcomponents/sidebar";
+import ClientTopbar from "../../../../components/dashboardcomponents/clienttopbar";
 
 export default function AIChatbotPage() {
   const [user, setUser] = useState(null);

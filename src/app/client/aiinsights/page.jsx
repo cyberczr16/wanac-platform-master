@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
-import DashboardSidebar from '../../../../../components/dashboardcomponents/DashboardSidebar';
-import AIChatbot from '../../../../../components/dashboardcomponents/AIChatbot';
+import Sidebar from '../../../../components/dashboardcomponents/sidebar';
+import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
+import DashboardSidebar from '../../../../components/dashboardcomponents/DashboardSidebar';
+import AIChatbot from '../../../../components/dashboardcomponents/AIChatbot';
 
 // Mock data for insights
 const mockInsights = [

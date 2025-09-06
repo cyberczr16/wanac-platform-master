@@ -5,7 +5,7 @@ import AgendaSidebar from "../components/AgendaSidebar";
 import Slide from "../components/SlideComponent";
 import MeetControlBar from "../components/MeetControlBar";
 import PeersGrid from "../components/PeersGrid";
-import Sidebar from "../../../../../../components/dashboardcomponents/sidebar.jsx";
+import Sidebar from "../../../../components/dashboardcomponents/sidebar.jsx";
 
 export default function ExperienceModule() {
   // Hard-coded agenda items — pull these from props or context if you like

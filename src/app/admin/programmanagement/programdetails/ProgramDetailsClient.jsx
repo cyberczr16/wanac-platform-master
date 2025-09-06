@@ -107,13 +107,27 @@ export default function ProgramDetailsClient() {
                     const startDate = startDateRaw ? new Date(startDateRaw).toLocaleDateString() : '—';
                     const endDate = endDateRaw ? new Date(endDateRaw).toLocaleDateString() : '—';
                     return (
-                      <TableRow key={cohort.id}>
+                      <TableRow
+                        key={cohort.id}
+                        hover
+                        sx={{ cursor: 'pointer' }}
+                        onClick={() => router.push(`/admin/cohortmanagement/${cohort.id}`)}
+                      >
                         <TableCell>{cohort.name || cohort.title || `Cohort ${cohort.id}`}</TableCell>
                         <TableCell>{memberCount}</TableCell>
                         <TableCell>{startDate}</TableCell>
                         <TableCell>{endDate}</TableCell>
                         <TableCell align="right">
-                          <Button size="small" variant="outlined" onClick={() => router.push(`/admin/cohortmanagement?id=${cohort.id}`)}>View</Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={e => {
+                              e.stopPropagation();
+                              router.push(`/admin/cohortmanagement/${cohort.id}`);
+                            }}
+                          >
+                            View
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );

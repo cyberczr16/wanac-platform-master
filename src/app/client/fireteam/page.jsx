@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
+import Sidebar from '../../../../components/dashboardcomponents/sidebar';
+import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
 import HomePage from "./components/HomePage";
 
 function CourseMaterialsModal({ open, onClose }) {

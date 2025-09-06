@@ -107,7 +107,7 @@ export default function Login() {
         toast.success(data.message);
 
         const dashboardPaths = {
-          client: '/pages/client/dashboard',
+          client: '/client/dashboard',
           coach: '/coach',
           admin: '/admin'
         };
@@ -173,7 +173,7 @@ export default function Login() {
       localStorage.setItem('auth_token', data.token);
       toast.success('Successfully signed in with Google!');
       const dashboardPaths = {
-        client: '/pages/client/dashboard',
+        client: '/client/dashboard',
         coach: '/coach',
         admin: '/admin',
       };

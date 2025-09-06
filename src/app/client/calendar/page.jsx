@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
+import Sidebar from '../../../../components/dashboardcomponents/sidebar';
+import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
 import { Dialog } from "@headlessui/react";
 import { FaCalendar } from 'react-icons/fa';
-import { sessionsService } from '../../../../services/api/sessions.service';
+import { sessionsService } from '../../../services/api/sessions.service';
 
 function GoogleCalendarConnect() {
   const [connected, setConnected] = useState(false);
