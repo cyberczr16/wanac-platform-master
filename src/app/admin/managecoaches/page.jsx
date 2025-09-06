@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import AdminSidebar from '../../../../../components/dashboardcomponents/adminsidebar';
+import AdminSidebar from '../../../../components/dashboardcomponents/adminsidebar';
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 
 export default function ManageCoaches() {
