@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
-import TimeWidget from '../../../../../components/dashboardcomponents/widgets/TimeWidget';
-import CalendarWidget from '../../../../../components/dashboardcomponents/widgets/CalendarWidget';
-import CommunityFeedWidget from '../../../../../components/dashboardcomponents/widgets/CommunityFeedWidget';
+import Sidebar from '../../../../components/dashboardcomponents/sidebar';
+import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
+import TimeWidget from '../../../../components/dashboardcomponents/widgets/TimeWidget';
+import CalendarWidget from '../../../../components/dashboardcomponents/widgets/CalendarWidget';
+import CommunityFeedWidget from '../../../../components/dashboardcomponents/widgets/CommunityFeedWidget';
 import { FaCalendarAlt, FaPlus } from 'react-icons/fa';
 
 // Mock data for events

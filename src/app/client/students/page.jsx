@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import Sidebar from '../../../../../components/dashboardcomponents/sidebar';
-import ClientTopbar from '../../../../../components/dashboardcomponents/clienttopbar';
+import Sidebar from '../../../../components/dashboardcomponents/sidebar';
+import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
 import { FaUserGraduate, FaUserEdit, FaUserTimes } from "react-icons/fa";
 
 // Example mock data for students

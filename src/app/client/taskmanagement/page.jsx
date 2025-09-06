@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Sidebar from "../../../../../components/dashboardcomponents/sidebar";
-import ClientTopbar from "../../../../../components/dashboardcomponents/clienttopbar";
-import { tasksService } from "../../../../services/api/tasks.service";
+import Sidebar from "../../../../components/dashboardcomponents/sidebar";
+import ClientTopbar from "../../../../components/dashboardcomponents/clienttopbar";
+import { tasksService } from "../../../services/api/tasks.service";
 import {
   Button,
   Dialog,
