@@ -5,7 +5,7 @@ export const clientsService = {
     const response = await apiClient.get('/api/v1/clients');
     return response.data;
   },
-  async searchClients(query) {
+  async searchClients(query: string) {
     const all = await this.getClients();
     if (!Array.isArray(all)) return [];
     return all.filter(client =>
