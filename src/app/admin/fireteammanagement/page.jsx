@@ -1,8 +1,30 @@
 "use client";
-import { useState } from "react";
-import AdminSidebar from '../../../../components/dashboardcomponents/adminsidebar';
-import AdminFireteamHomePage from "./AdminFireteamHomePage";
-import { Dialog } from '@mui/material';
+import { useState, useEffect } from "react";
+import AdminSidebar from "../../../../components/dashboardcomponents/adminsidebar";
+import {
+  Box,
+  Typography,
+  Button,
+  Stack,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Snackbar,
+  Alert,
+} from "@mui/material";
+import { cohortService } from "../../../services/api/cohort.service";
+import { fireteamService } from "../../../services/api/fireteam.service";
 
 export default function FireteamAdminManagementPage() {
   const [showAddEdit, setShowAddEdit] = useState(false);
@@ -10,37 +32,57 @@ export default function FireteamAdminManagementPage() {
   const [selectedFireteam, setSelectedFireteam] = useState(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [fireteams, setFireteams] = useState([
-    {
-      id: 1,
-      name: "Alpha Team",
-      description: "Handles onboarding clients.",
-      type: "client",
-      members: ["Jane Doe", "John Smith"],
-      admin: "Jane Doe",
-    },
-    {
-      id: 2,
-      name: "Bravo Team",
-      description: "Coach support group.",
-      type: "coach",
-      members: ["Alice Brown", "Bob White"],
-      admin: "Alice Brown",
-    },
-  ]);
+  const [cohortId, setCohortId] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [fireteams, setFireteams] = useState([]);
+  const [cohorts, setCohorts] = useState([]);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Handlers for modal actions
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const cohortsData = await cohortService.getCohorts();
+        setCohorts(cohortsData);
+      } catch (err) {
+        setError("Error fetching cohorts");
+      }
+      try {
+        const fireteamsData = await fireteamService.getFireteams();
+        setFireteams(fireteamsData);
+      } catch (err) {
+        setError("Error fetching fireteams");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  // Modal handlers
   const handleAdd = () => {
     setSelectedFireteam(null);
     setShowAddEdit(true);
     setName("");
     setDescription("");
+    setCohortId("");
+    setDate("");
+    setTime("");
+    setError("");
   };
   const handleEdit = (fireteam) => {
     setSelectedFireteam(fireteam);
     setShowAddEdit(true);
-    setName(fireteam?.name || "");
+    setName(fireteam?.title || fireteam?.name || "");
     setDescription(fireteam?.description || "");
+    setCohortId(String(fireteam?.cohort_id || ""));
+    setDate(fireteam?.date || "");
+    setTime(fireteam?.time || "");
+    setError("");
   };
   const handleDelete = (fireteam) => {
     setSelectedFireteam(fireteam);
@@ -52,86 +94,217 @@ export default function FireteamAdminManagementPage() {
     setSelectedFireteam(null);
     setName("");
     setDescription("");
+    setCohortId("");
+    setDate("");
+    setTime("");
+    setError("");
   };
 
-  const handleSave = () => {
-    if (!name.trim() || !description.trim()) return;
-    if (selectedFireteam) {
-      // Update existing
-      setFireteams(prev => prev.map(ft => ft.id === selectedFireteam.id ? { ...ft, name, description } : ft));
-    } else {
-      // Create new
-      const nextId = fireteams.length ? Math.max(...fireteams.map(f => f.id)) + 1 : 1;
-      setFireteams(prev => [
-        ...prev,
-        {
-          id: nextId,
-          name,
+  // Save Fireteam (create or update)
+  const handleSave = async () => {
+    if (!name.trim() || !description.trim() || !cohortId || !date.trim() || !time.trim()) {
+      setError("All fields are required.");
+      return;
+    }
+    setError("");
+    try {
+      if (selectedFireteam) {
+        // Update request
+        await fireteamService.updateFireteam(selectedFireteam.id, {
+          cohort_id: cohortId,
+          title: name,
           description,
-          type: "client",
-          members: [],
-          admin: "",
-        },
-      ]);
+          date,
+          time,
+        });
+        // Refetch to ensure table is up-to-date
+        const updated = await fireteamService.getFireteams();
+        setFireteams(updated);
+        setSuccess("Fireteam updated successfully!");
+      } else {
+        // Create request
+        await fireteamService.addFireteam({
+          cohort_id: cohortId,
+          title: name,
+          description,
+          date,
+          time,
+        });
+        // Refetch to include the newly created item
+        const refreshed = await fireteamService.getFireteams();
+        setFireteams(refreshed);
+        setSuccess("Fireteam created successfully!");
+      }
+      handleClose();
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          "Network or server error. Please try again."
+      );
     }
-    handleClose();
   };
 
-  const handleConfirmDelete = () => {
-    if (selectedFireteam) {
-      setFireteams(prev => prev.filter(ft => ft.id !== selectedFireteam.id));
+  // Delete Fireteam
+  const handleConfirmDelete = async () => {
+    if (!selectedFireteam) return;
+    try {
+      await fireteamService.deleteFireteam(selectedFireteam.id);
+      setFireteams((prev) => prev.filter((ft) => ft.id !== selectedFireteam.id));
+      setSuccess("Fireteam deleted successfully!");
+      handleClose();
+    } catch (err) {
+      setError("Failed to delete fireteam.");
     }
-    handleClose();
   };
+
+  // Filtered fireteams
+  const filteredFireteams = fireteams.filter((f) => {
+    const nameVal = typeof f.name === "string" ? f.name : f.title || "";
+    const descriptionVal = typeof f.description === "string" ? f.description : "";
+    return (
+      nameVal.toLowerCase().includes(search.toLowerCase()) ||
+      descriptionVal.toLowerCase().includes(search.toLowerCase())
+    );
+  });
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar />
-      <main className="flex-1 p-6 md:ml-56">
-        <AdminFireteamHomePage fireteams={fireteams} onAdd={handleAdd} onEdit={handleEdit} onDelete={handleDelete} />
-        {/* Add/Edit Modal (placeholder) */}
-        <Dialog open={showAddEdit} onClose={handleClose} maxWidth="xs" fullWidth>
-          <div className="p-8">
-            <h3 className="text-lg font-bold mb-4">{selectedFireteam ? 'Edit Fireteam' : 'Add Fireteam'}</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input
-                  type="text"
+      <main className="flex-1 p-8 ml-16 md:ml-56">
+        <Box sx={{ bgcolor: "#fff", borderRadius: 2, p: 3, boxShadow: 1 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>Fireteam Management</Typography>
+            <Button variant="contained" onClick={handleAdd}>Add Fireteam</Button>
+          </Stack>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
+            <TextField
+              label="Search Fireteams"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              sx={{ width: { xs: "100%", sm: 300 } }}
+            />
+          </Stack>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Cohort</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Time</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                <TableRow key="loading">
+                  <TableCell colSpan={6} align="center">Loading...</TableCell>
+                </TableRow>
+              ) : filteredFireteams.length === 0 ? (
+                <TableRow key="empty">
+                  <TableCell colSpan={6} align="center">No fireteams found.</TableCell>
+                </TableRow>
+              ) : (
+                filteredFireteams.map((f) => {
+                  const cohort = cohorts.find(c => c.id === f.cohort_id);
+                  return (
+                    <TableRow key={f.id}>
+                      <TableCell>{f.title || f.name}</TableCell>
+                      <TableCell>{f.description}</TableCell>
+                      <TableCell>{cohort ? (cohort.name || cohort.title || `Cohort ${cohort.id}`) : f.cohort_id}</TableCell>
+                      <TableCell>{f.date}</TableCell>
+                      <TableCell>{f.time}</TableCell>
+                      <TableCell>
+                        <Button size="small" color="primary" onClick={() => handleEdit(f)} sx={{ mr: 1 }}>Edit</Button>
+                        <Button size="small" color="error" onClick={() => handleDelete(f)}>Delete</Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </Box>
+        {/* Add/Edit Dialog */}
+        <Dialog open={showAddEdit} onClose={handleClose} fullWidth maxWidth="xs">
+          <DialogTitle>{selectedFireteam ? "Edit Fireteam" : "Add Fireteam"}</DialogTitle>
+          <DialogContent dividers>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <FormControl fullWidth required>
+                <InputLabel id="cohort-label">Cohort</InputLabel>
+                <Select
+                  labelId="cohort-label"
+                  value={cohortId}
+                  label="Cohort"
+                  onChange={e => setCohortId(String(e.target.value))}
+                >
+                  <MenuItem value="">Select a cohort</MenuItem>
+                  {cohorts.map((cohort) => (
+                    <MenuItem key={cohort.id} value={cohort.id}>
+                      {cohort.name || cohort.title || `Cohort ${cohort.id}`}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <TextField
+                label="Name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter fireteam name"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
+                onChange={e => setName(e.target.value)}
+                required
+                fullWidth
+              />
+              <TextField
+                label="Description"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter fireteam description"
-                  rows={4}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end mt-6 gap-2">
-              <button className="px-4 py-2 rounded bg-gray-200" onClick={handleClose}>Cancel</button>
-              <button className="px-4 py-2 rounded bg-blue-600 text-white" onClick={handleSave} disabled={!name.trim() || !description.trim()}>Save</button>
-            </div>
-          </div>
+                onChange={e => setDescription(e.target.value)}
+                required
+                fullWidth
+                multiline
+                minRows={2}
+              />
+              <TextField
+                label="Date"
+                type="date"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                required
+                fullWidth
+              />
+              <TextField
+                label="Time"
+                type="time"
+                value={time}
+                onChange={e => setTime(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                required
+                fullWidth
+              />
+              {error && <Alert severity="error">{error}</Alert>}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button variant="contained" onClick={handleSave}>Save</Button>
+          </DialogActions>
         </Dialog>
-        {/* Delete Modal (placeholder) */}
-        <Dialog open={showDelete} onClose={handleClose} maxWidth="xs" fullWidth>
-          <div className="p-8">
-            <h3 className="text-lg font-bold mb-4 text-red-600">Delete Fireteam</h3>
-            <p className="mb-6">Are you sure you want to delete the fireteam <span className="font-semibold">{selectedFireteam?.name}</span>?</p>
-            <div className="flex justify-end gap-2">
-              <button className="px-4 py-2 rounded bg-gray-200" onClick={handleClose}>Cancel</button>
-              <button className="px-4 py-2 rounded bg-red-600 text-white" onClick={handleConfirmDelete}>Delete</button>
-            </div>
-          </div>
+        {/* Delete Dialog */}
+        <Dialog open={showDelete} onClose={handleClose} fullWidth maxWidth="xs">
+          <DialogTitle>Delete Fireteam</DialogTitle>
+          <DialogContent dividers>
+            <Typography>Are you sure you want to delete the fireteam <b>{selectedFireteam?.title || selectedFireteam?.name}</b>?</Typography>
+            {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button variant="contained" color="error" onClick={handleConfirmDelete}>Delete</Button>
+          </DialogActions>
         </Dialog>
+        {/* Success Snackbar */}
+        <Snackbar open={!!success} autoHideDuration={3000} onClose={() => setSuccess("")}> 
+          <Alert onClose={() => setSuccess("")} severity="success" sx={{ width: '100%' }}>{success}</Alert>
+        </Snackbar>
       </main>
     </div>
   );

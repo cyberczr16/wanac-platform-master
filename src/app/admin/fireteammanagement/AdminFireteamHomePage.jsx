@@ -1,15 +1,19 @@
 import React, { useMemo, useState } from "react";
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
-export default function AdminFireteamHomePage({ fireteams = [], onAdd, onEdit, onDelete }) {
+export default function AdminFireteamHomePage({ fireteams = [], cohorts = [], onAdd, onEdit, onDelete }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All Fireteams");
+  const router = useRouter();
 
   const filteredFireteams = useMemo(() => {
     return fireteams.filter((f) => {
+      const name = typeof f.name === 'string' ? f.name : '';
+      const description = typeof f.description === 'string' ? f.description : '';
       const matchesSearch =
-        f.name.toLowerCase().includes(search.toLowerCase()) ||
-        (f.description || "").toLowerCase().includes(search.toLowerCase());
+        name.toLowerCase().includes(search.toLowerCase()) ||
+        description.toLowerCase().includes(search.toLowerCase());
       const matchesFilter =
         filter === "All Fireteams" ||
         (filter === "Client" && f.type === "client") ||
@@ -59,37 +63,36 @@ export default function AdminFireteamHomePage({ fireteams = [], onAdd, onEdit, o
               <tr className="text-xs text-gray-400 border-b">
                 <th className="py-3 px-4 font-medium">Name</th>
                 <th className="px-4 font-medium">Description</th>
-                <th className="px-4 font-medium">Type</th>
-                <th className="px-4 font-medium">Members</th>
-                <th className="px-4 font-medium">Admin</th>
+                <th className="px-4 font-medium">Cohort</th>
+                <th className="px-4 font-medium">Date & Time</th>
                 <th className="px-4 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredFireteams.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-gray-400">No fireteams found.</td>
+                  <td colSpan={5} className="text-center py-8 text-gray-400">No fireteams found.</td>
                 </tr>
               ) : (
-                filteredFireteams.map((f) => (
-                  <tr key={f.id} className="border-b last:border-b-0 hover:bg-blue-50 transition-colors group">
+                filteredFireteams.map((f) => {
+                  const cohort = cohorts.find(c => c.id === f.cohort_id);
+                  return (
+                  <tr
+                    key={f.id}
+                    className="border-b last:border-b-0 hover:bg-blue-50 transition-colors group cursor-pointer"
+                    onClick={() => router.push(`/admin/fireteammanagement/${f.id}`)}
+                  >
                     <td className="py-4 px-4 font-semibold align-middle">{f.name}</td>
                     <td className="px-4 align-middle">{f.description}</td>
-                    <td className="px-4 align-middle">
-                      <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${f.type === 'coach' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>{f.type.charAt(0).toUpperCase() + f.type.slice(1)}</span>
-                    </td>
-                    <td className="px-4 align-middle">
-                      {f.members.map((m, i) => (
-                        <span key={i} className="inline-block bg-gray-200 rounded-full px-2 py-1 text-xs mr-1 mb-1">{m}</span>
-                      ))}
-                    </td>
-                    <td className="px-4 align-middle">{f.admin}</td>
-                    <td className="px-4 align-middle">
+                      <td className="px-4 align-middle">{cohort ? (cohort.name || cohort.title || `Cohort ${cohort.id}`) : f.cohort_id}</td>
+                      <td className="px-4 align-middle">{f.date ? `${f.date}${f.time ? ` ${f.time}` : ''}` : ''}</td>
+                    <td className="px-4 align-middle" onClick={e => e.stopPropagation()}>
                       <button className="text-blue-600 hover:text-blue-800 mr-2" onClick={() => onEdit(f)} title="Edit"><FaEdit /></button>
                       <button className="text-red-600 hover:text-red-800" onClick={() => onDelete(f)} title="Delete"><FaTrash /></button>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
