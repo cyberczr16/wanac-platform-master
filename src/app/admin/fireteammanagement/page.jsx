@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import AdminSidebar from "../../../../components/dashboardcomponents/adminsidebar";
 import {
   Box,
@@ -27,6 +28,7 @@ import { cohortService } from "../../../services/api/cohort.service";
 import { fireteamService } from "../../../services/api/fireteam.service";
 
 export default function FireteamAdminManagementPage() {
+  const router = useRouter();
   const [showAddEdit, setShowAddEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [selectedFireteam, setSelectedFireteam] = useState(null);
@@ -47,15 +49,25 @@ export default function FireteamAdminManagementPage() {
       setLoading(true);
       try {
         const cohortsData = await cohortService.getCohorts();
+        console.log("Cohorts data:", cohortsData);
         setCohorts(cohortsData);
       } catch (err) {
+        console.error("Error fetching cohorts:", err);
         setError("Error fetching cohorts");
       }
       try {
         const fireteamsData = await fireteamService.getFireteams();
+        console.log("Fireteams data:", fireteamsData);
+        console.log("Fireteams data type:", typeof fireteamsData);
+        console.log("Fireteams data length:", Array.isArray(fireteamsData) ? fireteamsData.length : "Not an array");
         setFireteams(fireteamsData);
       } catch (err) {
-        setError("Error fetching fireteams");
+        console.error("Error fetching fireteams:", err);
+        if (err.response?.status === 401) {
+          setError("Authentication required. Please log in to view fireteams.");
+        } else {
+          setError("Error fetching fireteams");
+        }
       } finally {
         setLoading(false);
       }
@@ -110,6 +122,7 @@ export default function FireteamAdminManagementPage() {
     try {
       if (selectedFireteam) {
         // Update request
+        console.log("Updating fireteam:", selectedFireteam.id);
         await fireteamService.updateFireteam(selectedFireteam.id, {
           cohort_id: cohortId,
           title: name,
@@ -119,24 +132,35 @@ export default function FireteamAdminManagementPage() {
         });
         // Refetch to ensure table is up-to-date
         const updated = await fireteamService.getFireteams();
+        console.log("Updated fireteams after edit:", updated);
         setFireteams(updated);
         setSuccess("Fireteam updated successfully!");
       } else {
         // Create request
-        await fireteamService.addFireteam({
+        console.log("Creating fireteam with data:", {
           cohort_id: cohortId,
           title: name,
           description,
           date,
           time,
         });
+        const createdFireteam = await fireteamService.addFireteam({
+          cohort_id: cohortId,
+          title: name,
+          description,
+          date,
+          time,
+        });
+        console.log("Created fireteam response:", createdFireteam);
         // Refetch to include the newly created item
         const refreshed = await fireteamService.getFireteams();
+        console.log("Refreshed fireteams after create:", refreshed);
         setFireteams(refreshed);
         setSuccess("Fireteam created successfully!");
       }
       handleClose();
     } catch (err) {
+      console.error("Error saving fireteam:", err);
       setError(
         err.response?.data?.message ||
           err.response?.data?.error ||
@@ -167,6 +191,11 @@ export default function FireteamAdminManagementPage() {
       descriptionVal.toLowerCase().includes(search.toLowerCase())
     );
   });
+
+  // Debug logging
+  console.log("Current fireteams state:", fireteams);
+  console.log("Filtered fireteams:", filteredFireteams);
+  console.log("Search term:", search);
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -203,19 +232,41 @@ export default function FireteamAdminManagementPage() {
                 </TableRow>
               ) : filteredFireteams.length === 0 ? (
                 <TableRow key="empty">
-                  <TableCell colSpan={6} align="center">No fireteams found.</TableCell>
+                  <TableCell colSpan={6} align="center">
+                    {error && error.includes("Authentication required") ? (
+                      <div>
+                        <Typography variant="body2" color="error" sx={{ mb: 2 }}>
+                          {error}
+                        </Typography>
+                        <Button 
+                          variant="contained" 
+                          color="primary" 
+                          onClick={() => window.location.href = '/login'}
+                        >
+                          Go to Login
+                        </Button>
+                      </div>
+                    ) : (
+                      "No fireteams found."
+                    )}
+                  </TableCell>
                 </TableRow>
               ) : (
                 filteredFireteams.map((f) => {
                   const cohort = cohorts.find(c => c.id === f.cohort_id);
                   return (
-                    <TableRow key={f.id}>
+                    <TableRow 
+                      key={f.id}
+                      hover
+                      sx={{ cursor: 'pointer' }}
+                      onClick={() => router.push(`/admin/fireteammanagement/${f.id}`)}
+                    >
                       <TableCell>{f.title || f.name}</TableCell>
                       <TableCell>{f.description}</TableCell>
                       <TableCell>{cohort ? (cohort.name || cohort.title || `Cohort ${cohort.id}`) : f.cohort_id}</TableCell>
                       <TableCell>{f.date}</TableCell>
                       <TableCell>{f.time}</TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Button size="small" color="primary" onClick={() => handleEdit(f)} sx={{ mr: 1 }}>Edit</Button>
                         <Button size="small" color="error" onClick={() => handleDelete(f)}>Delete</Button>
                       </TableCell>
@@ -309,3 +360,4 @@ export default function FireteamAdminManagementPage() {
     </div>
   );
 }
+
