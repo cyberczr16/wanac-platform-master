@@ -111,10 +111,16 @@ export default function FireteamDetailPage() {
 
       // Fetch members and clients
       try {
+        console.log("Fetching members for fireteam ID:", id);
         const membersData = await fireteamService.getFireteamMembers(id);
+        console.log("Members data received:", membersData);
+        console.log("Members data type:", typeof membersData);
+        console.log("Members data length:", Array.isArray(membersData) ? membersData.length : 'not an array');
         setMembers(membersData || []);
       } catch (err) {
         console.error("Error fetching members:", err);
+        console.error("Error details:", err.response?.data);
+        console.error("Error status:", err.response?.status);
         setMembers([]);
       }
 
@@ -181,24 +187,22 @@ export default function FireteamDetailPage() {
   const handleAddMember = async () => {
     if (!selectedClient) return;
     try {
-      // Use the WANAC API endpoint to add a member
-      const response = await fetch('https://wanac-api.kuzasports.com/api/v1/fireteams/member/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          fire_team_id: id,
-          client_id: selectedClient,
-        }),
+      console.log("Adding member with data:", {
+        client_id: selectedClient,
+        fire_team_id: id,
       });
-      if (!response.ok) throw new Error('Failed to add member');
+      const result = await fireteamService.addFireteamMember({
+        client_id: selectedClient,
+        fire_team_id: id,
+      });
+      console.log("Add member result:", result);
       setSuccess("Member added successfully!");
       setShowAddMember(false);
       setSelectedClient("");
       fetchFireteamDetails(); // Refresh data
     } catch (err) {
+      console.error("Error adding member:", err);
+      console.error("Error details:", err.response?.data);
       setError("Failed to add member");
     }
   };
@@ -448,7 +452,6 @@ export default function FireteamDetailPage() {
                     <TableRow>
                       <TableCell>Name</TableCell>
                       <TableCell>Email</TableCell>
-                      <TableCell>Role</TableCell>
                       <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
