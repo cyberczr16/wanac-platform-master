@@ -31,6 +31,7 @@ const coachNavItems = [
   { name: 'Units Management', href: '/coach/unitsmanagement', icon: <FaLayerGroup size={18} style={{ marginRight: 2, marginLeft: 1 }} /> },
   { name: 'Community', href: '/coach/community', icon: <GroupsIcon fontSize="small" /> },
   { name: 'Feedback', href: '/coach/feedback', icon: <FeedbackIcon fontSize="small" /> },
+  { name: 'Fireteam', href: '/coach/fireteam', icon: <ChatIcon fontSize="small" /> },
   { name: 'Messages', href: '/coach/messages', icon: <MailIcon fontSize="small" /> },
 ];
 

@@ -141,9 +141,9 @@ export default function CoachDashboard() {
                   />
                   <QuickActionCard
                     icon={FaBook}
-                    title="Manage Fireteams"
+                    title="Manage Content"
                     description="Upload resources and guides"
-                    onClick={() => window.location.href = '/admin/fireteammanagement?role=coach'}
+                    onClick={() => setOpenModal('content')}
                     color="accent"
                   />
                   <QuickActionCard

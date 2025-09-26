@@ -1,6 +1,5 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { Bot, User, Send, Shield } from "lucide-react";
 export default function ChatComponentV2({ user, onSendMessage, loading, messages: externalMessages }) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState(externalMessages || []);

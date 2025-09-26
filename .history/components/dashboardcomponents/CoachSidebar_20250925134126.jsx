@@ -27,10 +27,11 @@ const coachNavItems = [
   { name: 'Progress', href: '/coach/progress', icon: <BarChartIcon fontSize="small" /> },
   { name: 'Resources', href: '/coach/resources', icon: <MenuBookIcon fontSize="small" /> },
   { name: 'Course Management', href: '/coach/coursemanagement', icon: <MenuBookIcon fontSize="small" /> },
-  { name: 'FireTeam Management', href: '/coach/fireteammanagement', icon: <GroupsIcon fontSize="small" /> },
+  { name: 'FireTeam Management', href: '/coach/coursemanagement', icon: <MenuBookIcon fontSize="small" /> },
   { name: 'Units Management', href: '/coach/unitsmanagement', icon: <FaLayerGroup size={18} style={{ marginRight: 2, marginLeft: 1 }} /> },
   { name: 'Community', href: '/coach/community', icon: <GroupsIcon fontSize="small" /> },
   { name: 'Feedback', href: '/coach/feedback', icon: <FeedbackIcon fontSize="small" /> },
+  { name: 'Fireteam', href: '/coach/fireteam', icon: <ChatIcon fontSize="small" /> },
   { name: 'Messages', href: '/coach/messages', icon: <MailIcon fontSize="small" /> },
 ];
 

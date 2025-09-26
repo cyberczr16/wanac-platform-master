@@ -10,7 +10,6 @@ import {
   createCommunity,
 } from "../../../../src/services/api/community.service";
 
-export default function CoachCommunityPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState(null);
   const [selectedTab, setSelectedTab] = useState('Explore');
@@ -40,7 +39,6 @@ export default function CoachCommunityPage() {
     async function fetchData() {
       setLoadingCommunities(true);
       try {
-        // Always fetch from the shared service so both portals see the same communities
         const communities = await fetchCommunities();
         setCommunities(Array.isArray(communities) ? communities : []);
       } catch (e) {

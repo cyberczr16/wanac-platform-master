@@ -40,7 +40,6 @@ export default function CoachCommunityPage() {
     async function fetchData() {
       setLoadingCommunities(true);
       try {
-        // Always fetch from the shared service so both portals see the same communities
         const communities = await fetchCommunities();
         setCommunities(Array.isArray(communities) ? communities : []);
       } catch (e) {
@@ -142,7 +141,7 @@ export default function CoachCommunityPage() {
                           {comm.name && (
                             <div className="mb-2">
                               <span className="text-xs text-gray-500 font-medium">
-                                Name:{" "}
+                                Name:{{" "}}
                               </span>
                               <span className="text-sm text-gray-700">
                                 {comm.name}
