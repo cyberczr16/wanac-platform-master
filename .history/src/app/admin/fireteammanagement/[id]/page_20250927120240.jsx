@@ -87,7 +87,6 @@ export default function FireteamDetailPage() {
     videoAdminId: '',
     meetingLink: '',
   });
-  const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
     if (id) {
@@ -236,10 +235,10 @@ export default function FireteamDetailPage() {
     }
   };
 
-  const handleDeleteExperience = async (id) => {
+  const handleDeleteExperience = async (experienceId) => {
     if (window.confirm("Are you sure you want to delete this experience?")) {
       try {
-        await experienceService.deleteExperience(id);
+        await experienceService.deleteExperience(experienceId);
         setSuccess("Experience deleted successfully!");
         fetchFireteamDetails(); // Refresh data
       } catch (err) {
@@ -248,17 +247,17 @@ export default function FireteamDetailPage() {
     }
   };
 
-  const handleStartExperience = async (id) => {
+  const handleStartExperience = async (experienceId) => {
     try {
       // Find the experience
-      const experience = experiences.find(exp => exp.id === id);
+      const experience = experiences.find(exp => exp.id === experienceId);
       if (!experience) {
         setError("Experience not found");
         return;
       }
 
       // Start the experience on the server
-      await experienceService.startExperience(id);
+      await experienceService.startExperience(experienceId);
       
       // Set the selected experience and open video meeting
       setSelectedExperience(experience);
@@ -350,45 +349,6 @@ const handleAddAgendaStep = async ({ title, duration }) => {
     } catch (err) {
       setError('Failed to delete exhibit');
     }
-  };
-
-  // Validation functions
-  const validateExperienceData = () => {
-    const errors = {};
-    
-    if (!editExperienceData.title.trim()) {
-      errors.title = 'Experience title is required';
-    }
-    
-    if (!editExperienceData.experience.trim()) {
-      errors.experience = 'Experience content is required';
-    }
-    
-    // Validate agenda steps
-    const invalidAgendaSteps = editExperienceData.agenda.filter(step => 
-      !step.title.trim() || !step.duration.trim()
-    );
-    if (invalidAgendaSteps.length > 0) {
-      errors.agenda = 'All agenda steps must have both title and duration';
-    }
-    
-    // Validate exhibits
-    const invalidExhibits = editExperienceData.exhibits.filter(exhibit => {
-      if (!exhibit.name.trim()) return true;
-      if (exhibit.type === 'link' && !exhibit.link.trim()) return true;
-      if (exhibit.type !== 'link' && !exhibit.file) return true;
-      return false;
-    });
-    if (invalidExhibits.length > 0) {
-      errors.exhibits = 'All exhibits must be properly configured';
-    }
-    
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const clearValidationErrors = () => {
-    setValidationErrors({});
   };
 
 
@@ -665,7 +625,12 @@ const handleAddAgendaStep = async ({ title, duration }) => {
                                       }))
                                     : [{ title: '', duration: '' }],
                                   exhibits: experience.exhibits && Array.isArray(experience.exhibits) && experience.exhibits.length > 0
-                                    ? experience.exhibits.map(ex => ({ ...ex, file: null }))
+                                    ? experience.exhibits.map(ex => ({
+                                        name: ex.name || '',
+                                        type: ex.type || (ex.link ? 'link' : 'document'),
+                                        link: ex.link || '',
+                                        file: null,
+                                      }))
                                     : [{ name: '', type: 'link', link: '', file: null }],
                                   videoAdminId: experience.videoAdminId || '',
                                   meetingLink: experience.meetingLink || '',
@@ -854,374 +819,194 @@ const handleAddAgendaStep = async ({ title, duration }) => {
         </Dialog>
 
         {/* Edit Experience Dialog */}
-        <Dialog 
-          open={showEditExperience} 
-          onClose={() => {
-            setShowEditExperience(false);
-            clearValidationErrors();
-          }} 
-          fullWidth 
-          maxWidth="md"
-        >
-          <DialogTitle>
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <Typography variant="h6">Edit Experience</Typography>
-              {selectedExperienceToEdit && (
-                <Chip 
-                  label="Live Edit" 
-                  color="primary" 
-                  size="small" 
-                  variant="outlined"
-                />
-              )}
-            </Stack>
-          </DialogTitle>
+        <Dialog open={showEditExperience} onClose={() => setShowEditExperience(false)} fullWidth maxWidth="sm">
+          <DialogTitle>Edit Experience</DialogTitle>
           <DialogContent>
             <Stack spacing={3} sx={{ mt: 1 }}>
               <TextField
                 label="Experience Title"
                 value={editExperienceData.title}
-                onChange={e => {
-                  setEditExperienceData({ ...editExperienceData, title: e.target.value });
-                  if (validationErrors.title) {
-                    clearValidationErrors();
-                  }
-                }}
+                onChange={e => setEditExperienceData({ ...editExperienceData, title: e.target.value })}
                 fullWidth
                 required
-                error={!!validationErrors.title}
-                helperText={validationErrors.title}
-                placeholder="Enter a descriptive title for this experience"
               />
               <TextField
                 label="Experience Content"
                 value={editExperienceData.experience}
-                onChange={e => {
-                  setEditExperienceData({ ...editExperienceData, experience: e.target.value });
-                  if (validationErrors.experience) {
-                    clearValidationErrors();
-                  }
-                }}
+                onChange={e => setEditExperienceData({ ...editExperienceData, experience: e.target.value })}
                 fullWidth
                 multiline
                 rows={4}
                 required
-                error={!!validationErrors.experience}
-                helperText={validationErrors.experience || "Describe the experience content, learning objectives, and what participants will gain"}
-                placeholder="Provide detailed content and description of the experience..."
               />
 {/* Agenda Steps */}
 <Box>
-  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-    <Typography variant="subtitle1">Agenda Steps</Typography>
-    <Button
-      size="small"
-      variant="outlined"
-      onClick={async () => {
-        if (!selectedExperienceToEdit) return;
-        try {
-          const newStep = await handleAddAgendaStep({ title: '', duration: '' });
-          // The handleAddAgendaStep function already updates the state
-        } catch (err) {
-          console.error('Error adding agenda step:', err);
-          setError('Failed to add agenda step');
-        }
-      }}
+  <Typography variant="subtitle1">Agenda Steps</Typography>
+  {editExperienceData.agenda.map((step, idx) => (
+    <Stack
+      direction="row"
+      spacing={1}
+      alignItems="center"
+      key={step.id || idx}
+      sx={{ mb: 1 }}
     >
-      + Add Step
-    </Button>
-  </Stack>
-  {validationErrors.agenda && (
-    <Typography variant="caption" color="error" sx={{ mb: 1, display: 'block' }}>
-      {validationErrors.agenda}
-    </Typography>
-  )}
-  
-  {editExperienceData.agenda && editExperienceData.agenda.length > 0 ? (
-    <Stack spacing={2} sx={{ mb: 2 }}>
-      {editExperienceData.agenda.map((step, idx) => (
-        <Box key={step.id || idx} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2, background: '#fafafa' }}>
-          <Stack direction="row" spacing={2} alignItems="flex-start">
-            <Box sx={{ flex: 1 }}>
-              <TextField
-                label="Step Title"
-                value={step.title || ''}
-                onChange={async (e) => {
-                  const newTitle = e.target.value;
-                  const updatedAgenda = [...editExperienceData.agenda];
-                  updatedAgenda[idx] = { ...step, title: newTitle };
-                  setEditExperienceData({ ...editExperienceData, agenda: updatedAgenda });
-                  
-                  // Update on server if this is an existing step
-                  if (step.id) {
-                    try {
-                      await experienceService.updateAgendaStep(step.id, { title: newTitle });
-                    } catch (err) {
-                      console.error('Error updating agenda step:', err);
-                      setError('Failed to update agenda step');
-                    }
-                  }
-                }}
-                fullWidth
-                size="small"
-                placeholder="Enter step title..."
-              />
-              <TextField
-                label="Duration"
-                value={step.duration || ''}
-                onChange={async (e) => {
-                  const newDuration = e.target.value;
-                  const updatedAgenda = [...editExperienceData.agenda];
-                  updatedAgenda[idx] = { ...step, duration: newDuration };
-                  setEditExperienceData({ ...editExperienceData, agenda: updatedAgenda });
-                  
-                  // Update on server if this is an existing step
-                  if (step.id) {
-                    try {
-                      await experienceService.updateAgendaStep(step.id, { duration: newDuration });
-                    } catch (err) {
-                      console.error('Error updating agenda step:', err);
-                      setError('Failed to update agenda step');
-                    }
-                  }
-                }}
-                fullWidth
-                size="small"
-                placeholder="e.g., 15 minutes"
-                sx={{ mt: 1 }}
-              />
-            </Box>
-            <Button
-              onClick={async () => {
-                if (step.id) {
-                  try {
-                    await experienceService.deleteAgendaStep(step.id);
-                  } catch (err) {
-                    console.error('Error deleting agenda step:', err);
-                    setError('Failed to delete agenda step');
-                    return;
-                  }
-                }
-                const updatedAgenda = editExperienceData.agenda.filter((_, i) => i !== idx);
-                setEditExperienceData({ ...editExperienceData, agenda: updatedAgenda });
-              }}
-              color="error"
-              size="small"
-              disabled={editExperienceData.agenda.length === 1}
-            >
-              Delete
-            </Button>
-          </Stack>
-        </Box>
-      ))}
-    </Stack>
-  ) : (
-    <Box sx={{ textAlign: 'center', py: 2, border: '2px dashed #e0e0e0', borderRadius: 2 }}>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        No agenda steps added yet.
-      </Typography>
-      <Button
-        size="small"
-        variant="outlined"
-        onClick={async () => {
-          if (!selectedExperienceToEdit) return;
-          try {
-            await handleAddAgendaStep({ title: '', duration: '' });
-          } catch (err) {
-            console.error('Error adding agenda step:', err);
-            setError('Failed to add agenda step');
-          }
+      <TextField
+        label="Step Title"
+        value={step.title ?? ""}
+        onChange={(e) => {
+          const agenda = [...editExperienceData.agenda];
+          agenda[idx] = {
+            ...agenda[idx],
+            title: e.target.value,
+          };
+          setEditExperienceData({ ...editExperienceData, agenda });
         }}
+        required
+        sx={{ flex: 2 }}
+      />
+
+      <TextField
+        label="Duration"
+        value={step.duration ?? ""}
+        onChange={(e) => {
+          const agenda = [...editExperienceData.agenda];
+          agenda[idx] = {
+            ...agenda[idx],
+            duration: e.target.value,
+          };
+          setEditExperienceData({ ...editExperienceData, agenda });
+        }}
+        sx={{ flex: 1 }}
+      />
+
+      <Button
+        onClick={() =>
+          setEditExperienceData({
+            ...editExperienceData,
+            agenda: editExperienceData.agenda.filter((_, i) => i !== idx),
+          })
+        }
+        color="error"
+        size="small"
+        disabled={editExperienceData.agenda.length === 1}
       >
-        Add First Step
+        Remove
       </Button>
-    </Box>
-  )}
+    </Stack>
+  ))}
+
+  <Button
+    onClick={() => {
+      setEditExperienceData({
+        ...editExperienceData,
+        agenda: [
+          ...editExperienceData.agenda,
+          { title: "", duration: "", id: null }, // ✅ initialized correctly
+        ],
+      });
+    }}
+    size="small"
+    variant="outlined"
+  >
+    + Add Step
+  </Button>
 </Box>
 
 
               {/* Exhibits */}
               <Box>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                  <Typography variant="subtitle1">Exhibits</Typography>
-                  <Button
-                    onClick={handleAddExhibit}
-                    size="small"
-                    variant="outlined"
-                  >
-                    + Add Exhibit
-                  </Button>
-                </Stack>
-                {validationErrors.exhibits && (
-                  <Typography variant="caption" color="error" sx={{ mb: 1, display: 'block' }}>
-                    {validationErrors.exhibits}
-                  </Typography>
-                )}
-                
-                {editExperienceData.exhibits && editExperienceData.exhibits.length > 0 ? (
-                  <Stack spacing={2} sx={{ mb: 2 }}>
-                    {editExperienceData.exhibits.map((exhibit, idx) => (
-                      <Box key={exhibit.id || idx} sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2, background: '#fafafa' }}>
-                        <Stack direction="row" spacing={2} alignItems="flex-start">
-                          <Box sx={{ flex: 1 }}>
-                            <TextField
-                              label="Exhibit Name"
-                              value={exhibit.name || ''}
-                              onChange={async (e) => {
-                                const newName = e.target.value;
-                                const updatedExhibits = [...editExperienceData.exhibits];
-                                updatedExhibits[idx] = { ...exhibit, name: newName };
-                                setEditExperienceData({ ...editExperienceData, exhibits: updatedExhibits });
-                                
-                                // Update on server if this is an existing exhibit
-                                if (exhibit.id) {
-                                  try {
-                                    await experienceService.updateExhibit(exhibit.id, { name: newName });
-                                  } catch (err) {
-                                    console.error('Error updating exhibit:', err);
-                                    setError('Failed to update exhibit');
-                                  }
-                                }
-                              }}
-                              fullWidth
-                              size="small"
-                              placeholder="Enter exhibit name..."
-                              required
-                            />
-                            
-                            <FormControl fullWidth size="small" sx={{ mt: 1 }}>
-                              <InputLabel>Type</InputLabel>
-                              <Select
-                                value={exhibit.type || 'link'}
-                                label="Type"
-                                onChange={async (e) => {
-                                  const newType = e.target.value;
-                                  const updatedExhibits = [...editExperienceData.exhibits];
-                                  updatedExhibits[idx] = { 
-                                    ...exhibit, 
-                                    type: newType,
-                                    // Reset file/link when type changes
-                                    file: null,
-                                    link: newType === 'link' ? exhibit.link : ''
-                                  };
-                                  setEditExperienceData({ ...editExperienceData, exhibits: updatedExhibits });
-                                  
-                                  // Update on server if this is an existing exhibit
-                                  if (exhibit.id) {
-                                    try {
-                                      await experienceService.updateExhibit(exhibit.id, { type: newType });
-                                    } catch (err) {
-                                      console.error('Error updating exhibit:', err);
-                                      setError('Failed to update exhibit');
-                                    }
-                                  }
-                                }}
-                              >
-                                <MenuItem value="link">Link</MenuItem>
-                                <MenuItem value="document">Document</MenuItem>
-                                <MenuItem value="image">Image</MenuItem>
-                                <MenuItem value="video">Video</MenuItem>
-                              </Select>
-                            </FormControl>
-                            
-                            {exhibit.type === 'link' ? (
-                              <TextField
-                                label="Link URL"
-                                value={exhibit.link || ''}
-                                onChange={async (e) => {
-                                  const newLink = e.target.value;
-                                  const updatedExhibits = [...editExperienceData.exhibits];
-                                  updatedExhibits[idx] = { ...exhibit, link: newLink };
-                                  setEditExperienceData({ ...editExperienceData, exhibits: updatedExhibits });
-                                  
-                                  // Update on server if this is an existing exhibit
-                                  if (exhibit.id) {
-                                    try {
-                                      await experienceService.updateExhibit(exhibit.id, { link: newLink });
-                                    } catch (err) {
-                                      console.error('Error updating exhibit:', err);
-                                      setError('Failed to update exhibit');
-                                    }
-                                  }
-                                }}
-                                fullWidth
-                                size="small"
-                                placeholder="https://example.com"
-                                sx={{ mt: 1 }}
-                              />
-                            ) : (
-                              <Box sx={{ mt: 1 }}>
-                                <Button
-                                  variant="outlined"
-                                  component="label"
-                                  fullWidth
-                                  size="small"
-                                >
-                                  {exhibit.file ? exhibit.file.name : `Upload ${exhibit.type}`}
-                                  <input
-                                    type="file"
-                                    accept={
-                                      exhibit.type === 'image' ? 'image/*' :
-                                      exhibit.type === 'video' ? 'video/*' :
-                                      exhibit.type === 'document' ? '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt' : '*/*'
-                                    }
-                                    hidden
-                                    onChange={e => {
-                                      const file = e.target.files[0];
-                                      if (file) {
-                                        const updatedExhibits = [...editExperienceData.exhibits];
-                                        updatedExhibits[idx] = { ...exhibit, file: file };
-                                        setEditExperienceData({ ...editExperienceData, exhibits: updatedExhibits });
-                                      }
-                                    }}
-                                  />
-                                </Button>
-                                {exhibit.file && (
-                                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                                    Selected: {exhibit.file.name} ({(exhibit.file.size / 1024 / 1024).toFixed(2)} MB)
-                                  </Typography>
-                                )}
-                              </Box>
-                            )}
-                          </Box>
-                          <Button
-                            onClick={async () => {
-                              if (exhibit.id) {
-                                try {
-                                  await experienceService.deleteExhibit(exhibit.id);
-                                } catch (err) {
-                                  console.error('Error deleting exhibit:', err);
-                                  setError('Failed to delete exhibit');
-                                  return;
-                                }
-                              }
-                              const updatedExhibits = editExperienceData.exhibits.filter((_, i) => i !== idx);
-                              setEditExperienceData({ ...editExperienceData, exhibits: updatedExhibits });
+                <Typography variant="subtitle1">Exhibits</Typography>
+                {editExperienceData.exhibits.map((exhibit, idx) => (
+                  <Stack direction="row" spacing={1} alignItems="center" key={idx} sx={{ mb: 1, flexWrap: 'wrap' }}>
+                    <TextField
+                      label="Exhibit Name"
+                      value={exhibit.name}
+                      onChange={e => {
+                        const exhibits = [...editExperienceData.exhibits];
+                        exhibits[idx].name = e.target.value;
+                        setEditExperienceData({ ...editExperienceData, exhibits });
+                      }}
+                      required
+                      sx={{ flex: 2, minWidth: 120 }}
+                    />
+                    <FormControl sx={{ minWidth: 120 }}>
+                      <InputLabel>Type</InputLabel>
+                      <Select
+                        value={exhibit.type}
+                        label="Type"
+                        onChange={e => {
+                          const exhibits = [...editExperienceData.exhibits];
+                          exhibits[idx].type = e.target.value;
+                          // Reset file/link when type changes
+                          if (e.target.value === 'link') {
+                            exhibits[idx].file = null;
+                            exhibits[idx].link = '';
+                          } else {
+                            exhibits[idx].file = null;
+                            exhibits[idx].link = '';
+                          }
+                          setEditExperienceData({ ...editExperienceData, exhibits });
+                        }}
+                      >
+                        <MenuItem value="link">Link</MenuItem>
+                        <MenuItem value="document">Document</MenuItem>
+                        <MenuItem value="image">Image</MenuItem>
+                        <MenuItem value="video">Video</MenuItem>
+                      </Select>
+                    </FormControl>
+                    {exhibit.type === 'link' ? (
+                      <TextField
+                        label="Link"
+                        value={exhibit.link}
+                        onChange={e => {
+                          const exhibits = [...editExperienceData.exhibits];
+                          exhibits[idx].link = e.target.value;
+                          setEditExperienceData({ ...editExperienceData, exhibits });
+                        }}
+                        sx={{ flex: 2, minWidth: 120 }}
+                      />
+                    ) : (
+                      <>
+                        <Button
+                          variant="outlined"
+                          component="label"
+                          sx={{ minWidth: 120 }}
+                        >
+                          {exhibit.file ? exhibit.file.name : `Upload ${exhibit.type}`}
+                          <input
+                            type="file"
+                            accept={
+                              exhibit.type === 'image' ? 'image/*' :
+                              exhibit.type === 'video' ? 'video/*' :
+                              exhibit.type === 'document' ? '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt' : '*/*'
+                            }
+                            hidden
+                            onChange={e => {
+                              const file = e.target.files[0];
+                              const exhibits = [...editExperienceData.exhibits];
+                              exhibits[idx].file = file;
+                              setEditExperienceData({ ...editExperienceData, exhibits });
                             }}
-                            color="error"
-                            size="small"
-                            disabled={editExperienceData.exhibits.length === 1}
-                          >
-                            Delete
-                          </Button>
-                        </Stack>
-                      </Box>
-                    ))}
-                  </Stack>
-                ) : (
-                  <Box sx={{ textAlign: 'center', py: 2, border: '2px dashed #e0e0e0', borderRadius: 2 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      No exhibits added yet.
-                    </Typography>
+                          />
+                        </Button>
+                        {exhibit.file && (
+                          <Typography variant="caption" sx={{ ml: 1 }}>{exhibit.file.name}</Typography>
+                        )}
+                      </>
+                    )}
                     <Button
+                      onClick={() => handleDeleteExhibit(exhibit.id, idx)}
+                      color="error"
                       size="small"
-                      variant="outlined"
-                      onClick={handleAddExhibit}
-                    >
-                      Add First Exhibit
-                    </Button>
-                  </Box>
-                )}
+                      disabled={editExperienceData.exhibits.length === 1}
+                    >Remove</Button>
+                  </Stack>
+                ))}
+                <Button
+                  onClick={handleAddExhibit}
+                  size="small"
+                  variant="outlined"
+                >+ Add Exhibit</Button>
               </Box>
               {/* Experience Video Admin */}
               <FormControl fullWidth>
@@ -1237,7 +1022,7 @@ const handleAddAgendaStep = async ({ title, duration }) => {
                     // Auto-generate Jitsi meeting link when admin is selected
                     const meetingLink = generateFireteamMeetingLink(
                       id, // fireteamId
-                      selectedExperienceToEdit?.id || 'new', // id
+                      selectedExperienceToEdit?.id || 'new', // experienceId
                       adminId,
                       adminName
                     );
@@ -1297,25 +1082,11 @@ const handleAddAgendaStep = async ({ title, duration }) => {
             </Stack>
           </DialogContent>
           <DialogActions>
-            <Button 
-              onClick={() => {
-                setShowEditExperience(false);
-                clearValidationErrors();
-              }}
-            >
-              Cancel
-            </Button>
+            <Button onClick={() => setShowEditExperience(false)}>Cancel</Button>
             <Button
               variant="contained"
               onClick={async () => {
                 if (!selectedExperienceToEdit) return;
-                
-                // Validate before saving
-                if (!validateExperienceData()) {
-                  setError('Please fix validation errors before saving');
-                  return;
-                }
-                
                 try {
                   // Update the main experience
                   await experienceService.updateExperience(selectedExperienceToEdit.id, {
@@ -1327,12 +1098,14 @@ const handleAddAgendaStep = async ({ title, duration }) => {
                   const currentExhibitIds = selectedExperienceToEdit.exhibits?.map(ex => ex.id).filter(Boolean) || [];
                   const newExhibits = editExperienceData.exhibits.filter(ex => !ex.id);
                   const existingExhibits = editExperienceData.exhibits.filter(ex => ex.id);
+                  
                   // Delete exhibits that were removed
                   for (const exhibitId of currentExhibitIds) {
                     if (!existingExhibits.find(ex => ex.id === exhibitId)) {
                       await experienceService.deleteExhibit(exhibitId);
                     }
                   }
+                  
                   // Add new exhibits
                   for (const exhibit of newExhibits) {
                     if (exhibit.name.trim()) {
@@ -1345,34 +1118,18 @@ const handleAddAgendaStep = async ({ title, duration }) => {
                     }
                   }
 
-                  // Refetch all experiences and get the updated one
-                  const allExperiences = await experienceService.getExperiences(fireteam.id);
-                  const updatedExperience = allExperiences.find(exp => exp.id === selectedExperienceToEdit.id);
                   setShowEditExperience(false);
                   setSelectedExperienceToEdit(null);
-                  clearValidationErrors();
                   setSuccess('Experience updated successfully!');
                   fetchFireteamDetails();
-                  // Optionally update editExperienceData with latest agenda for next open
-                  if (updatedExperience) {
-                    setEditExperienceData(prev => ({
-                      ...prev,
-                      agenda: updatedExperience.agenda && Array.isArray(updatedExperience.agenda) && updatedExperience.agenda.length > 0
-                        ? updatedExperience.agenda.map(step => ({
-                            ...step,
-                            title: typeof step.title === 'string' ? step.title : '',
-                            duration: typeof step.duration === 'string' ? step.duration : '',
-                          }))
-                        : [{ title: '', duration: '' }],
-                    }));
-                  }
                 } catch (err) {
                   console.error('Error updating experience:', err);
                   setError('Failed to update experience');
                 }
               }}
+              disabled={!editExperienceData.title.trim() || !editExperienceData.experience.trim()}
             >
-              Save Changes
+              Save
             </Button>
           </DialogActions>
         </Dialog>

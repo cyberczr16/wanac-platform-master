@@ -7,12 +7,15 @@ import {
   FaRobot,
   FaChartLine,
   FaUsers,
+  FaFire,
 } from 'react-icons/fa';
 import Sidebar from '../../../../components/dashboardcomponents/sidebar'
 import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
 import { useRouter } from 'next/navigation';
 import { sessionsService } from '../../../services/api/sessions.service';
 import { habitsService } from '../../../services/api/habits.service';
+import { fireteamService } from '../../../services/api/fireteam.service';
+import { experienceService } from '../../../services/api/experience.service';
 
 // Simple Notifications Widget
 function NotificationsWidget() {
@@ -41,10 +44,45 @@ export default function ClientDashboard() {
   const [collapsed, setCollapsed] = useState(false);
   const [upcomingSessions, setUpcomingSessions] = useState([]);
   const [lifeScore, setLifeScore] = useState({});
+  const [upcomingExperiences, setUpcomingExperiences] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const router = useRouter();
+
+  // Function to fetch upcoming fireteam experiences
+  const fetchUpcomingExperiences = async () => {
+    try {
+      // Get user's fireteams first
+      const fireteams = await fireteamService.getFireteams();
+      const allExperiences = [];
+      
+      // Fetch experiences for each fireteam
+      for (const fireteam of fireteams) {
+        try {
+          const experiences = await experienceService.getExperiences(fireteam.id);
+          // Add fireteam info to each experience
+          const experiencesWithFireteam = experiences.map(exp => ({
+            ...exp,
+            fireteam: fireteam
+          }));
+          allExperiences.push(...experiencesWithFireteam);
+        } catch (error) {
+          console.error(`Error fetching experiences for fireteam ${fireteam.id}:`, error);
+        }
+      }
+      
+      // Filter for upcoming experiences (mock logic - you might want to add date filtering)
+      const upcoming = allExperiences.filter(exp => 
+        exp.status === 'upcoming' || exp.status === 'scheduled' || !exp.status
+      ).slice(0, 3); // Show only first 3 upcoming experiences
+      
+      setUpcomingExperiences(upcoming);
+    } catch (error) {
+      console.error('Error fetching upcoming experiences:', error);
+      setUpcomingExperiences([]);
+    }
+  };
 
   useEffect(() => {
     const userData = localStorage.getItem('wanacUser');
@@ -85,6 +123,9 @@ export default function ClientDashboard() {
             setLifeScore(historyArray[0]);
           }
         });
+        
+        // Fetch upcoming fireteam experiences
+        fetchUpcomingExperiences();
       } catch (e) {
         setUser(null);
         setLoading(false);
@@ -216,7 +257,7 @@ export default function ClientDashboard() {
                         })
                       )}
                     </div>
-                    <button className="mt-4 text-primary hover:underline text-sm font-medium transition-colors duration-150" onClick={() => router.push('/pages/client/session')}>
+                    <button className="mt-4 text-primary hover:underline text-sm font-medium transition-colors duration-150" onClick={() => router.push('/client/session')}>
                       View All Sessions →
                     </button>
                   </div>
@@ -250,11 +291,64 @@ export default function ClientDashboard() {
                         ))
                       )}
                     </div>
-                    <button className="mt-4 text-warning hover:underline text-sm font-medium transition-colors duration-150">
+                    <button 
+                      className="mt-4 text-warning hover:underline text-sm font-medium transition-colors duration-150"
+                      onClick={() => router.push('/client/lifescores')}
+                    >
                       View Detailed Analysis →
                     </button>
                   </div>
 
+                </section>
+
+                {/* Upcoming Fireteam Experiences */}
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-md animate-fadeIn">
+                    <h3
+                      className="text-lg font-semibold mb-4 flex items-center gap-2 text-primary"
+                      style={{ fontFamily: 'var(--font-heading)' }}
+                    >
+                      <FaFire className="text-primary" />
+                      Upcoming Fireteam Experiences
+                    </h3>
+                    <div className="space-y-4">
+                      {loading ? (
+                        <p className="text-gray-500 text-sm">Loading...</p>
+                      ) : upcomingExperiences.length === 0 ? (
+                        <p className="text-gray-500 text-sm">No upcoming experiences scheduled.</p>
+                      ) : (
+                        upcomingExperiences.map((experience) => (
+                          <div
+                            key={experience.id}
+                            className="border-l-4 border-primary pl-4 py-3 bg-primary/5 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+                          >
+                            <div className="flex justify-between">
+                              <div>
+                                <p className="font-medium text-gray-800">{experience.title}</p>
+                                <p className="text-sm text-gray-600">
+                                  {experience.fireteam?.title || 'Fireteam Experience'}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {experience.experience || 'Collaborative learning session'}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">
+                                  Upcoming
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    <button 
+                      className="mt-4 text-primary hover:underline text-sm font-medium transition-colors duration-150"
+                      onClick={() => router.push('/client/fireteam')}
+                    >
+                      View All Experiences →
+                    </button>
+                  </div>
                 </section>
               </div>
             </div>

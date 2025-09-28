@@ -11,7 +11,33 @@ export const experienceService = {
       const res = await apiClient.get(`/api/v1/fireteams/experiences/${fireteamId}`);
       console.log("Raw API response for getExperiences:", res.data);
       const data = unwrapItem(res.data);
-      return Array.isArray(data) ? data : (data.fireteamExperiences || []);
+      
+      // Handle different response formats
+      if (Array.isArray(data)) {
+        console.log("Data is array, returning directly:", data);
+        return data;
+      }
+      
+      // Check for fireTeamExperiences key (from the console logs)
+      if (data.fireTeamExperiences && Array.isArray(data.fireTeamExperiences)) {
+        console.log("Found fireTeamExperiences array:", data.fireTeamExperiences);
+        return data.fireTeamExperiences;
+      }
+      
+      // Check for fireteamExperiences key (alternative naming)
+      if (data.fireteamExperiences && Array.isArray(data.fireteamExperiences)) {
+        console.log("Found fireteamExperiences array:", data.fireteamExperiences);
+        return data.fireteamExperiences;
+      }
+      
+      // Check for experiences key
+      if (data.experiences && Array.isArray(data.experiences)) {
+        console.log("Found experiences array:", data.experiences);
+        return data.experiences;
+      }
+      
+      console.log("No valid array found in response, returning empty array");
+      return [];
     } catch (error: any) {
       console.error("Error fetching experiences:", error);
       console.error("Error response:", error.response?.data);
@@ -74,7 +100,7 @@ export const experienceService = {
     fire_team_experience_id: string | number;
     title: string;
     description?: string;
-    duration?: number;
+    duration?: string;
     order?: number;
   }) {
     try {
@@ -89,7 +115,7 @@ export const experienceService = {
   async updateAgendaStep(agendaStepId: string | number, data: {
     title?: string;
     description?: string;
-    duration?: number;
+    duration?: string;
     order?: number;
   }) {
     try {
@@ -128,6 +154,20 @@ export const experienceService = {
   },
 
 
+  async updateExhibit(exhibitId: string | number, data: {
+    name?: string;
+    type?: string;
+    link?: string;
+  }) {
+    try {
+      const res = await apiClient.put(`/api/v1/fireteams/experience/exhibit/update/${exhibitId}`, data);
+      return unwrapItem(res.data);
+    } catch (error: any) {
+      console.error('Error updating exhibit:', error);
+      throw error;
+    }
+  },
+
   async deleteExhibit(exhibitId: string | number) {
     try {
       const res = await apiClient.delete(`/api/v1/fireteams/experience/exhibit/delete/${exhibitId}`);
@@ -135,6 +175,37 @@ export const experienceService = {
     } catch (error: any) {
       console.error('Error deleting exhibit:', error);
       throw error;
+    }
+  },
+
+  // Additional methods that might be needed based on the API documentation
+  async getExperienceDetails(experienceId: string | number) {
+    try {
+      const res = await apiClient.get(`/api/v1/fireteams/experience/${experienceId}`);
+      return unwrapItem(res.data);
+    } catch (error: any) {
+      console.error('Error fetching experience details:', error);
+      throw error;
+    }
+  },
+
+  async getAgendaSteps(experienceId: string | number) {
+    try {
+      const res = await apiClient.get(`/api/v1/fireteams/experience/${experienceId}/agenda-steps`);
+      return unwrapItem(res.data);
+    } catch (error: any) {
+      console.error('Error fetching agenda steps:', error);
+      return [];
+    }
+  },
+
+  async getExhibits(experienceId: string | number) {
+    try {
+      const res = await apiClient.get(`/api/v1/fireteams/experience/${experienceId}/exhibits`);
+      return unwrapItem(res.data);
+    } catch (error: any) {
+      console.error('Error fetching exhibits:', error);
+      return [];
     }
   }
 };

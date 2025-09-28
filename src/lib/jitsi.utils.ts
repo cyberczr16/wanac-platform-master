@@ -77,3 +77,9 @@ export function extractRoomNameFromUrl(url: string): string | null {
     return null;
   }
 }
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-import React from "react";
+```jsx
 import {
   Dialog,
   DialogContent,
@@ -107,3 +107,4 @@ export default function AddExperienceModal({
     </Dialog>
   );
 }
+```

@@ -85,7 +85,7 @@ export default function BreakoutRoomPage() {
               <div className="flex-1 space-y-10">
                 {/* Breadcrumb and Title */}
                 <div className="text-sm text-gray-400 mb-2">
-                  WANAC
+                  WANAC FIRETEAMS
                 </div>
                 {/* Pass mockExperience to HomePage */}
                 <HomePage experience={mockExperience} />
