@@ -2,8 +2,8 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { fetchCommunityById, addCommunityFeedPost, addEvent } from "../../../../../../services/api/community.service";
-import { updateEvent, getEvents } from "../../../../../../services/api/events.service";
+import { fetchCommunityById, addCommunityFeedPost, addEvent } from "../../../../services/api/community.service";
+import { updateEvent, getEvents } from "../../../../services/api/events.service";
 import axios from "axios";
 
 export default function CommunityDetailPage() {
