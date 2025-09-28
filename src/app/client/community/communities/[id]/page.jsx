@@ -2,8 +2,8 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { fetchCommunityById, addCommunityFeedPost, addEvent } from "../../../../../services/api/community.service";
-import { getEvents } from "../../../../../services/api/events.service";
+import { fetchCommunityById, addCommunityFeedPost, addEvent } from "../../../../services/api/community.service";
+import { getEvents } from "../../../../services/api/events.service";
 
 export default function CommunityDetailPage() {
   return (
