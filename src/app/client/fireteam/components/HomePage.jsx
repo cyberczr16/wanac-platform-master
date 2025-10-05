@@ -130,11 +130,6 @@ export default function HomePage() {
     return matchesSearch && matchesFilter;
   });
 
-  // Debug logging
-  console.log("Current assignments state:", assignments);
-  console.log("Filtered assignments:", filteredAssignments);
-  console.log("Loading state:", loading);
-
   return (
     <div className="bg-gray-50 min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
@@ -244,7 +239,7 @@ export default function HomePage() {
                       <td className="px-4 align-middle">
                         <button
                           className="text-[11px] text-blue-600 font-semibold hover:underline group-hover:text-blue-800 transition-colors"
-                          onClick={() => router.push(`/client/fireteam/details?id=${a.experienceId}&fireteamId=${a.fireteamId}`)}
+                          onClick={() => router.push(`/client/fireteam/experience/${a.experienceId}?id=${a.experienceId}&fireteamId=${a.fireteamId}`)}
                         >
                           {a.action} &rarr;
                         </button>

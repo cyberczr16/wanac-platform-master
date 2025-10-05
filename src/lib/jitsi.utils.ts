@@ -10,36 +10,35 @@ const JITSI_DOMAIN = '8x8.vc';
  * @param fireteamId - The fireteam ID
  * @param experienceId - The experience ID
  * @param adminId - The admin user ID
- * @returns A unique room name
+ * @returns A unique room name (shortened format)
  */
 export function generateRoomName(fireteamId: string | number, experienceId: string | number, adminId: string | number): string {
-  const timestamp = Date.now();
-  return `wanac-fireteam-${fireteamId}-exp-${experienceId}-admin-${adminId}-${timestamp}`;
+  // Use shorter format to reduce URL length
+  // Format: wanac-ft{fireteamId}-ex{experienceId}-{shortTimestamp}
+  const shortTimestamp = Date.now().toString(36); // Base36 encoding for shorter timestamp
+  return `wanac-ft${fireteamId}-ex${experienceId}-${shortTimestamp}`;
 }
 
 /**
  * Generate a Jitsi Meet meeting link
  * @param roomName - The room name for the meeting
  * @param displayName - Optional display name for the user
- * @returns A complete Jitsi Meet URL
+ * @returns A complete Jitsi Meet URL (shortened to fit database constraints)
  */
 export function generateJitsiMeetingLink(roomName: string, displayName?: string): string {
-  const baseUrl = `https://${JITSI_DOMAIN}/${roomName}`;
-  const params = new URLSearchParams();
+  const baseUrl = `https://${JITSI_DOMAIN}/${JITSI_APP_ID}/${roomName}`;
+  
+  // Simplified: Only add essential params to keep URL short
+  // App ID is now in the path instead of query param
+  // Config params can be set via Jitsi dashboard instead
   
   if (displayName) {
+    const params = new URLSearchParams();
     params.append('userInfo.displayName', displayName);
+    return `${baseUrl}?${params.toString()}`;
   }
   
-  // Add app_id parameter for Jitsi configuration
-  params.append('app_id', JITSI_APP_ID);
-  
-  // Optional: Add additional Jitsi configuration
-  params.append('config.startWithAudioMuted', 'true');
-  params.append('config.startWithVideoMuted', 'true');
-  params.append('config.enableWelcomePage', 'false');
-  
-  return params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+  return baseUrl;
 }
 
 /**

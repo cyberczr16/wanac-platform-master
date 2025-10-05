@@ -5,3 +5,4 @@ export * from './tasks.service';
 export * from './types';
 export * from './habits.service';
 export * from './ai.service';
+export * from './notification.service';

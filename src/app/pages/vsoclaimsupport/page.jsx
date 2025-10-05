@@ -1,41 +1,66 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 const VSOClaimSupportPage = () => {
+  const router = useRouter();
+  const [openFaq, setOpenFaq] = useState(null);
+
+  const toggleFaq = (index) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
+  const faqs = [
+    {
+      question: "Is this really free?",
+      answer: "Yes. Accredited VSO claim assistance is free. If you're >12 months, we coordinate with accredited partners—also free for initial filing."
+    },
+    {
+      question: "Do you file the claim for me?",
+      answer: "For ≤12 months (and BDD), yes—we represent and file as your accredited VSO. If >12 months, we assemble and hand off to an accredited partner who files."
+    },
+    {
+      question: "Can you help if I was denied or under-rated?",
+      answer: "Yes—Supplemental Claim (with new evidence) or Higher-Level Review strategy and filing."
+    },
+    {
+      question: "How long does it take?",
+      answer: "Timelines vary by complexity and evidence. Submitting a complete, well-supported packet and attending C&P exams promptly helps reduce delays."
+    },
+    {
+      question: "Do you guarantee a rating?",
+      answer: "No. VA decides based on evidence. We make sure your file is complete and compelling."
+    },
+    {
+      question: "Do you use cohorts for claims?",
+      answer: "No. Cohorts are for WANAC programs (PLEP, PLCA, PPC, CPPC, VETA). Claims support is one-to-one."
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-[#faf9f7]">
       {/* Header Navigation */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         {/* Top bar */}
         <div className="bg-white border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-2 text-sm">
               <div className="flex items-center space-x-4">
-                <select className="bg-transparent border-none text-gray-600 focus:outline-none">
+                <select className="bg-transparent border-none text-gray-600 focus:outline-none cursor-pointer">
                   <option>English</option>
                 </select>
-                <a href="#" className="text-gray-600 hover:text-gray-900">Sign in/Sign up</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900">Customer Support</a>
+                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Sign in/Sign up</a>
+                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Customer Support</a>
               </div>
               <div className="flex items-center space-x-4">
-                <button className="p-1 text-gray-600 hover:text-gray-900">
+                <button className="p-1 text-gray-600 hover:text-gray-900 transition-colors">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </button>
-                <button className="p-1 text-gray-600 hover:text-gray-900">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
-                  </svg>
-                </button>
-                <button className="p-1 text-gray-600 hover:text-gray-900">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </button>
-                <a href="#" className="text-gray-600 hover:text-gray-900">Log in</a>
+                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Log in</a>
                 <button className="bg-[#ff5e1a] text-white px-4 py-2 rounded-md hover:bg-[#e54e16] transition-colors">
                   Join
                 </button>
@@ -53,21 +78,19 @@ const VSOClaimSupportPage = () => {
                 alt="WANAC Logo"
                 width={120}
                 height={40}
-                className="h-8 w-auto"
+                className="h-8 w-auto cursor-pointer"
+                onClick={() => router.push('/')}
               />
             </div>
             <nav className="hidden md:flex space-x-8">
-              <a href="#" className="text-gray-700 hover:text-gray-900 font-medium">Products</a>
-              <a href="#" className="text-gray-700 hover:text-gray-900 font-medium">Solutions</a>
-              <a href="#" className="text-gray-700 hover:text-gray-900 font-medium">Pricing</a>
-              <a href="#" className="text-gray-700 hover:text-gray-900 font-medium">Resources</a>
+              <a href="#" className="text-gray-700 hover:text-[#ff5e1a] font-medium transition-colors">Products</a>
+              <a href="#" className="text-gray-700 hover:text-[#ff5e1a] font-medium transition-colors">Solutions</a>
+              <a href="#" className="text-gray-700 hover:text-[#ff5e1a] font-medium transition-colors">Pricing</a>
+              <a href="#" className="text-gray-700 hover:text-[#ff5e1a] font-medium transition-colors">Resources</a>
             </nav>
-            <div className="flex space-x-4">
-              <button className="bg-[#ff5e1a] text-white px-6 py-2 rounded-md hover:bg-[#e54e16] transition-colors">
-                Start my Claim Sandbox Check
-              </button>
-              <button className="bg-[#ff5e1a] text-white px-6 py-2 rounded-md hover:bg-[#e54e16] transition-colors">
-                Start a DOD claim
+            <div className="hidden md:flex space-x-4">
+              <button className="bg-[#002147] text-white px-6 py-2 rounded-md hover:bg-[#001530] transition-colors text-sm">
+                Start Claim Check
               </button>
             </div>
           </div>
@@ -75,426 +98,529 @@ const VSOClaimSupportPage = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="bg-[#faf9f7] py-20">
+      <section className="bg-gradient-to-b from-[#faf9f7] to-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                WANAC Veteran Success, Platform.
-              </h1>
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                WANAC offers coaching, education, career, mentorship, and job placement into an AI-powered platform built by veterans for veterans to help you create a high-gain career life after service.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button className="bg-[#ff5e1a] text-white px-8 py-4 rounded-md text-lg font-semibold hover:bg-[#e54e16] transition-colors">
-                  FREE VSO CLAIM SUPPORT
-                </button>
-                <button className="border-2 border-[#ff5e1a] text-[#ff5e1a] px-8 py-4 rounded-md text-lg font-semibold hover:bg-[#ff5e1a] hover:text-white transition-colors">
-                  PROGRAMS OVERVIEW
-                </button>
-              </div>
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-block bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+              100% FREE • Accredited VSO Support
             </div>
-            <div className="relative">
-              <div className="bg-white rounded-2xl shadow-2xl p-8 relative z-10">
-                <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-gray-300 rounded-full mr-4"></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Richard Hagerty</h3>
-                    <p className="text-gray-600">Veteran Success Coach</p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="bg-[#ff5e1a] bg-opacity-10 p-4 rounded-lg">
-                    <p className="text-sm text-gray-700">AI-Powered Career Guidance</p>
-                  </div>
-                  <div className="bg-[#ff5e1a] bg-opacity-10 p-4 rounded-lg">
-                    <p className="text-sm text-gray-700">Personalized Learning Path</p>
-                  </div>
-                </div>
-              </div>
-              {/* Decorative shapes */}
-              <div className="absolute -top-4 -right-4 w-24 h-24 bg-[#ff5e1a] bg-opacity-20 rounded-full"></div>
-              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-[#ff5e1a] bg-opacity-10 rounded-full"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof Section */}
-      <section className="bg-white py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <p className="text-lg text-gray-700 font-medium">
-              240,000+ Veterans in over 135 countries Transition with WANAC.
+            <h1 className="text-5xl lg:text-6xl font-bold text-[#002147] mb-6 leading-tight">
+              WANAC VSO Claim Support
+            </h1>
+            <p className="text-2xl text-gray-600 mb-4 font-semibold">
+              Your VA claim, filed correctly — at no cost
             </p>
-          </div>
-          <div className="flex items-center justify-center space-x-12 opacity-60">
-            <div className="text-gray-400 font-semibold text-lg">eBay</div>
-            <div className="text-gray-400 font-semibold text-lg">GoodYear</div>
-            <div className="text-gray-400 font-semibold text-lg">Reddit</div>
-            <div className="text-gray-400 font-semibold text-lg">Tripadvisor</div>
-            <div className="text-gray-400 font-semibold text-lg">Eventbrite</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="bg-[#faf9f7] py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Why thousands of service members choose WANAC.
-            </h2>
-            <p className="text-xl text-gray-600">One platform. One plan.</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Features Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 relative">
-              <div className="absolute top-4 right-4 bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm font-medium">
-                Edit today!
-              </div>
-              <div className="w-16 h-16 bg-[#ff5e1a] bg-opacity-10 rounded-full flex items-center justify-center mb-6">
-                <svg className="w-8 h-8 text-[#ff5e1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Features</h3>
-              <p className="text-gray-600 mb-6">
-                AI-powered evidence strategy, document automation, record filing, C&P examinations, status monitoring, 24/7 customer support.
-              </p>
-              <button className="bg-[#ff5e1a] text-white px-6 py-3 rounded-md hover:bg-[#e54e16] transition-colors">
-                Get started for free
+            <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-3xl mx-auto">
+              Certified VSO representation for initial claims, BDD (pre-discharge) claims, and post-decision reviews—so you don't leave benefits on the table.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+              <button className="bg-[#ff5e1a] text-white px-10 py-4 rounded-lg text-lg font-semibold hover:bg-[#e54e16] transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                Start my Claim Readiness Check
+              </button>
+              <button className="border-2 border-[#002147] text-[#002147] px-10 py-4 rounded-lg text-lg font-semibold hover:bg-[#002147] hover:text-white transition-all duration-200">
+                I'm still active duty — start a BDD claim
               </button>
             </div>
+            <div className="flex items-center justify-center gap-6 text-sm text-gray-600 flex-wrap">
+              <span className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Accredited VSO support
+              </span>
+              <span className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                National coverage
+              </span>
+              <span className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Private & secure
+              </span>
+              <span className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                $0 to file
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Advantages Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 relative">
-              <div className="absolute top-4 right-4 bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm font-medium">
-                Edit today!
-              </div>
+      {/* The Problem Section */}
+      <section className="bg-white py-16">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-4">
+              The problem (and what's at stake)
+            </h2>
+            <p className="text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto">
+              You get fragments—TAP, a checklist, a forum post—and you're told to "figure it out." That's how missed BDD windows, denials, under-ratings, and months of delays happen. <span className="font-semibold text-[#ff5e1a]">Every week of inaction can push back your effective date and your benefits.</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* The Solution Section */}
+      <section className="bg-[#faf9f7] py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-6">
+              The WANAC solution (at a glance)
+            </h2>
+            <p className="text-2xl font-semibold text-[#ff5e1a] mb-8">
+              One representation. One plan.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {/* Features Card */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
               <div className="w-16 h-16 bg-[#ff5e1a] bg-opacity-10 rounded-full flex items-center justify-center mb-6">
                 <svg className="w-8 h-8 text-[#ff5e1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Advantages</h3>
-              <p className="text-gray-600 mb-6">
-                One platform, one ecosystem, one data, one AI, one workflow, one solution. Clear your inbox at every stage.
+              <h3 className="text-2xl font-bold text-[#002147] mb-4">Features</h3>
+              <p className="text-gray-600">
+                Readiness report, evidence strategy, document assembly, accredited filing (or warm partner hand-off if &gt;12 months), C&P exam prep, status monitoring, decision-review support.
               </p>
-              <button className="bg-[#ff5e1a] text-white px-6 py-3 rounded-md hover:bg-[#e54e16] transition-colors">
-                See all features
-              </button>
+            </div>
+
+            {/* Advantages Card */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+              <div className="w-16 h-16 bg-[#002147] bg-opacity-10 rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8 text-[#002147]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-[#002147] mb-4">Advantages</h3>
+              <p className="text-gray-600">
+                Complete and compliant packet from day one; faster path to decision; clear next steps at every stage.
+              </p>
             </div>
 
             {/* Benefits Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 relative">
-              <div className="absolute top-4 right-4 bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm font-medium">
-                Edit today!
-              </div>
-              <div className="w-16 h-16 bg-[#ff5e1a] bg-opacity-10 rounded-full flex items-center justify-center mb-6">
-                <svg className="w-8 h-8 text-[#ff5e1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Benefits</h3>
-              <p className="text-gray-600 mb-6">
-                Higher confidence, fewer errors, earlier effective dates, more momentum, less anxiety, more VA success.
-              </p>
-              <button className="bg-[#ff5e1a] text-white px-6 py-3 rounded-md hover:bg-[#e54e16] transition-colors">
-                Browse directory
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* HubSpot Integration Section */}
-      <section className="bg-[#faf9f7] py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="flex items-center mb-6">
-                <h2 className="text-4xl font-bold text-gray-900 mr-4">How HubSpot works</h2>
-                <div className="flex space-x-2">
-                  <div className="w-8 h-8 bg-[#ff5e1a] rounded-full"></div>
-                  <div className="w-8 h-8 bg-[#ff5e1a] bg-opacity-60 rounded-full"></div>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                Programs that meet you where you are—and take you further.
-              </h3>
-              <p className="text-lg text-gray-600 mb-8">
-                HubSpot is an AI-powered connected platform for marketing, sales, and customer service. Connect your tools, teams, and customers on one platform that grows with your business.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button className="bg-[#ff5e1a] text-white px-8 py-3 rounded-md text-lg font-semibold hover:bg-[#e54e16] transition-colors">
-                  Get a demo
-                </button>
-                <button className="border-2 border-[#ff5e1a] text-[#ff5e1a] px-8 py-3 rounded-md text-lg font-semibold hover:bg-[#ff5e1a] hover:text-white transition-colors">
-                  Get started free
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Product Overview Section */}
-      <section className="bg-[#faf9f7] py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Your whole front office. One customer platform.
-            </h2>
-            <p className="text-xl text-gray-600 mb-8">
-              HubSpot brings your teams together on one platform. Connect your data, teams, and customers with our AI-powered growth suite.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-[#ff5e1a] text-white px-8 py-3 rounded-md text-lg font-semibold hover:bg-[#e54e16] transition-colors">
-                Get a demo
-              </button>
-              <button className="border-2 border-[#ff5e1a] text-[#ff5e1a] px-8 py-3 rounded-md text-lg font-semibold hover:bg-[#ff5e1a] hover:text-white transition-colors">
-                Get started free
-              </button>
-            </div>
-          </div>
-
-          {/* Hub Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {/* Marketing Hub */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="w-12 h-12 bg-[#ff5e1a] bg-opacity-10 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-[#ff5e1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+              <div className="w-16 h-16 bg-green-600 bg-opacity-10 rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Marketing Hub</h3>
-              <p className="text-gray-600 mb-4">Attract and engage customers with marketing automation.</p>
-              <div className="space-y-2 mb-4">
-                <div className="text-sm text-gray-500">• Social media manager</div>
-                <div className="text-sm text-gray-500">• Predictive lead scoring</div>
-                <div className="text-sm text-gray-500">• AI analysis</div>
-              </div>
-              <button className="text-[#ff5e1a] font-semibold hover:text-[#e54e16] transition-colors">
-                Learn more →
-              </button>
-            </div>
-
-            {/* Sales Hub */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="w-12 h-12 bg-[#ff5e1a] bg-opacity-10 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-[#ff5e1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Sales Hub</h3>
-              <p className="text-gray-600 mb-4">Close more deals with sales automation.</p>
-              <div className="space-y-2 mb-4">
-                <div className="text-sm text-gray-500">• Sales automation</div>
-                <div className="text-sm text-gray-500">• Email management</div>
-                <div className="text-sm text-gray-500">• Prospecting signal</div>
-              </div>
-              <button className="text-[#ff5e1a] font-semibold hover:text-[#e54e16] transition-colors">
-                Learn more →
-              </button>
-            </div>
-
-            {/* Service Hub */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="w-12 h-12 bg-[#ff5e1a] bg-opacity-10 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-[#ff5e1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Service Hub</h3>
-              <p className="text-gray-600 mb-4">Connect with customers on their terms.</p>
-              <div className="space-y-2 mb-4">
-                <div className="text-sm text-gray-500">• Omnichannel help desk</div>
-                <div className="text-sm text-gray-500">• Service automation</div>
-                <div className="text-sm text-gray-500">• Customer service report</div>
-              </div>
-              <button className="text-[#ff5e1a] font-semibold hover:text-[#e54e16] transition-colors">
-                Learn more →
-              </button>
-            </div>
-
-            {/* Operations Hub */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="w-12 h-12 bg-[#ff5e1a] bg-opacity-10 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-[#ff5e1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Operations</h3>
-              <p className="text-gray-600 mb-4">Unify your data and automate processes.</p>
-              <div className="space-y-2 mb-4">
-                <div className="text-sm text-gray-500">• Data sync</div>
-                <div className="text-sm text-gray-500">• Pro-grade automation</div>
-                <div className="text-sm text-gray-500">• AI-powered data quality</div>
-              </div>
-              <button className="text-[#ff5e1a] font-semibold hover:text-[#e54e16] transition-colors">
-                Learn more →
-              </button>
+              <h3 className="text-2xl font-bold text-[#002147] mb-4">Benefits</h3>
+              <p className="text-gray-600">
+                Higher confidence, fewer reworks, earlier effective dates, and momentum into school, work, or recovery.
+              </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Breeze AI Section */}
-      <section className="bg-[#20b2aa] py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-4xl font-bold text-white mb-6">
-              Meet Breeze — The complete AI solution for your business.
-            </h2>
-            <p className="text-xl text-white mb-8 max-w-3xl mx-auto">
-              Breeze Caption, Breeze Agents, and Breeze Intel work together to help you grow better with AI-powered insights and automation.
-            </p>
-            <button className="bg-[#002147] text-white px-8 py-3 rounded-md text-lg font-semibold hover:bg-[#001122] transition-colors">
-              Learn more
+            <button className="bg-[#ff5e1a] text-white px-10 py-4 rounded-lg text-lg font-semibold hover:bg-[#e54e16] transition-all duration-200 shadow-lg hover:shadow-xl">
+              Start my Claim Readiness Check
             </button>
           </div>
         </div>
       </section>
 
-      {/* Customer Results Section */}
-      <section className="bg-[#002147] py-20">
+      {/* Proof/Testimonial Section */}
+      <section className="bg-white py-16">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-r from-[#002147] to-[#003366] rounded-2xl shadow-xl p-8 md:p-12 text-white">
+            <div className="flex items-start gap-4 mb-6">
+              <svg className="w-12 h-12 text-[#ff5e1a] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              <div>
+                <p className="text-xl md:text-2xl font-semibold mb-4 leading-relaxed">
+                  "I knew exactly what to submit and when. Filed once—no guesswork."
+                </p>
+                <p className="text-gray-300 font-medium">— Marine veteran</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Deep Benefits Section */}
+      <section className="bg-[#faf9f7] py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-8">
-              HubSpot customer's results after 1 year:
+            <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-4">
+              Deep benefits & capabilities
             </h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h3 className="text-3xl font-bold text-white mb-2">114%</h3>
-              <p className="text-white text-lg">more web traffic</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-3xl font-bold text-white mb-2">55%</h3>
-              <p className="text-white text-lg">more deals</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <h3 className="text-3xl font-bold text-white mb-2">43%</h3>
-              <p className="text-white text-lg">more tickets resolved</p>
-            </div>
-          </div>
-          
-          <div className="text-center">
-            <p className="text-white text-lg mb-6">
-              HubSpot customers see improvement across their customer journey. What could your ROI be?
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Complete support for every stage of your VA claim journey
             </p>
-            <button className="border-2 border-white text-white px-8 py-3 rounded-md text-lg font-semibold hover:bg-white hover:text-[#002147] transition-colors">
-              See ROI report
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* BDD */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border-t-4 border-blue-600">
+              <div className="w-14 h-14 bg-blue-600 bg-opacity-10 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-[#002147] mb-3">1) Pre-Discharge (BDD) — file before you separate</h3>
+              <p className="text-gray-700 font-semibold mb-3">Outcome: Faster decision after discharge; benefits start sooner.</p>
+              <p className="text-gray-600 mb-4">
+                <span className="font-semibold">What we do:</span> BDD eligibility check, record coordination, packet prep, submission as your rep, and C&P scheduling support.
+              </p>
+              <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                I'm active duty — start my BDD claim
+              </button>
+            </div>
+
+            {/* First-time filing */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border-t-4 border-[#ff5e1a]">
+              <div className="w-14 h-14 bg-[#ff5e1a] bg-opacity-10 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-7 h-7 text-[#ff5e1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-[#002147] mb-3">2) First-time filing (≤12 months since separation)</h3>
+              <p className="text-gray-700 font-semibold mb-3">Outcome: Complete, service-connected claim from day one.</p>
+              <p className="text-gray-600">
+                <span className="font-semibold">What we do:</span> Evidence map (nexus/diagnostics/continuity), forms completed, accredited submission, status tracking.
+              </p>
+            </div>
+
+            {/* Denied or under-rated */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border-t-4 border-amber-600">
+              <div className="w-14 h-14 bg-amber-600 bg-opacity-10 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-[#002147] mb-3">3) Denied or under-rated</h3>
+              <p className="text-gray-700 font-semibold mb-3">Outcome: Correct the record without starting over.</p>
+              <p className="text-gray-600">
+                <span className="font-semibold">What we do:</span> Decision analysis → Supplemental Claim (new & relevant evidence) or Higher-Level Review, filing, follow-through.
+              </p>
+            </div>
+
+            {/* Multiple conditions */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border-t-4 border-green-600">
+              <div className="w-14 h-14 bg-green-600 bg-opacity-10 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-[#002147] mb-3">4) Multiple conditions & dependency</h3>
+              <p className="text-gray-700 font-semibold mb-3">Outcome: No missed add-ons or dependency pay.</p>
+              <p className="text-gray-600">
+                <span className="font-semibold">What we do:</span> Structured checklists for secondary claims, dependency docs, and staged submissions.
+              </p>
+            </div>
+          </div>
+
+          <div className="text-center mt-12">
+            <button className="bg-[#ff5e1a] text-white px-10 py-4 rounded-lg text-lg font-semibold hover:bg-[#e54e16] transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center gap-2">
+              Get my free Readiness Report
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
             </button>
           </div>
         </div>
       </section>
 
-      {/* Integrations and Awards Section */}
+      {/* How it Works */}
       <section className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            {/* Integrations */}
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-6">
-                1,700+ ways to connect your tools.
-              </h3>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <div className="text-gray-600 font-semibold">Gmail</div>
-                </div>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <div className="text-gray-600 font-semibold">Shopify</div>
-                </div>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <div className="text-gray-600 font-semibold">Mailchimp</div>
-                </div>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <div className="text-gray-600 font-semibold">Zapier</div>
-                </div>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <div className="text-gray-600 font-semibold">Google Ads</div>
-                </div>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <div className="text-gray-600 font-semibold">Slack</div>
-                </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-4">
+              How it works (4 steps)
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              From intake to decision—we guide you every step
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            {/* Step 1 */}
+            <div className="text-center">
+              <div className="w-20 h-20 bg-[#ff5e1a] text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6 shadow-lg">
+                1
               </div>
-              <a href="#" className="text-[#ff5e1a] font-semibold hover:text-[#e54e16] transition-colors">
-                View all apps →
-              </a>
+              <h3 className="text-xl font-bold text-[#002147] mb-3">
+                Intake (15 min)
+              </h3>
+              <p className="text-gray-600">
+                Tell us your conditions, treatment sources, prior decisions (if any), and separation timeline.
+              </p>
             </div>
 
-            {/* Awards */}
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-6">
-                Voted #1 in 571 Reports.
+            {/* Step 2 */}
+            <div className="text-center">
+              <div className="w-20 h-20 bg-[#002147] text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6 shadow-lg">
+                2
+              </div>
+              <h3 className="text-xl font-bold text-[#002147] mb-3">
+                Evidence strategy
               </h3>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <div className="text-gray-600 font-semibold text-sm">Best Relationship 2023</div>
-                </div>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <div className="text-gray-600 font-semibold text-sm">Best Results 2023</div>
-                </div>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <div className="text-gray-600 font-semibold text-sm">Best Usability 2023</div>
-                </div>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <div className="text-gray-600 font-semibold text-sm">Best Support 2023</div>
-                </div>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <div className="text-gray-600 font-semibold text-sm">Best ROI 2023</div>
-                </div>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <div className="text-gray-600 font-semibold text-sm">Best Features 2023</div>
+              <p className="text-gray-600">
+                We identify what's missing (nexus, diagnostics, continuity) and where to obtain it.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="text-center">
+              <div className="w-20 h-20 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6 shadow-lg">
+                3
+              </div>
+              <h3 className="text-xl font-bold text-[#002147] mb-3">
+                Prepare & file
+              </h3>
+              <p className="text-gray-600">
+                We compile your packet, complete VA forms, and submit as your accredited rep (or coordinate with a partner VSO if &gt;12 months).
+              </p>
+            </div>
+
+            {/* Step 4 */}
+            <div className="text-center">
+              <div className="w-20 h-20 bg-green-600 text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6 shadow-lg">
+                4
+              </div>
+              <h3 className="text-xl font-bold text-[#002147] mb-3">
+                Monitor & advise
+              </h3>
+              <p className="text-gray-600">
+                We track status, prep you for any C&P exams, and guide next actions through decision.
+              </p>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <button className="bg-[#ff5e1a] text-white px-10 py-4 rounded-lg text-lg font-semibold hover:bg-[#e54e16] transition-all duration-200 shadow-lg hover:shadow-xl">
+              Start my Claim Readiness Check
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* What You'll Need */}
+      <section className="bg-[#faf9f7] py-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-4">
+              What you'll need (checklist)
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <svg className="w-6 h-6 text-[#ff5e1a] flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <h3 className="font-bold text-[#002147] mb-2">Identity & service</h3>
+                  <p className="text-gray-600 text-sm">DD-214 (or projected separation orders), contact + direct-deposit info.</p>
                 </div>
               </div>
-              <a href="#" className="text-[#ff5e1a] font-semibold hover:text-[#e54e16] transition-colors">
-                Learn more →
-              </a>
             </div>
+
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <svg className="w-6 h-6 text-[#ff5e1a] flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <h3 className="font-bold text-[#002147] mb-2">Medical evidence</h3>
+                  <p className="text-gray-600 text-sm">Service treatment records; VA/private treatment notes; imaging/labs; medication lists.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <svg className="w-6 h-6 text-[#ff5e1a] flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <h3 className="font-bold text-[#002147] mb-2">Statements</h3>
+                  <p className="text-gray-600 text-sm">Personal impact statement; buddy statements (when relevant).</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <svg className="w-6 h-6 text-[#ff5e1a] flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <h3 className="font-bold text-[#002147] mb-2">Family/dependency (if claiming)</h3>
+                  <p className="text-gray-600 text-sm">Marriage/birth certificates; SSNs (as applicable).</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg">
+            <p className="text-gray-700">
+              <span className="font-semibold text-blue-800">Still gathering documents?</span> We can file an Intent to File to preserve your effective date.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Who We Serve */}
+      <section className="bg-white py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-8">
+              Who we serve (and how)
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-gradient-to-br from-[#ff5e1a] to-[#e54e16] rounded-xl shadow-lg p-8 text-white">
+              <div className="flex items-center gap-3 mb-4">
+                <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                </svg>
+                <h3 className="text-2xl font-bold">≤ 12 months from separation / Active duty (BDD)</h3>
+              </div>
+              <p className="text-lg">
+                WANAC provides certified VSO representation for initial and BDD claims.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-[#002147] to-[#003366] rounded-xl shadow-lg p-8 text-white">
+              <div className="flex items-center gap-3 mb-4">
+                <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                </svg>
+                <h3 className="text-2xl font-bold">&gt; 12 months from separation</h3>
+              </div>
+              <p className="text-lg">
+                We partner with accredited VSOs/agents/attorneys for compliant, no-cost initial filing; WANAC handles prep and coordination.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Integration & Fit */}
+      <section className="bg-[#faf9f7] py-16">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-4">
+              Integration & fit
+            </h2>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <div className="flex items-start gap-3 mb-4">
+                  <svg className="w-8 h-8 text-[#ff5e1a] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <div>
+                    <h3 className="text-xl font-bold text-[#002147] mb-2">Your claim isn't an island</h3>
+                    <p className="text-gray-600">
+                      Outputs feed directly into your education (PLEP) and career (PLCA) planning so funding, school, and job steps stay in sync.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-start gap-3 mb-4">
+                  <svg className="w-8 h-8 text-[#002147] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                  <div>
+                    <h3 className="text-xl font-bold text-[#002147] mb-2">1:1 representation</h3>
+                    <p className="text-gray-600">
+                      Cohorts are for PLEP, PLCA, PPC, CPPC, and VETA—claims support is 1:1 representation.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="bg-white py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-lg text-gray-600">
+              Risk reversal & objections answered
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <div key={index} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                <button
+                  className="w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition-colors"
+                  onClick={() => toggleFaq(index)}
+                >
+                  <span className="text-lg font-semibold text-[#002147]">{faq.question}</span>
+                  <svg
+                    className={`w-6 h-6 text-[#ff5e1a] transition-transform duration-200 ${
+                      openFaq === index ? 'transform rotate-180' : ''
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {openFaq === index && (
+                  <div className="px-6 pb-5 text-gray-600 animate-fadeIn">
+                    {faq.answer}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Final CTA Section */}
-      <section className="bg-[#faf9f7] py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-4xl font-bold text-gray-900 mb-8">
-              Grow better with WANAC today.
+      <section className="bg-gradient-to-r from-[#002147] to-[#003366] py-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-white">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+              Start your claim with confidence
             </h2>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-[#ff5e1a] text-white px-8 py-4 rounded-md text-lg font-semibold hover:bg-[#e54e16] transition-colors">
-                Get a demo
+            <p className="text-xl mb-10 text-gray-200 max-w-3xl mx-auto">
+              Free, accredited VSO support—get your readiness check today
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <button className="bg-[#ff5e1a] text-white px-12 py-5 rounded-lg text-xl font-semibold hover:bg-[#e54e16] transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-105">
+                Start my Claim Readiness Check
               </button>
-              <button className="border-2 border-[#ff5e1a] text-[#ff5e1a] px-8 py-4 rounded-md text-lg font-semibold hover:bg-[#ff5e1a] hover:text-white transition-colors">
-                Get started free
+              <button className="border-3 border-white text-white px-12 py-5 rounded-lg text-xl font-semibold hover:bg-white hover:text-[#002147] transition-all duration-200 shadow-xl">
+                Book a 15-minute consult
               </button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Compliance Section */}
+      <section className="bg-gray-100 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-sm text-gray-600 leading-relaxed">
+              <span className="font-semibold">Compliance & Privacy:</span> WANAC provides accredited VSO representation for eligible veterans within 12 months of separation and for active-duty BDD claims, and partners with accredited organizations for others. WANAC is not a law firm and is not affiliated with the U.S. Department of Veterans Affairs. No fees for filing initial claims. No guarantees of outcomes. Your information is handled securely and shared only with your consent.
+            </p>
           </div>
         </div>
       </section>
@@ -502,49 +628,73 @@ const VSOClaimSupportPage = () => {
       {/* Footer */}
       <footer className="bg-[#002147] text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
             <div>
-              <h4 className="font-semibold mb-4">Popular Features</h4>
-              <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-white">Free Tools</a></li>
-                <li><a href="#" className="hover:text-white">Templates</a></li>
-                <li><a href="#" className="hover:text-white">Integration</a></li>
+              <h4 className="font-bold text-lg mb-4">Claims Support</h4>
+              <ul className="space-y-3 text-gray-300">
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">BDD Claims</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Initial Claims</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Appeals & Reviews</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Claim Readiness Check</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-white">About Us</a></li>
-                <li><a href="#" className="hover:text-white">Careers</a></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
+              <h4 className="font-bold text-lg mb-4">Resources</h4>
+              <ul className="space-y-3 text-gray-300">
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">VA Benefits Guide</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Evidence Checklist</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">C&P Exam Prep</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Success Stories</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white">Security</a></li>
+              <h4 className="font-bold text-lg mb-4">Company</h4>
+              <ul className="space-y-3 text-gray-300">
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">About Us</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Contact</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Terms of Service</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Follow Us</h4>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-300 hover:text-white">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <h4 className="font-bold text-lg mb-4">Connect</h4>
+              <div className="flex space-x-4 mb-6">
+                <a href="#" className="w-10 h-10 bg-white bg-opacity-10 rounded-full flex items-center justify-center hover:bg-[#ff5e1a] transition-colors">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
                   </svg>
                 </a>
-                <a href="#" className="text-gray-300 hover:text-white">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
+                <a href="#" className="w-10 h-10 bg-white bg-opacity-10 rounded-full flex items-center justify-center hover:bg-[#ff5e1a] transition-colors">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm3 8h-1.35c-.538 0-.65.221-.65.778V10h2l-.209 2H13v7h-3v-7H8v-2h2V7.692C10 5.923 10.931 5 13.029 5H15v3z"/>
+                  </svg>
+                </a>
+                <a href="#" className="w-10 h-10 bg-white bg-opacity-10 rounded-full flex items-center justify-center hover:bg-[#ff5e1a] transition-colors">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                   </svg>
                 </a>
               </div>
+              <p className="text-sm text-gray-300">
+                Supporting veterans through every claim
+              </p>
             </div>
           </div>
-          <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-300">
-            <p>&copy; 2023 WANAC Inc. All rights reserved.</p>
+          <div className="border-t border-gray-700 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm">
+              <div className="mb-4 md:mb-0">
+                <p>&copy; 2025 WANAC. All rights reserved.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Image
+                  src="/WANAC N 8 Old Glory.svg"
+                  alt="WANAC Logo"
+                  width={80}
+                  height={30}
+                  className="opacity-80"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </footer>

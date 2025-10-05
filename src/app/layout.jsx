@@ -12,6 +12,7 @@ export default function RootLayout({ children }) {
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <link rel="icon" href="/WANAC N 8 Old Glory.svg" type="image/svg+xml" />
+        <link rel="stylesheet" href="/jitsi-custom.css" />
       </head>
       <body className="min-h-screen flex flex-col">
         <Toaster position="top-center" toastOptions={{

@@ -24,17 +24,7 @@ import {
 } from "@mui/material";
 import { cohortService } from "../../src/services/api/cohort.service";
 import { fireteamService } from "../../src/services/api/fireteam.service";
-
-// Generate fireteam link helper function
-const generateFireteamLink = (fireteamId, title) => {
-  const cleanTitle = title.toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim();
-  const meetingId = `${cleanTitle}-${fireteamId}-${Date.now().toString(36)}`;
-  return `https://meet.google.com/${meetingId}`;
-};
+import { generateJitsiMeetingLink } from "../../src/lib/jitsi.utils";
 
 export default function FireteamManagement({ sidebar: SidebarComponent }) {
   const router = useRouter();
@@ -132,9 +122,6 @@ export default function FireteamManagement({ sidebar: SidebarComponent }) {
     try {
       if (selectedFireteam) {
         const currentTitle = selectedFireteam?.title || selectedFireteam?.name || "";
-        const generatedLink = name !== currentTitle 
-          ? generateFireteamLink(selectedFireteam.id, name)
-          : selectedFireteam?.link || generateFireteamLink(selectedFireteam.id, name);
         const dateTime = `${date}T${time}:00`;
         await fireteamService.updateFireteam(selectedFireteam.id, {
           cohort_id: cohortId,
@@ -142,31 +129,31 @@ export default function FireteamManagement({ sidebar: SidebarComponent }) {
           description,
           date: dateTime,
           time,
-          link: generatedLink,
         });
         const updated = await fireteamService.getFireteams();
         setFireteams(updated);
         setSuccess("Fireteam updated successfully!");
       } else {
-        const generatedLink = generateFireteamLink('temp', name);
         const dateTime = `${date}T${time}:00`;
+        // Generate a unique meeting link for the fireteam
+        const roomName = `wanac-fireteam-${cohortId}-${Date.now()}`;
+        const meetingLink = generateJitsiMeetingLink(roomName);
+        
         const createdFireteam = await fireteamService.addFireteam({
           cohort_id: cohortId,
           title: name,
           description,
           date: dateTime,
           time,
-          link: generatedLink,
+          link: meetingLink
         });
         if (createdFireteam && createdFireteam.id) {
-          const finalLink = generateFireteamLink(createdFireteam.id, name);
           await fireteamService.updateFireteam(createdFireteam.id, {
             cohort_id: cohortId,
             title: name,
             description,
             date: dateTime,
             time,
-            link: finalLink,
           });
         }
         const refreshed = await fireteamService.getFireteams();
@@ -246,7 +233,6 @@ export default function FireteamManagement({ sidebar: SidebarComponent }) {
                 <TableCell>Cohort</TableCell>
                 <TableCell>Date</TableCell>
                 <TableCell>Time</TableCell>
-                <TableCell>Meeting Link</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -304,31 +290,6 @@ export default function FireteamManagement({ sidebar: SidebarComponent }) {
                       <TableCell>{cohort ? (cohort.name || cohort.title || `Cohort ${cohort.id}`) : f.cohort_id}</TableCell>
                       <TableCell>{f.date}</TableCell>
                       <TableCell>{f.time}</TableCell>
-                      <TableCell>
-                        {f.link ? (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            href={f.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            sx={{ 
-                              textTransform: 'none',
-                              fontSize: '0.75rem',
-                              maxWidth: '150px',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            Join Meeting
-                          </Button>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">
-                            Generating...
-                          </Typography>
-                        )}
-                      </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <Button size="small" color="primary" onClick={() => handleEdit(f)} sx={{ mr: 1 }}>Edit</Button>
                         <Button size="small" color="error" onClick={() => handleDelete(f)}>Delete</Button>
@@ -395,27 +356,7 @@ export default function FireteamManagement({ sidebar: SidebarComponent }) {
                 required
                 fullWidth
               />
-              <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                  Generated Meeting Link
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  A unique meeting link will be automatically generated for this fireteam.
-                </Typography>
-                {name.trim() && (
-                  <Typography variant="body2" sx={{ 
-                    fontFamily: 'monospace', 
-                    bgcolor: 'white', 
-                    p: 1, 
-                    borderRadius: 0.5,
-                    border: '1px solid',
-                    borderColor: 'grey.300',
-                    wordBreak: 'break-all'
-                  }}>
-                    {generateFireteamLink('preview', name)}
-                  </Typography>
-                )}
-              </Box>
+              
               {error && <Alert severity="error">{error}</Alert>}
             </Stack>
           </DialogContent>

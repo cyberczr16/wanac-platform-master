@@ -246,7 +246,6 @@ export default function FireteamManagement({ sidebar: SidebarComponent }) {
                 <TableCell>Cohort</TableCell>
                 <TableCell>Date</TableCell>
                 <TableCell>Time</TableCell>
-                <TableCell>Meeting Link</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-const ScholarshipEligibilityEstimator = () => {
+const WanacPLEP = () => {
   const router = useRouter();
   const [openFaq, setOpenFaq] = useState(null);
 
@@ -14,30 +14,171 @@ const ScholarshipEligibilityEstimator = () => {
 
   const faqs = [
     {
-      question: "Does applying cost anything?",
-      answer: "No. The estimator and application are free."
+      question: "Will PLEP pick my school for me?",
+      answer: "No. We provide a comparative shortlist and decision framework; you choose."
     },
     {
-      question: "Is the estimator a guarantee?",
-      answer: "No. It provides provisional eligibility pending document review, seat availability, and sponsor funds."
+      question: "What about GI Bill optimization?",
+      answer: "We map expected benefits and timelines to your program plan so funding aligns with your start date."
     },
     {
-      question: "How many scholarships can I receive?",
-      answer: "One per veteran per year."
+      question: "I have prior credits/JST—can I use them?",
+      answer: "Yes. We review transferability and build a plan to minimize duplication and time to completion."
     },
     {
-      question: "Can I apply if I'm > 12 months separated?",
-      answer: "Yes—awards depend on seat availability, fit, and funds. Transitioning service members and recent veterans are prioritized."
+      question: "How fast can I start?",
+      answer: "Depends on program calendars and prerequisites. Many cohorts place veterans into the next available term with a complete file."
     },
     {
-      question: "Can this pay for claim services?",
-      answer: "No—claims support is free. Scholarships are for PLEP, PLCA, PPC, CPPC, or VETA program tuition/fees."
+      question: "Do you handle claims inside the cohort?",
+      answer: "No. If benefits are blocking, we route you to accredited VSO Claim Support first, then resume your PLEP missions."
     },
     {
-      question: "How fast will I hear back after I upload documents?",
-      answer: "Most decisions are issued within 5–10 business days after a complete submission."
+      question: "Time per week?",
+      answer: "Plan 60–90 minutes for sessions, missions, and debriefs."
     }
   ];
+
+  const useCases = [
+    {
+      title: "1) Undergraduate / Transfer",
+      color: "blue",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      ),
+      outcome: "Target school list, transfer-credit strategy, term-by-term map.",
+      whatWeDo: "Evaluate prior credits/JST, program prerequisites, articulation options; sequence applications and decisions."
+    },
+    {
+      title: "2) Graduate / Professional",
+      color: "purple",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path d="M12 14l9-5-9-5-9 5 9 5z" />
+          <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
+        </svg>
+      ),
+      outcome: "Competitive application timeline and funding strategy.",
+      whatWeDo: "Program comparison, pre-reqs/tests (if any), essays/resumes, recommenders, submission schedule."
+    },
+    {
+      title: "3) Certificates / Bootcamps",
+      color: "orange",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      ),
+      outcome: "Skills-to-role alignment with accelerated start.",
+      whatWeDo: "Provider vetting, outcomes fit, schedule & funding plan, rapid onboarding."
+    },
+    {
+      title: "4) Trades / Licensing",
+      color: "green",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+        </svg>
+      ),
+      outcome: "Training + licensing path mapped to employment.",
+      whatWeDo: "State/licensure requirements, apprenticeship routes, GI Bill alignment, start date sequencing."
+    },
+    {
+      title: "5) Online vs. On-Campus",
+      color: "cyan",
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      ),
+      outcome: "Modality matched to your life constraints.",
+      whatWeDo: "Time-and-travel modeling, term load, support services, start-strong plan."
+    }
+  ];
+
+  const deliverables = [
+    {
+      title: "Program Shortlist",
+      description: "(3–5 options) with pros/cons and admissions dates.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+      )
+    },
+    {
+      title: "Prerequisite & Transfer Plan",
+      description: "(credit evaluation, gaps, sequencing).",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    },
+    {
+      title: "Funding Map",
+      description: "GI Bill usage plan, expected housing/book benefits, other aid & WANAC scholarship fit.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    },
+    {
+      title: "Admissions Execution Checklist",
+      description: "Essays, transcripts, recommendations, forms, deadlines.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+      )
+    },
+    {
+      title: "Start-Strong Playbook",
+      description: "Week-zero and week-one tasks, services to activate, study rhythm.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      )
+    }
+  ];
+
+  const colorClasses = {
+    blue: {
+      bg: "bg-blue-600",
+      bgOpacity: "bg-blue-600 bg-opacity-10",
+      text: "text-blue-600",
+      border: "border-blue-600"
+    },
+    purple: {
+      bg: "bg-purple-600",
+      bgOpacity: "bg-purple-600 bg-opacity-10",
+      text: "text-purple-600",
+      border: "border-purple-600"
+    },
+    orange: {
+      bg: "bg-[#ff5e1a]",
+      bgOpacity: "bg-[#ff5e1a] bg-opacity-10",
+      text: "text-[#ff5e1a]",
+      border: "border-[#ff5e1a]"
+    },
+    green: {
+      bg: "bg-green-600",
+      bgOpacity: "bg-green-600 bg-opacity-10",
+      text: "text-green-600",
+      border: "border-green-600"
+    },
+    cyan: {
+      bg: "bg-cyan-600",
+      bgOpacity: "bg-cyan-600 bg-opacity-10",
+      text: "text-cyan-600",
+      border: "border-cyan-600"
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#faf9f7]">
@@ -90,7 +231,7 @@ const ScholarshipEligibilityEstimator = () => {
             </nav>
             <div className="hidden md:flex space-x-4">
               <button className="bg-[#002147] text-white px-6 py-2 rounded-md hover:bg-[#001530] transition-colors text-sm">
-                Check Eligibility
+                Apply for PLEP
               </button>
             </div>
           </div>
@@ -101,24 +242,24 @@ const ScholarshipEligibilityEstimator = () => {
       <section className="bg-gradient-to-b from-[#faf9f7] to-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-block bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-              FREE Eligibility Check • One Award Per Year
+            <div className="inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+              Education Pathway • GI Bill Optimization
             </div>
             <h1 className="text-5xl lg:text-6xl font-bold text-[#002147] mb-6 leading-tight">
-              WANAC Scholarship Eligibility Estimator
+              WANAC Promise Land Education Pathway (PLEP)
             </h1>
             <p className="text-2xl text-gray-600 mb-4 font-semibold">
-              Find out if you qualify in 3 minutes
+              Build a funded, fit-for-purpose education plan
             </p>
             <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-3xl mx-auto">
-              Provisional eligibility for PLEP, PLCA, PPC, CPPC, and VETA program scholarships—funded by partners and sponsors. One scholarship per veteran per year.
+              A cohort-based pathway that aligns your mission, program choice, prerequisites, timeline, and GI Bill funding—so you start on time with a plan you can execute.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
               <button className="bg-[#ff5e1a] text-white px-10 py-4 rounded-lg text-lg font-semibold hover:bg-[#e54e16] transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                Check my eligibility
+                Apply for the PLEP cohort
               </button>
               <button className="border-2 border-[#002147] text-[#002147] px-10 py-4 rounded-lg text-lg font-semibold hover:bg-[#002147] hover:text-white transition-all duration-200">
-                Prefer to talk? Book a 15-minute consult
+                Not sure yet? Take the 3-minute quiz
               </button>
             </div>
             <div className="flex items-center justify-center gap-6 text-sm text-gray-600 flex-wrap">
@@ -126,7 +267,13 @@ const ScholarshipEligibilityEstimator = () => {
                 <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                No cost to apply
+                Veteran-led
+              </span>
+              <span className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Cohort-based
               </span>
               <span className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -138,13 +285,7 @@ const ScholarshipEligibilityEstimator = () => {
                 <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                Private & secure
-              </span>
-              <span className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                One award per year
+                Scholarships available (one per year)
               </span>
             </div>
           </div>
@@ -159,7 +300,7 @@ const ScholarshipEligibilityEstimator = () => {
               The problem (and what's at stake)
             </h2>
             <p className="text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto">
-              Great programs fall through when funding is unclear. Veterans delay cohorts, miss enrollment windows, and lose momentum after TAP—<span className="font-semibold text-[#ff5e1a]">while benefits sit unused.</span>
+              After TAP, most veterans get lists, not a plan. Wrong-fit programs, missed admissions windows, and uncoordinated GI Bill usage lead to delays and wasted time. <span className="font-semibold text-[#ff5e1a]">Every term you miss compounds lost momentum and costs.</span>
             </p>
           </div>
         </div>
@@ -170,10 +311,10 @@ const ScholarshipEligibilityEstimator = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-6">
-              The WANAC solution (at a glance)
+              The PLEP solution (at a glance)
             </h2>
             <p className="text-2xl font-semibold text-[#ff5e1a] mb-8">
-              One form. Fast clarity.
+              One cohort. One operating picture.
             </p>
           </div>
           
@@ -182,12 +323,12 @@ const ScholarshipEligibilityEstimator = () => {
             <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
               <div className="w-16 h-16 bg-[#ff5e1a] bg-opacity-10 rounded-full flex items-center justify-center mb-6">
                 <svg className="w-8 h-8 text-[#ff5e1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
               </div>
               <h3 className="text-2xl font-bold text-[#002147] mb-4">Features</h3>
               <p className="text-gray-600">
-                8–10 quick questions → instant provisional eligibility for PLEP, PLCA, PPC, CPPC, VETA.
+                Program fit & shortlisting, admissions timeline, prerequisite mapping, GI Bill optimization, cost & funding plan, application execution, start-strong onboarding.
               </p>
             </div>
 
@@ -195,13 +336,12 @@ const ScholarshipEligibilityEstimator = () => {
             <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
               <div className="w-16 h-16 bg-[#002147] bg-opacity-10 rounded-full flex items-center justify-center mb-6">
                 <svg className="w-8 h-8 text-[#002147]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
               <h3 className="text-2xl font-bold text-[#002147] mb-4">Advantages</h3>
               <p className="text-gray-600">
-                Know where you stand before you apply; see exactly what documents are needed.
+                A single, integrated plan that ties benefits → program → start date.
               </p>
             </div>
 
@@ -209,19 +349,19 @@ const ScholarshipEligibilityEstimator = () => {
             <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
               <div className="w-16 h-16 bg-green-600 bg-opacity-10 rounded-full flex items-center justify-center mb-6">
                 <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <h3 className="text-2xl font-bold text-[#002147] mb-4">Benefits</h3>
               <p className="text-gray-600">
-                Make decisions quickly—reserve a seat, line up documents, and start on time.
+                Start the right program, on time, with funding aligned and a week-one execution plan.
               </p>
             </div>
           </div>
 
           <div className="text-center">
             <button className="bg-[#ff5e1a] text-white px-10 py-4 rounded-lg text-lg font-semibold hover:bg-[#e54e16] transition-all duration-200 shadow-lg hover:shadow-xl">
-              Check my eligibility
+              Apply for the PLEP cohort
             </button>
           </div>
         </div>
@@ -237,7 +377,7 @@ const ScholarshipEligibilityEstimator = () => {
               </svg>
               <div>
                 <p className="text-xl md:text-2xl font-semibold mb-4 leading-relaxed">
-                  "Seeing I was provisionally eligible let me reserve a PLCA seat and gather docs the same day."
+                  "I went from 'maybe next term' to a funded start date with a clear course map and checklist."
                 </p>
                 <p className="text-gray-300 font-medium">— U.S. Navy veteran</p>
               </div>
@@ -246,121 +386,117 @@ const ScholarshipEligibilityEstimator = () => {
         </div>
       </section>
 
-      {/* What Scholarship Covers Section */}
+      {/* Deep Benefits & Capabilities Section */}
       <section className="bg-[#faf9f7] py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-4">
-              What this scholarship can cover
+              Deep benefits & capabilities (by use case)
             </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            {/* What's Covered */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 border-t-4 border-green-600">
-              <div className="flex items-center gap-3 mb-6">
-                <svg className="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <h3 className="text-2xl font-bold text-[#002147]">Covered</h3>
-              </div>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-gray-700"><span className="font-semibold">Program tuition/fees</span> for: PLEP, PLCA, PPC, CPPC, VETA</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-gray-700"><span className="font-semibold">Learning materials</span> required by the program (when applicable)</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* What's Not Covered */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 border-t-4 border-red-600">
-              <div className="flex items-center gap-3 mb-6">
-                <svg className="w-10 h-10 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                <h3 className="text-2xl font-bold text-[#002147]">Not Covered</h3>
-              </div>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-gray-700">Cash disbursements</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-gray-700">Travel expenses</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-gray-700">Personal expenses</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-gray-700">Non-WANAC services</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg">
-            <p className="text-gray-700">
-              <span className="font-semibold text-blue-800">Note:</span> VSO Claim Support is free and does not require a scholarship.
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Tailored pathways for every education goal
             </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {useCases.map((useCase, index) => {
+              const colors = colorClasses[useCase.color];
+              return (
+                <div key={index} className={`bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border-t-4 ${colors.border}`}>
+                  <div className={`w-16 h-16 ${colors.bgOpacity} rounded-full flex items-center justify-center mb-6 ${colors.text}`}>
+                    {useCase.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-[#002147] mb-4">{useCase.title}</h3>
+                  <div className="mb-4">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Outcome:</p>
+                    <p className="text-sm text-gray-600 mb-4">{useCase.outcome}</p>
+                    <p className="text-sm font-semibold text-gray-700 mb-2">What we do:</p>
+                    <p className="text-sm text-gray-600">{useCase.whatWeDo}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="text-center mt-12">
+            <button className="bg-[#ff5e1a] text-white px-10 py-4 rounded-lg text-lg font-semibold hover:bg-[#e54e16] transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center gap-2">
+              Apply for the PLEP cohort
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </button>
           </div>
         </div>
       </section>
 
-      {/* How it Works */}
+      {/* What You'll Produce Section */}
       <section className="bg-white py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-4">
-              How it works (4 steps)
+              What you'll produce (deliverables)
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              From estimator to enrollment—fast and clear
+              Concrete outputs from your PLEP cohort experience
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {deliverables.map((deliverable, index) => (
+              <div key={index} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border-l-4 border-[#ff5e1a]">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-[#ff5e1a] bg-opacity-10 rounded-full flex items-center justify-center text-[#ff5e1a] flex-shrink-0">
+                    {deliverable.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[#002147] mb-2">{deliverable.title}</h3>
+                    <p className="text-gray-600 text-sm">{deliverable.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How the Cohort Works */}
+      <section className="bg-[#faf9f7] py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-4">
+              How the cohort works (4 steps)
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              12-week journey from intake to enrollment
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
             {/* Step 1 */}
             <div className="text-center">
-              <div className="w-20 h-20 bg-[#ff5e1a] text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6 shadow-lg">
+              <div className="w-20 h-20 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6 shadow-lg">
                 1
               </div>
               <h3 className="text-xl font-bold text-[#002147] mb-3">
-                Answer the estimator
+                Intake & targeting
               </h3>
+              <p className="text-gray-600 text-sm mb-2">(week 1)</p>
               <p className="text-gray-600">
-                Takes approximately 3 minutes
+                Goals, constraints, timeline, prior credits
               </p>
             </div>
 
             {/* Step 2 */}
             <div className="text-center">
-              <div className="w-20 h-20 bg-[#002147] text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6 shadow-lg">
+              <div className="w-20 h-20 bg-[#ff5e1a] text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6 shadow-lg">
                 2
               </div>
               <h3 className="text-xl font-bold text-[#002147] mb-3">
-                See your result
+                Design & alignment
               </h3>
+              <p className="text-gray-600 text-sm mb-2">(weeks 2–3)</p>
               <p className="text-gray-600">
-                Provisional result and exactly which documents to prepare
+                Shortlist + funding map + admissions schedule
               </p>
             </div>
 
@@ -370,10 +506,11 @@ const ScholarshipEligibilityEstimator = () => {
                 3
               </div>
               <h3 className="text-xl font-bold text-[#002147] mb-3">
-                Upload & submit
+                Execute
               </h3>
+              <p className="text-gray-600 text-sm mb-2">(weeks 4–8)</p>
               <p className="text-gray-600">
-                Takes ~10–15 minutes when ready
+                Submit applications, order records, finalize prerequisites
               </p>
             </div>
 
@@ -383,138 +520,31 @@ const ScholarshipEligibilityEstimator = () => {
                 4
               </div>
               <h3 className="text-xl font-bold text-[#002147] mb-3">
-                Get decision
+                Launch readiness
               </h3>
+              <p className="text-gray-600 text-sm mb-2">(weeks 9–12)</p>
               <p className="text-gray-600">
-                Receive decision and next steps to enroll
+                Enroll, register, activate services, run the start-strong plan
               </p>
             </div>
           </div>
 
+          <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg mb-8">
+            <p className="text-gray-700">
+              <span className="font-semibold text-blue-800">Time commitment:</span> ~60–90 minutes/week (session + missions).
+            </p>
+          </div>
+
           <div className="text-center">
             <button className="bg-[#ff5e1a] text-white px-10 py-4 rounded-lg text-lg font-semibold hover:bg-[#e54e16] transition-all duration-200 shadow-lg hover:shadow-xl">
-              Check my eligibility
+              Apply for the PLEP cohort
             </button>
           </div>
         </div>
       </section>
 
-      {/* Who We Prioritize */}
-      <section className="bg-[#faf9f7] py-20">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-8">
-              Who we prioritize
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-gradient-to-br from-[#ff5e1a] to-[#e54e16] rounded-xl shadow-lg p-8 text-white text-center hover:shadow-xl transition-shadow duration-300">
-              <svg className="w-12 h-12 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-              </svg>
-              <p className="font-semibold text-lg">
-                Active duty in the BDD window or ≤ 12 months from separation
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-[#002147] to-[#003366] rounded-xl shadow-lg p-8 text-white text-center hover:shadow-xl transition-shadow duration-300">
-              <svg className="w-12 h-12 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-              </svg>
-              <p className="font-semibold text-lg">
-                MEB / medical separation
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl shadow-lg p-8 text-white text-center hover:shadow-xl transition-shadow duration-300">
-              <svg className="w-12 h-12 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-              </svg>
-              <p className="font-semibold text-lg">
-                Recently separated veterans ready to commit to a cohort (weekly mission cadence)
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* What You'll Need */}
-      <section className="bg-white py-20">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-4">
-              What you'll need for the full application
-            </h2>
-            <p className="text-lg text-gray-600">(after the estimator)</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#ff5e1a]">
-              <div className="flex items-start gap-3">
-                <svg className="w-6 h-6 text-[#ff5e1a] flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <div>
-                  <h3 className="font-bold text-[#002147] mb-2">Service status & timeline</h3>
-                  <p className="text-gray-600 text-sm">DD-214 (or separation orders/ETS/EAS date)</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#002147]">
-              <div className="flex items-start gap-3">
-                <svg className="w-6 h-6 text-[#002147] flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <div>
-                  <h3 className="font-bold text-[#002147] mb-2">Program interest</h3>
-                  <p className="text-gray-600 text-sm">PLEP, PLCA, PPC, CPPC, or VETA (pick one primary)</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-600">
-              <div className="flex items-start gap-3">
-                <svg className="w-6 h-6 text-purple-600 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <div>
-                  <h3 className="font-bold text-[#002147] mb-2">Short purpose statement</h3>
-                  <p className="text-gray-600 text-sm">150–250 words: Goal, fit, and expected impact</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-600">
-              <div className="flex items-start gap-3">
-                <svg className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <div>
-                  <h3 className="font-bold text-[#002147] mb-2">Commitment confirmation</h3>
-                  <p className="text-gray-600 text-sm">Ability to attend coaching/missions (~60–90 min/week)</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-600">
-              <div className="flex items-start gap-3">
-                <svg className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <div>
-                  <h3 className="font-bold text-[#002147] mb-2">Financial snapshot</h3>
-                  <p className="text-gray-600 text-sm">High-level need indicators (no credit check)</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Integration & Fit */}
-      <section className="bg-[#faf9f7] py-16">
+      <section className="bg-white py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-4">
@@ -524,39 +554,83 @@ const ScholarshipEligibilityEstimator = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
-              <div className="w-14 h-14 bg-[#ff5e1a] bg-opacity-10 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-7 h-7 text-[#ff5e1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-[#002147] mb-3">From clarity to action</h3>
-              <p className="text-gray-600">
-                Your scholarship result links directly to cohort dates for PLEP/PLCA/PPC/CPPC/VETA.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
               <div className="w-14 h-14 bg-blue-600 bg-opacity-10 rounded-full flex items-center justify-center mb-4">
                 <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-[#002147] mb-3">Claims first when needed</h3>
+              <h3 className="text-xl font-bold text-[#002147] mb-3">Benefits first when needed</h3>
               <p className="text-gray-600">
-                If the estimator flags benefits bottlenecks, you'll be routed to accredited VSO Claim Support (including BDD for active duty).
+                If claims are the bottleneck, we route you to accredited VSO Claim Support (including BDD for active duty) before cohort milestones.
               </p>
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
-              <div className="w-14 h-14 bg-purple-600 bg-opacity-10 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+              <div className="w-14 h-14 bg-[#ff5e1a] bg-opacity-10 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-7 h-7 text-[#ff5e1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-[#002147] mb-3">One award per year</h3>
+              <h3 className="text-xl font-bold text-[#002147] mb-3">Career alignment</h3>
               <p className="text-gray-600">
-                Awards can't be stacked; choose the program with the most immediate impact.
+                PLEP pairs with PLCA (Career Accelerator) to connect program → role pipeline.
               </p>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+              <div className="w-14 h-14 bg-green-600 bg-opacity-10 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-[#002147] mb-3">Execution engine</h3>
+              <p className="text-gray-600">
+                PPC can run in parallel to keep weekly missions on track.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg mt-8">
+            <p className="text-gray-700">
+              <span className="font-semibold text-blue-800">Note:</span> Cohorts are for PLEP, PLCA, PPC, CPPC, and VETA. Claims support is 1:1 representation (not a cohort).
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Scholarships & Funding */}
+      <section className="bg-[#faf9f7] py-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-[#002147] mb-4">
+              Scholarships & funding
+            </h2>
+          </div>
+
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl shadow-lg p-8 md:p-12 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+              <div>
+                <div className="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
+                  1
+                </div>
+                <p className="text-gray-700 font-semibold">One scholarship per veteran per year (sponsor-funded; limited)</p>
+              </div>
+              <div>
+                <div className="w-16 h-16 bg-[#ff5e1a] text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <p className="text-gray-700 font-semibold">Use the Scholarship Eligibility Estimator after you apply</p>
+              </div>
+              <div>
+                <div className="w-16 h-16 bg-green-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <p className="text-gray-700 font-semibold">Claims support is free and does not require a scholarship</p>
+              </div>
             </div>
           </div>
         </div>
@@ -609,17 +683,17 @@ const ScholarshipEligibilityEstimator = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-white">
             <h2 className="text-4xl lg:text-5xl font-bold mb-6">
-              Check your eligibility today
+              Start your education journey
             </h2>
             <p className="text-xl mb-10 text-gray-200 max-w-3xl mx-auto">
-              Find out if you qualify for program scholarships in just 3 minutes
+              Join the next PLEP cohort and build a funded education plan that fits your mission
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <button className="bg-[#ff5e1a] text-white px-12 py-5 rounded-lg text-xl font-semibold hover:bg-[#e54e16] transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-105">
-                Check my eligibility
+                Apply for the PLEP cohort
               </button>
               <button className="border-3 border-white text-white px-12 py-5 rounded-lg text-xl font-semibold hover:bg-white hover:text-[#002147] transition-all duration-200 shadow-xl">
-                Book a 15-minute consult
+                Take the 3-minute quiz
               </button>
             </div>
           </div>
@@ -631,7 +705,7 @@ const ScholarshipEligibilityEstimator = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="text-sm text-gray-600 leading-relaxed">
-              <span className="font-semibold">Compliance & Privacy:</span> Scholarships are funded by partners and sponsors; awards are limited and not guaranteed. One scholarship per veteran per year. Awards apply to WANAC programs only (PLEP, PLCA, PPC, CPPC, VETA). WANAC is not a law firm and is not affiliated with the U.S. Department of Veterans Affairs. Your information is handled securely and shared only with your consent.
+              <span className="font-semibold">Compliance & Privacy:</span> Cohorts are available for PLEP, PLCA, PPC, CPPC, and VETA only. VA claims are handled 1:1 via accredited representatives (WANAC for ≤12 months/BDD; partner VSOs/agents/attorneys for others). One scholarship per veteran per year; awards limited and not guaranteed. WANAC is not a law firm and is not affiliated with the U.S. Department of Veterans Affairs. Your information is handled securely and shared only with your consent.
             </p>
           </div>
         </div>
@@ -646,16 +720,17 @@ const ScholarshipEligibilityEstimator = () => {
               <ul className="space-y-3 text-gray-300">
                 <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">PLEP (Education)</a></li>
                 <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">PLCA (Career)</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">PPC/CPPC (Performance)</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">PPC (Performance)</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">CPPC (Certified Coach)</a></li>
                 <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">VETA (Entrepreneurship)</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-lg mb-4">Scholarships</h4>
+              <h4 className="font-bold text-lg mb-4">PLEP Resources</h4>
               <ul className="space-y-3 text-gray-300">
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Eligibility Estimator</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Application Guide</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Award Timeline</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">GI Bill Calculator</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Program Comparison Tool</a></li>
+                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Admissions Checklist</a></li>
                 <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Success Stories</a></li>
               </ul>
             </div>
@@ -687,8 +762,8 @@ const ScholarshipEligibilityEstimator = () => {
                   </svg>
                 </a>
               </div>
-              <p className="text-sm text-gray-300">
-                Supporting veteran education and career growth
+              <p className="text-sm text-gray-300 mt-4">
+                Your path to the Promise Land
               </p>
             </div>
           </div>
@@ -714,4 +789,5 @@ const ScholarshipEligibilityEstimator = () => {
   );
 };
 
-export default ScholarshipEligibilityEstimator;
+export default WanacPLEP;
+

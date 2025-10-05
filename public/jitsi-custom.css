@@ -1,0 +1,100 @@
+/**
+ * WANAC Platform - Jitsi Custom Styles
+ * Additional CSS to ensure complete branding removal
+ */
+
+/* Hide Jitsi watermark and branding elements */
+.watermark,
+.jitsi-watermark,
+.brand-watermark,
+.leftwatermark,
+.rightwatermark {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Hide powered by text */
+.powered-by,
+.poweredby {
+    display: none !important;
+}
+
+/* Hide promotional banners */
+.chrome-extension-banner,
+.app-promo,
+.mobile-download-promo {
+    display: none !important;
+}
+
+/* Hide Jitsi logo from various locations */
+img[src*="watermark"],
+img[src*="jitsi"],
+img[alt*="Jitsi"],
+img[alt*="watermark"] {
+    display: none !important;
+}
+
+/* Hide welcome page Jitsi branding */
+.welcome .watermark,
+.welcome .header-image,
+.welcome .logo {
+    display: none !important;
+}
+
+/* Hide any links to Jitsi.org */
+a[href*="jitsi.org"],
+a[href*="meet.jit.si"][target="_blank"] {
+    display: none !important;
+}
+
+/* Hide promotional footer */
+.subject-info-container .promotional-footer {
+    display: none !important;
+}
+
+/* Custom branding space (if you want to add your own) */
+.custom-branding {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 9999;
+}
+
+/* Hide "Download our apps" and similar prompts */
+.download-apps,
+.install-app-prompt,
+.native-app-promo {
+    display: none !important;
+}
+
+/* Hide any remaining watermark containers */
+#watermark,
+#jitsiWatermark,
+.watermark-container {
+    display: none !important;
+}
+
+/* Clean up toolbar branding */
+.toolbox .overflow-menu-item[data-testid*="download"],
+.toolbox .overflow-menu-item[data-testid*="invite"] {
+    /* Optionally hide invite/download options that might show branding */
+}
+
+/* Hide help/feedback links that go to Jitsi */
+.help-button[href*="jitsi"],
+.feedback-button[href*="jitsi"] {
+    display: none !important;
+}
+
+/* Ensure prejoin page has no branding */
+.prejoin-page .watermark,
+.prejoin-page .logo {
+    display: none !important;
+}
+
+/* Hide any toast notifications about Jitsi apps */
+.notification[data-testid*="mobile-app"],
+.notification[data-testid*="chrome-extension"] {
+    display: none !important;
+}
+
