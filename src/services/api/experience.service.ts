@@ -71,13 +71,14 @@ export const experienceService = {
   },
 
   async updateExperience(experienceId: string | number, data: {
-    title: string;
-    experience: string;
-    videoAdminId?: string | number;  // Meeting facilitator (who will chair the meeting)
-    admin?: string | number;  // Meeting facilitator (alternative field name)
-    video_admin_id?: string | number;  // Meeting facilitator (snake_case)
-    // Note: added_by should NOT be included - that tracks the system admin who created the experience
-    link?: string;  // Meeting link for the experience
+    title?: string;           // Experience title
+    experience?: string;      // Experience description/content
+    link?: string;            // Meeting link for the experience
+    status?: string;          // Experience status (e.g., 'pending', 'completed')
+    report?: string;          // Experience report
+    summary?: string;         // Experience summary
+    admin?: string | number;  // Meeting facilitator ID (as per API spec)
+    // Note: All fields are optional as per API spec
     agenda?: Array<{
       id?: string | number;
       title: string;
@@ -91,13 +92,14 @@ export const experienceService = {
     }>;
   }) {
     try {
-      console.log('📤 [EXPERIENCE SERVICE] Sending PUT request to update experience:', experienceId, data);
+      console.log('📤 [EXPERIENCE SERVICE] Sending PUT request to update experience:', experienceId);
+      console.log('📤 [EXPERIENCE SERVICE] Request data:', data);
       const res = await apiClient.put(`/api/v1/fireteams/experience/update/${experienceId}`, data);
       console.log('📥 [EXPERIENCE SERVICE] Backend response:', res.data);
       return unwrapItem(res.data);
     } catch (error: any) {
-      console.error("Error updating experience:", error);
-      console.error("Error response:", error.response?.data);
+      console.error("❌ [EXPERIENCE SERVICE] Error updating experience:", error);
+      console.error("❌ [EXPERIENCE SERVICE] Error response:", error.response?.data);
       throw error;
     }
   },

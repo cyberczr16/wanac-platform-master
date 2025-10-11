@@ -168,4 +168,25 @@ export const fireteamService = {
     const res = await apiClient.delete(`/api/v1/fireteams/member/delete/${fireteamMemberId}`);
     return res.data;
   },
+  async addObjective(data: { 
+    fire_team_experience_id: string | number; 
+    objective: string;
+    added_by?: string | number;
+  }) {
+    try {
+      console.log('📤 [SERVICE] Adding objective with data:', data);
+      const res = await apiClient.post('/api/v1/fireteams/objectives/add', data);
+      console.log('✅ [SERVICE] Objective added successfully:', res.data);
+      return unwrapItem(res.data);
+    } catch (error: any) {
+      console.error('❌ [SERVICE] Error adding objective:', error);
+      console.error('❌ [SERVICE] Error response:', error.response?.data);
+      console.error('❌ [SERVICE] Error status:', error.response?.status);
+      throw error;
+    }
+  },
+  async deleteObjective(id: string | number) {
+    const res = await apiClient.delete(`/api/v1/fireteams/objectives/delete/${id}`);
+    return res.data;
+  },
 };

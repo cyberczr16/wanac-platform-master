@@ -3,47 +3,26 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AdminSidebar from "../../../../../../../components/dashboardcomponents/adminsidebar";
 import {
-  Box,
-  Typography,
-  Button,
-  Stack,
-  Card,
-  CardContent,
-  Grid,
-  Chip,
-  IconButton,
-  Snackbar,
-  Alert,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  Link as MuiLink,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from "@mui/material";
-import {
-  ArrowBack,
-  Edit,
-  Delete,
-  Schedule,
-  VideoCall,
-  Description,
+  ArrowLeft,
+  Edit2,
+  Trash2,
+  Clock,
+  Video,
   Link as LinkIcon,
   Image,
-  VideoLibrary,
-  AttachFile,
-  Add,
-  Person,
+  FileText,
+  Film,
+  Paperclip,
+  Plus,
+  User,
   Save,
-} from "@mui/icons-material";
+  Flag,
+  X,
+  Calendar,
+  Target,
+  Copy,
+  Check,
+} from "lucide-react";
 import { fireteamService } from "../../../../../../services/api/fireteam.service";
 import { experienceService } from "../../../../../../services/api/experience.service";
 import { generateFireteamMeetingLink } from "../../../../../../lib/jitsi.utils";
@@ -83,6 +62,12 @@ export default function ExperienceDetailPage() {
   });
   const [selectedVideoAdminId, setSelectedVideoAdminId] = useState('');
   const [isUpdatingVideoAdmin, setIsUpdatingVideoAdmin] = useState(false);
+  const [showAddObjectiveDialog, setShowAddObjectiveDialog] = useState(false);
+  const [newObjective, setNewObjective] = useState({ objective: '' });
+  const [objectives, setObjectives] = useState([]);
+  const [generatedLink, setGeneratedLink] = useState('');
+  const [isSavingLink, setIsSavingLink] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
     if (fireteamId && experienceId) {
@@ -90,14 +75,40 @@ export default function ExperienceDetailPage() {
     }
   }, [fireteamId, experienceId]);
 
-  // Set initial video admin when experience loads
   useEffect(() => {
-    if (experience && experience.videoAdminId) {
-      setSelectedVideoAdminId(experience.videoAdminId.toString());
+    if (experience) {
+      // Check for admin field (from API) or videoAdminId (legacy)
+      const facilitatorId = experience.admin || experience.videoAdminId;
+      if (facilitatorId) {
+        console.log('🎯 [FACILITATOR] Setting selected facilitator ID:', facilitatorId);
+        setSelectedVideoAdminId(facilitatorId.toString());
+      } else {
+        console.log('🎯 [FACILITATOR] No facilitator assigned');
+        setSelectedVideoAdminId('');
+      }
     }
   }, [experience]);
 
-  // Update modal data whenever experience changes
+  // Auto-dismiss success message after 3 seconds
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        setSuccess("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
+
+  // Auto-dismiss error message after 3 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   useEffect(() => {
     if (experience && showEditModal) {
       const agendaSource = experience.agenda || experience.agenda_steps || [];
@@ -113,8 +124,6 @@ export default function ExperienceDetailPage() {
         ? experience.exhibits.map(ex => ({ ...ex, file: null }))
         : [];
       
-      console.log("Syncing modal data with experience:", { agendaData, exhibitsData });
-      
       setEditExperienceData(prev => ({
         ...prev,
         agenda: agendaData,
@@ -126,28 +135,40 @@ export default function ExperienceDetailPage() {
   const fetchExperienceDetails = async () => {
     setLoading(true);
     try {
-      // Fetch fireteam data (includes experiences)
       const fireteamData = await fireteamService.getFireteam(fireteamId);
       const fireTeam = fireteamData.fireTeam;
       setFireteam(fireTeam);
-      setMembers(Array.isArray(fireTeam.members) ? fireTeam.members : []);
+      
+      const membersList = Array.isArray(fireTeam.members) ? fireTeam.members : [];
+      console.log('👥 [FETCH MEMBERS] Total members:', membersList.length);
+      membersList.forEach(member => {
+        console.log('👥 [FETCH MEMBERS] Member:', {
+          memberId: member.id,
+          userId: member.client?.user?.id,
+          userName: member.client?.user?.name,
+        });
+      });
+      setMembers(membersList);
 
-      // Find the specific experience
       const experiences = Array.isArray(fireTeam.experiences) ? fireTeam.experiences : [];
       const currentExperience = experiences.find(exp => exp.id === parseInt(experienceId));
       
       if (currentExperience) {
-        console.log("Experience details:", currentExperience);
-        
-        // Normalize the field names - API might return agenda_steps or agenda
         const normalizedExperience = {
           ...currentExperience,
           agenda: currentExperience.agenda || currentExperience.agenda_steps || [],
           exhibits: currentExperience.exhibits || [],
         };
         
-        console.log("Normalized experience:", normalizedExperience);
+        console.log('✅ [FETCH EXPERIENCE] Current experience data:', currentExperience);
+        console.log('✅ [FETCH EXPERIENCE] Admin/Facilitator ID:', currentExperience.admin);
+        console.log('✅ [FETCH EXPERIENCE] Normalized experience:', normalizedExperience);
+        
         setExperience(normalizedExperience);
+        
+        if (currentExperience.objectives && Array.isArray(currentExperience.objectives)) {
+          setObjectives(currentExperience.objectives);
+        }
       } else {
         setError("Experience not found");
       }
@@ -162,7 +183,6 @@ export default function ExperienceDetailPage() {
   const handleEdit = () => {
     if (!experience) return;
     
-    // Handle both agenda and agenda_steps field names
     const agendaSource = experience.agenda || experience.agenda_steps || [];
     const agendaData = Array.isArray(agendaSource) && agendaSource.length > 0
       ? agendaSource.map(step => ({
@@ -175,9 +195,6 @@ export default function ExperienceDetailPage() {
     const exhibitsData = experience.exhibits && Array.isArray(experience.exhibits) && experience.exhibits.length > 0
       ? experience.exhibits.map(ex => ({ ...ex, file: null }))
       : [];
-    
-    console.log("Opening edit modal with agenda:", agendaData);
-    console.log("Opening edit modal with exhibits:", exhibitsData);
     
     setEditExperienceData({
       title: experience.title || '',
@@ -217,10 +234,7 @@ export default function ExperienceDetailPage() {
         duration: typeof duration === 'string' ? duration : '5 minutes',
       };
 
-      console.log("✅ [ADD AGENDA STEP] Sending request to backend:", requestData);
       const newStep = await experienceService.addAgendaStep(requestData);
-      console.log("✅ [ADD AGENDA STEP] Received response from API:", newStep);
-      console.log("✅ [ADD AGENDA STEP] Step ID from backend:", newStep.id);
       
       const safeStep = {
         ...newStep,
@@ -228,20 +242,14 @@ export default function ExperienceDetailPage() {
         duration: typeof newStep.duration === 'string' ? newStep.duration : '5 minutes',
       };
       
-      console.log("✅ [ADD AGENDA STEP] Successfully saved to backend - Adding to local state:", safeStep);
-      
       setEditExperienceData((prev) => ({
         ...prev,
         agenda: [...prev.agenda, safeStep],
       }));
 
-      // REMOVED: fetchExperienceDetails() - This was causing the page refresh
-      // The new step is already added to local state with the correct ID from the backend
-
       return safeStep;
     } catch (err) {
-      console.error("❌ [ADD AGENDA STEP] Error adding agenda step:", err);
-      console.error("❌ [ADD AGENDA STEP] Error response:", err.response?.data);
+      console.error("Error adding agenda step:", err);
       setError("Failed to add agenda step");
       throw err;
     }
@@ -280,14 +288,12 @@ export default function ExperienceDetailPage() {
         duration: newAgendaStep.duration || '5 minutes',
       };
 
-      console.log("Adding agenda step:", requestData);
       await experienceService.addAgendaStep(requestData);
       
       setSuccess('Agenda step added successfully!');
       setShowAddAgendaDialog(false);
       setNewAgendaStep({ title: '', duration: '' });
       
-      // Refresh experience details to show the new step
       await fetchExperienceDetails();
     } catch (err) {
       console.error('Error adding agenda step:', err);
@@ -314,18 +320,101 @@ export default function ExperienceDetailPage() {
         ...(newExhibit.type === 'link' && { link: newExhibit.link }),
       };
 
-      console.log("Adding exhibit:", requestData);
       await experienceService.addExhibit(requestData);
       
       setSuccess('Exhibit added successfully!');
       setShowAddExhibitDialog(false);
       setNewExhibit({ name: '', type: 'link', link: '' });
       
-      // Refresh experience details to show the new exhibit
       await fetchExperienceDetails();
     } catch (err) {
       console.error('Error adding exhibit:', err);
       setError('Failed to add exhibit');
+    }
+  };
+
+  const handleAddObjective = async () => {
+    if (!newObjective.objective.trim()) {
+      setError('Objective is required');
+      return;
+    }
+    
+    try {
+      // Get current user from localStorage
+      const userData = localStorage.getItem('wanacUser');
+      console.log('🔐 [USER CHECK] Raw userData from localStorage:', userData);
+      
+      const user = userData ? JSON.parse(userData) : null;
+      console.log('🔐 [USER CHECK] Parsed user object:', user);
+      
+      const addedBy = user?.id;
+      console.log('🔐 [USER CHECK] Extracted user ID (added_by):', addedBy);
+      console.log('🔐 [USER CHECK] User ID type:', typeof addedBy);
+
+      if (!addedBy) {
+        console.error('⚠️ [WARNING] No user ID found! User might not be logged in.');
+      }
+
+      const requestData = {
+        fire_team_experience_id: experienceId,
+        objective: newObjective.objective,
+        added_by: addedBy,
+      };
+
+      console.log('🎯 [ADD OBJECTIVE] Final request data:', requestData);
+      console.log('🎯 [ADD OBJECTIVE] Request data stringified:', JSON.stringify(requestData));
+
+      const addedObjective = await fireteamService.addObjective(requestData);
+      
+      setSuccess('Objective added successfully!');
+      setObjectives(prev => [...prev, addedObjective]);
+      setShowAddObjectiveDialog(false);
+      setNewObjective({ objective: '' });
+      
+      await fetchExperienceDetails();
+    } catch (err) {
+      console.error('Error adding objective:', err);
+      setError('Failed to add objective');
+    }
+  };
+
+  const handleDeleteObjective = async (objectiveId) => {
+    if (window.confirm("Are you sure you want to delete this objective?")) {
+      try {
+        await fireteamService.deleteObjective(objectiveId);
+        setSuccess('Objective deleted successfully!');
+        setObjectives(prev => prev.filter(obj => obj.id !== objectiveId));
+        await fetchExperienceDetails();
+      } catch (err) {
+        console.error('Error deleting objective:', err);
+        setError('Failed to delete objective');
+      }
+    }
+  };
+
+  const handleDeleteAgendaStep = async (agendaStepId) => {
+    if (window.confirm("Are you sure you want to delete this agenda step?")) {
+      try {
+        await experienceService.deleteAgendaStep(agendaStepId);
+        setSuccess('Agenda step deleted successfully!');
+        await fetchExperienceDetails();
+      } catch (err) {
+        console.error('Error deleting agenda step:', err);
+        setError('Failed to delete agenda step');
+      }
+    }
+  };
+
+  const handleDeleteExhibit = async (exhibitId) => {
+    if (window.confirm("Are you sure you want to delete this exhibit?")) {
+      try {
+        await experienceService.deleteExhibit(exhibitId);
+        setSuccess('Exhibit deleted successfully!');
+        await fetchExperienceDetails();
+      } catch (err) {
+        console.error('Error deleting exhibit:', err);
+        setError('Failed to delete exhibit');
+      }
     }
   };
 
@@ -337,30 +426,25 @@ export default function ExperienceDetailPage() {
 
     setIsUpdatingVideoAdmin(true);
     try {
-      console.log('🎯 [VIDEO ADMIN UPDATE] Selected meeting facilitator ID:', selectedVideoAdminId);
-      console.log('🎯 [VIDEO ADMIN UPDATE] Selected meeting facilitator type:', typeof selectedVideoAdminId);
-      
+      // Prepare update data according to API spec: PUT api/v1/fireteams/experience/update/{fireTeamExperience_id}
       const updateData = {
         title: experience.title,
         experience: experience.experience,
-        // NOTE: This is the MEETING CHAIR/FACILITATOR, not the system admin
-        // added_by should remain unchanged (tracks who created the experience)
-        // admin/videoAdminId tracks who will CHAIR/HOST the meeting
-        videoAdminId: selectedVideoAdminId,
-        admin: selectedVideoAdminId,
-        video_admin_id: selectedVideoAdminId,
-        // DO NOT send added_by - that should remain as the creator
+        link: experience.link, // Preserve the meeting link
+        status: experience.status, // Preserve the status
+        report: experience.report, // Preserve the report
+        summary: experience.summary, // Preserve the summary
+        admin: parseInt(selectedVideoAdminId), // Meeting facilitator ID (integer as per API spec)
       };
       
-      console.log('🎯 [VIDEO ADMIN UPDATE] Sending data:', updateData);
-      console.log('🎯 [VIDEO ADMIN UPDATE] NOTE: This sets the MEETING FACILITATOR, not system admin');
+      console.log('🎯 [VIDEO ADMIN UPDATE] Updating meeting facilitator with data:', updateData);
+      console.log('🎯 [VIDEO ADMIN UPDATE] Experience ID:', experience.id);
       
       const result = await experienceService.updateExperience(experience.id, updateData);
-      console.log('🎯 [VIDEO ADMIN UPDATE] Backend response:', result);
+      
+      console.log('✅ [VIDEO ADMIN UPDATE] Update successful:', result);
       
       if (result.fireTeamExperience?.admin === null) {
-        console.error('⚠️ [VIDEO ADMIN UPDATE] Backend did not update admin field!');
-        console.error('⚠️ [VIDEO ADMIN UPDATE] This requires backend API modification to accept the admin field');
         setError('Backend does not support setting meeting facilitator. Please contact backend team.');
       } else {
         setSuccess('Meeting facilitator updated successfully!');
@@ -370,9 +454,84 @@ export default function ExperienceDetailPage() {
     } catch (err) {
       console.error('❌ [VIDEO ADMIN UPDATE] Error updating meeting facilitator:', err);
       console.error('❌ [VIDEO ADMIN UPDATE] Error response:', err.response?.data);
-      setError('Failed to update meeting facilitator');
+      setError('Failed to update meeting facilitator: ' + (err.response?.data?.message || err.message));
     } finally {
       setIsUpdatingVideoAdmin(false);
+    }
+  };
+
+  const handleGenerateLink = () => {
+    try {
+      // Get current user from localStorage for the moderator name
+      const userData = localStorage.getItem('wanacUser');
+      const user = userData ? JSON.parse(userData) : null;
+      const moderatorName = user?.name || 'admin';
+      
+      // Generate a new Jitsi meeting link
+      const newLink = generateFireteamMeetingLink(
+        fireteamId,
+        experienceId,
+        moderatorName,
+        experience?.title || 'Fireteam Meeting'
+      );
+      
+      console.log('🔗 [GENERATE LINK] New meeting link generated:', newLink);
+      setGeneratedLink(newLink);
+      setSuccess('Meeting link generated! Click "Save Link" to apply it.');
+    } catch (err) {
+      console.error('❌ [GENERATE LINK] Error generating link:', err);
+      setError('Failed to generate meeting link');
+    }
+  };
+
+  const handleSaveLink = async () => {
+    if (!generatedLink) {
+      setError('No link to save. Please generate a link first.');
+      return;
+    }
+
+    setIsSavingLink(true);
+    try {
+      // Prepare update data according to API spec
+      const updateData = {
+        title: experience.title,
+        experience: experience.experience,
+        link: generatedLink, // Update with the new generated link
+        status: experience.status,
+        report: experience.report,
+        summary: experience.summary,
+        admin: experience.admin, // Preserve the facilitator
+      };
+      
+      console.log('💾 [SAVE LINK] Saving new meeting link:', generatedLink);
+      
+      await experienceService.updateExperience(experience.id, updateData);
+      
+      setSuccess('Meeting link saved successfully!');
+      setGeneratedLink(''); // Clear the generated link
+      await fetchExperienceDetails();
+    } catch (err) {
+      console.error('❌ [SAVE LINK] Error saving link:', err);
+      console.error('❌ [SAVE LINK] Error response:', err.response?.data);
+      setError('Failed to save meeting link: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setIsSavingLink(false);
+    }
+  };
+
+  const handleCopyLink = async (link) => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedLink(true);
+      setSuccess('Link copied to clipboard!');
+      
+      // Reset the copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedLink(false);
+      }, 2000);
+    } catch (err) {
+      console.error('❌ [COPY LINK] Error copying link:', err);
+      setError('Failed to copy link to clipboard');
     }
   };
 
@@ -397,22 +556,25 @@ export default function ExperienceDetailPage() {
 
   const getExhibitIcon = (type) => {
     switch(type) {
-      case 'image': return <Image />;
-      case 'video': return <VideoLibrary />;
-      case 'document': return <Description />;
-      case 'link': return <LinkIcon />;
-      default: return <AttachFile />;
+      case 'image': return <Image className="w-4 h-4" />;
+      case 'video': return <Film className="w-4 h-4" />;
+      case 'document': return <FileText className="w-4 h-4" />;
+      case 'link': return <LinkIcon className="w-4 h-4" />;
+      default: return <Paperclip className="w-4 h-4" />;
     }
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-[#faf9f7]">
+      <div className="flex min-h-screen bg-gray-50">
         <AdminSidebar />
         <main className="flex-1 p-8 ml-16 md:ml-56">
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
-            <Typography>Loading experience details...</Typography>
-          </Box>
+          <div className="flex justify-center items-center min-h-[50vh]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading experience details...</p>
+            </div>
+          </div>
         </main>
       </div>
     );
@@ -420,573 +582,418 @@ export default function ExperienceDetailPage() {
 
   if (!experience) {
     return (
-      <div className="flex min-h-screen bg-[#faf9f7]">
+      <div className="flex min-h-screen bg-gray-50">
         <AdminSidebar />
         <main className="flex-1 p-8 ml-16 md:ml-56">
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
-            <Typography color="error">Experience not found</Typography>
-          </Box>
+          <div className="flex justify-center items-center min-h-[50vh]">
+            <div className="text-center">
+              <p className="text-red-600 text-lg font-medium">Experience not found</p>
+            </div>
+          </div>
         </main>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-[#faf9f7]">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       <AdminSidebar />
-      <main className="flex-1 ml-16 md:ml-56 overflow-hidden">
-        {/* Compact Header with Actions */}
-        <Box sx={{ 
-          background: '#002147',
-          color: 'white',
-          p: 2,
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-        }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <IconButton 
+      <main className="flex-1 ml-16 md:ml-56 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-3 px-4 shadow-lg border-b border-blue-800">
+          <div className="flex items-center gap-3">
+            <button
               onClick={() => router.push(`/admin/fireteammanagement/${fireteamId}`)}
-              sx={{ color: 'white' }}
+              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
             >
-              <ArrowBack />
-            </IconButton>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
-                {experience.title}
-              </Typography>
-              <Stack direction="row" spacing={2} alignItems="center">
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg font-bold truncate">{experience.title}</h1>
               {fireteam && (
-                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    {fireteam.title}
-                </Typography>
+                <p className="text-xs text-blue-200 truncate">{fireteam.title}</p>
               )}
-                {experience.status && (
-                  <Chip 
-                    label={experience.status} 
-                    size="small"
-                    sx={{ 
-                      bgcolor: experience.status === 'completed' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(255,255,255,0.2)',
-                      color: 'white',
-                      fontWeight: 600
-                    }}
-                  />
-                )}
-              </Stack>
-            </Box>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<Edit />}
+            </div>
+            {experience.status && (
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                experience.status === 'completed' 
+                  ? 'bg-green-500/30 text-green-100' 
+                  : 'bg-white/20 text-white'
+              }`}>
+                {experience.status}
+              </span>
+            )}
+            <button
               onClick={handleEdit}
-              sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-xs font-medium"
             >
+              <Edit2 className="w-3.5 h-3.5" />
               Edit
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<Delete />}
+            </button>
+            <button
               onClick={handleDelete}
-              sx={{ 
-                borderColor: 'rgba(255,255,255,0.5)', 
-                color: 'white',
-                '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' }
-              }}
+              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
             >
-              Delete
-            </Button>
-          </Stack>
-        </Box>
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
 
-        {/* Main Content Grid - Compact Layout */}
-        <Box sx={{ height: 'calc(100vh - 130px)', overflow: 'auto', p: 2 }}>
-          <Grid container spacing={2}>
-            {/* Left Column - Primary Content */}
-            <Grid item xs={12} lg={8}>
-              <Grid container spacing={2}>
-          {/* Experience Content */}
-                <Grid item xs={12}>
-                  <Card sx={{ 
-                    borderLeft: '4px solid #002147',
-                    height: '100%',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-                  }}>
-                    <CardContent sx={{ p: 2 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1, color: '#002147' }}>
-                       Experience Content
-                </Typography>
-                      <Box sx={{ maxHeight: '150px', overflow: 'auto', mb: 1 }}>
-                        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-                  {experience.experience}
-                </Typography>
-                      </Box>
-                      
-                      {/* Compact Summary & Report */}
-                      {(experience.summary || experience.report) && (
-                        <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-                          {experience.summary && (
-                            <Box sx={{ flex: 1, p: 1.5, bgcolor: '#e6f2ff', borderRadius: 1 }}>
-                              <Typography variant="caption" sx={{ fontWeight: 600, color: '#002147', display: 'block', mb: 0.5 }}>
-                                Summary
-                              </Typography>
-                              <Typography variant="caption" sx={{ display: 'block', maxHeight: '60px', overflow: 'auto' }}>
-                                {experience.summary}
-                              </Typography>
-                            </Box>
-                          )}
-                          {experience.report && (
-                            <Box sx={{ flex: 1, p: 1.5, bgcolor: '#fff5f0', borderRadius: 1 }}>
-                              <Typography variant="caption" sx={{ fontWeight: 600, color: '#ff5e1a', display: 'block', mb: 0.5 }}>
-                                Report
-                              </Typography>
-                              <Typography variant="caption" sx={{ display: 'block', maxHeight: '60px', overflow: 'auto' }}>
-                                {experience.report}
-                              </Typography>
-                            </Box>
-                          )}
-                        </Stack>
-                      )}
-                      
-                      {/* Links Row */}
-                      <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-                        {experience.link && (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            startIcon={<VideoCall />}
-                            onClick={() => {
-                              // Navigate to client experience page with admin privileges
-                              const clientUrl = `/client/fireteam/experience/${experienceId}?id=${experienceId}&fireteamId=${fireteamId}&link=${encodeURIComponent(experience.link)}&admin=true`;
-                              router.push(clientUrl);
-                            }}
-                            sx={{ fontSize: '0.75rem' }}
-                          >
-                            Join Meeting as Admin
-                          </Button>
-                        )}
-                      </Stack>
-              </CardContent>
-            </Card>
-                </Grid>
-
-                {/* Agenda & Exhibits Side by Side */}
-                <Grid item xs={12} md={6}>
-                  <Card sx={{ 
-                    height: '100%',
-                    borderLeft: '4px solid #002147',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-                  }}>
-                    <CardContent sx={{ p: 2 }}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#002147' }}>
-                          Agenda Steps 
-                        </Typography>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          startIcon={<Add />}
-                          style={{ margin: '15px' }}
-                          onClick={() => setShowAddAgendaDialog(true)}
-                          sx={{ 
-                            bgcolor: '#002147',
-                            '&:hover': { bgcolor: '#003366' },
-                            textTransform: 'none',
-                            fontSize: '0.75rem'
-                          }}
-                        >
-                          Add Step
-                        </Button>
-                      </Stack>
-                      <Box sx={{ maxHeight: '200px', overflow: 'auto' }}>
-                {experience.agenda && experience.agenda.length > 0 ? (
-                          <Stack spacing={1}>
-                    {experience.agenda.map((step, index) => (
-                              <Box 
-                                key={step.id || index}
-                                sx={{ 
-                                  p: 1.5, 
-                                  bgcolor: index % 2 === 0 ? '#e6f2ff' : 'white',
-                                  borderRadius: 1,
-                                  border: '1px solid #e0e0e0'
-                                }}
-                              >
-                                <Stack direction="row" spacing={1} alignItems="center">
-                                  <Chip 
-                                    label={index + 1} 
-                                    size="small" 
-                                    sx={{ 
-                                      minWidth: '32px',
-                                      height: '24px',
-                                      bgcolor: '#002147',
-                                      color: 'white',
-                                      fontWeight: 600
-                                    }} 
-                                  />
-                                  <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>
-                                  {step.title}
-                                </Typography>
-                              </Stack>
-                                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5, ml: 4.5 }}>
-                                  <Schedule sx={{ fontSize: 14, color: 'text.secondary' }} />
-                                  <Typography variant="caption" color="text.secondary">
-                                  {step.duration}
-                                </Typography>
-                              </Stack>
-                              </Box>
-                            ))}
-                          </Stack>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                            No agenda steps yet
-                  </Typography>
-                )}
-                      </Box>
-              </CardContent>
-            </Card>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Card sx={{ 
-                    height: '100%',
-                    borderLeft: '4px solid #ff5e1a',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-                  }}>
-                    <CardContent sx={{ p: 2 }}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#ff5e1a' }}>
-                          Exhibits & Resources 
-                        </Typography>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          startIcon={<Add />}
-                          style={{ margin: '15px' }}
-                          onClick={() => setShowAddExhibitDialog(true)}
-                          sx={{ 
-                            bgcolor: '#ff5e1a',
-                            '&:hover': { bgcolor: '#e04d0a' },
-                            textTransform: 'none',
-                            fontSize: '0.75rem'
-                          }}
-                        >
-                          Add Exhibit
-                        </Button>
-                      </Stack>
-                      <Box sx={{ maxHeight: '200px', overflow: 'auto' }}>
-                {experience.exhibits && experience.exhibits.length > 0 ? (
-                          <Stack spacing={5}>
-                    {experience.exhibits.map((exhibit, index) => (
-                              <Box 
-                                key={exhibit.id || index}
-                                sx={{ 
-                                  p: 1.5, 
-                                  bgcolor: index % 2 === 0 ? '#fff5f0' : 'white',
-                                  borderRadius: 1,
-                                  border: '1px solid #e0e0e0'
-                                }}
-                              >
-                                <Stack direction="row" spacing={1} alignItems="center">
-                                  <Box sx={{ color: '#ff5e1a', display: 'flex' }}>
-                              {getExhibitIcon(exhibit.type)}
-                            </Box>
-                            <Box sx={{ flex: 1 }}>
-                                    <Typography variant="body2" fontWeight={600}>
-                                {exhibit.name}
-                              </Typography>
-                              <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-                                      <Chip 
-                                        label={exhibit.type} 
-                                        size="small" 
-                                        sx={{ height: '20px', fontSize: '0.7rem' }}
-                                      />
-                                {exhibit.type === 'link' && exhibit.link && (
-                                  <MuiLink 
-                                    href={exhibit.link} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                          sx={{ fontSize: '0.7rem' }}
-                                  >
-                                          Open →
-                                  </MuiLink>
-                                )}
-                              </Stack>
-                            </Box>
-                          </Stack>
-                              </Box>
-                    ))}
-                          </Stack>
-                ) : (
-                          <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                            No exhibits yet
-                  </Typography>
-                )}
-                      </Box>
-              </CardContent>
-            </Card>
-                </Grid>
-              </Grid>
-          </Grid>
-
-            {/* Right Column - Metadata & Stats */}
-            <Grid item xs={12} lg={8}>
-              <Stack spacing={2}>
-                {/* Meeting Facilitator Selection Card */}
-                <Card sx={{ 
-                  borderLeft: '4px solid #9333ea',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-                }}>
-                  <CardContent sx={{ p: 2 }}>
-                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                      <Person sx={{ color: '#9333ea' }} />
-                      <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#9333ea' }}>
-                        Meeting Facilitator
-                      </Typography>
-                    </Stack>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2 }}>
-                      Select the fireteam member who will chair/host this experience meeting
-                    </Typography>
-                    <Stack spacing={2}>
-                      <FormControl fullWidth size="small">
-                        <InputLabel id="video-admin-select-label">Select Meeting Facilitator</InputLabel>
-                        <Select
-                          labelId="video-admin-select-label"
-                          value={selectedVideoAdminId}
-                          onChange={(e) => setSelectedVideoAdminId(e.target.value)}
-                          label="Select Meeting Facilitator"
-                        >
-                          <MenuItem value="">
-                            <em>None</em>
-                          </MenuItem>
-                          {members.map((member) => (
-                            <MenuItem 
-                              key={member.id} 
-                              value={member.client?.user?.id || member.user_id || member.id}
-                            >
-                              <Stack direction="row" spacing={1} alignItems="center">
-                                <Box sx={{
-                                  width: 24,
-                                  height: 24,
-                                  borderRadius: '50%',
-                                  bgcolor: '#9333ea',
-                                  color: 'white',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: '0.75rem',
-                                  fontWeight: 600
-                                }}>
-                                  {member.client?.user?.name?.charAt(0).toUpperCase() || 
-                                   member.user?.name?.charAt(0).toUpperCase() || 
-                                   member.name?.charAt(0).toUpperCase() || 
-                                   'U'}
-                                </Box>
-                                <Typography variant="body2">
-                                  {member.client?.user?.name || member.user?.name || member.name || `User #${member.client?.user?.id || member.user_id || member.id}`}
-                                </Typography>
-                              </Stack>
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        startIcon={<Save />}
-                        onClick={handleUpdateVideoAdmin}
-                        disabled={isUpdatingVideoAdmin || !selectedVideoAdminId}
-                        sx={{
-                          bgcolor: '#9333ea',
-                          '&:hover': { bgcolor: '#7e22ce' },
-                          textTransform: 'none',
-                        }}
-                      >
-                        {isUpdatingVideoAdmin ? 'Saving...' : 'Save Meeting Facilitator'}
-                      </Button>
-                      {experience.videoAdminId && (
-                        <Box sx={{ p: 1.5, bgcolor: '#f3e8ff', borderRadius: 1 }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-                            Current Meeting Facilitator
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {(() => {
-                              const currentAdmin = members.find(m => {
-                                const userId = m.client?.user?.id || m.user_id || m.id;
-                                return userId.toString() === experience.videoAdminId?.toString();
-                              });
-                              return currentAdmin?.client?.user?.name || 
-                                     currentAdmin?.user?.name || 
-                                     currentAdmin?.name || 
-                                     `User #${experience.videoAdminId}`;
-                            })()}
-                          </Typography>
-                        </Box>
-                      )}
-                    </Stack>
-                  </CardContent>
-                </Card>
-
-                {/* Experience Link Card */}
-                <Card sx={{ 
-                  borderLeft: '4px solid #10b981',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-                }}>
-                  <CardContent sx={{ p: 2 }}>
-                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                      <LinkIcon sx={{ color: '#10b981' }} />
-                      <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#10b981' }}>
-                        Experience Link
-                      </Typography>
-                    </Stack>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2 }}>
-                      Direct link to access this experience
-                    </Typography>
-                    {experience.link ? (
-                      <Stack spacing={2}>
-                        <Box sx={{ p: 1.5, bgcolor: '#ecfdf5', borderRadius: 1, border: '1px solid #d1fae5' }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>
-                            Meeting URL
-                          </Typography>
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              wordBreak: 'break-all',
-                              fontFamily: 'monospace',
-                              fontSize: '0.8rem',
-                              color: '#065f46'
-                            }}
-                          >
-                            {experience.link}
-                          </Typography>
-                        </Box>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          startIcon={<VideoCall />}
-                          onClick={() => {
-                            // Navigate to client experience page with admin privileges
-                            const clientUrl = `/client/fireteam/experience/${experienceId}?id=${experienceId}&fireteamId=${fireteamId}&link=${encodeURIComponent(experience.link)}&admin=true`;
-                            router.push(clientUrl);
-                          }}
-                          sx={{
-                            bgcolor: '#10b981',
-                            '&:hover': { bgcolor: '#059669' },
-                            textTransform: 'none',
-                          }}
-                        >
-                          Join Meeting as Admin
-                        </Button>
-                      </Stack>
-                    ) : (
-                      <Box sx={{ p: 2, textAlign: 'center', bgcolor: '#f3f4f6', borderRadius: 1 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                          No meeting link available
-                        </Typography>
-                      </Box>
+        {/* Main Content */}
+        <div className="flex-1 overflow-hidden p-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
+            {/* Left Column - 8/12 */}
+            <div className="lg:col-span-8 flex flex-col gap-3 overflow-auto">
+              {/* Experience Content */}
+              <div className="bg-white rounded-md shadow-sm border-l-4 border-blue-900 p-3">
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="text-base font-semibold text-blue-900">Experience Content</h2>
+                  {experience.link && (
+                    <button
+                      onClick={() => {
+                        const clientUrl = `/client/fireteam/experience/${experienceId}?id=${experienceId}&fireteamId=${fireteamId}&link=${encodeURIComponent(experience.link)}&admin=true`;
+                        router.push(clientUrl);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-900 hover:bg-blue-800 text-white rounded-md transition-colors text-xs font-medium"
+                    >
+                      <Video className="w-3.5 h-3.5" />
+                      Join Meeting
+                    </button>
+                  )}
+                </div>
+                <div className="prose prose-sm max-w-none">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{experience.experience}</p>
+                </div>
+                
+                {/* Summary & Report */}
+                {(experience.summary || experience.report) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    {experience.summary && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-md p-2">
+                        <h3 className="text-xs font-semibold text-blue-900 mb-1 uppercase">Summary</h3>
+                        <p className="text-xs text-gray-700">{experience.summary}</p>
+                      </div>
                     )}
-                  </CardContent>
-                </Card>
+                    {experience.report && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-md p-2">
+                        <h3 className="text-xs font-semibold text-orange-900 mb-1 uppercase">Report</h3>
+                        <p className="text-xs text-gray-700">{experience.report}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
-               
-                {/* Metadata Card */}
-                <Card sx={{ 
-                  borderLeft: '4px solid #9333ea',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-                }}>
-                  <CardContent sx={{ p: 2 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: '#9333ea' }}>
-                       Metadata
-                    </Typography>
-                    <Stack spacing={1.5}>
-                      {/* ID Grid */}
-                      <Box sx={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: 1
-                      }}>
-                        <Box sx={{ p: 1, bgcolor: '#e6f2ff', borderRadius: 1 }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                            Experience ID
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#002147' }}>
-                            #{experience.id}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ p: 1, bgcolor: '#e6f2ff', borderRadius: 1 }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                            Fireteam ID
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#002147' }}>
-                            #{experience.fire_team_id || fireteamId}
-                    </Typography>
-                  </Box>
-                      </Box>
+              {/* Learning Objectives */}
+              <div className="bg-white rounded-md shadow-sm border-l-4 border-amber-500 p-3">
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="text-base font-semibold text-amber-600 flex items-center gap-1.5">
+                    <Flag className="w-4 h-4" />
+                    Learning Objectives
+                  </h2>
+                  <button
+                    onClick={() => setShowAddObjectiveDialog(true)}
+                    className="p-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-md transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {objectives && objectives.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {objectives.map((objective, index) => (
+                      <div
+                        key={objective.id || index}
+                        className={`flex items-center justify-between p-2 rounded-md border ${
+                          index % 2 === 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-white text-xs font-bold">
+                            {index + 1}
+                          </span>
+                          <p className="text-xs text-gray-700">{objective.objective}</p>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteObjective(objective.id)}
+                          className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 italic">No learning objectives yet</p>
+                )}
+              </div>
 
-                  <Divider />
+              {/* Agenda & Exhibits */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Agenda */}
+                <div className="bg-white rounded-md shadow-sm border-l-4 border-blue-900 p-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-base font-semibold text-blue-900">Agenda</h2>
+                    <button
+                      onClick={() => setShowAddAgendaDialog(true)}
+                      className="p-1.5 bg-blue-900 hover:bg-blue-800 text-white rounded-md transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  {experience.agenda && experience.agenda.length > 0 ? (
+                    <div className="space-y-1.5">
+                      {experience.agenda.map((step, index) => (
+                        <div
+                          key={step.id || index}
+                          className={`p-2 rounded-md border ${
+                            index % 2 === 0 ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-900 text-white text-xs font-bold">
+                              {index + 1}
+                            </span>
+                            <p className="text-xs font-semibold text-gray-900 flex-1">{step.title}</p>
+                            <div className="flex items-center gap-1 text-gray-500">
+                              <Clock className="w-3 h-3" />
+                              <span className="text-xs">{step.duration}</span>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteAgendaStep(step.id)}
+                              className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                              title="Delete agenda step"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500 italic">No agenda steps yet</p>
+                  )}
+                </div>
 
-                      {/* User Info */}
-                      {experience.added_by && (
-                        <Box sx={{ p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                            Added By
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            User #{experience.added_by}
-                          </Typography>
-                        </Box>
-                      )}
+                {/* Exhibits */}
+                <div className="bg-white rounded-md shadow-sm border-l-4 border-orange-500 p-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-base font-semibold text-orange-600">Exhibits</h2>
+                    <button
+                      onClick={() => setShowAddExhibitDialog(true)}
+                      className="p-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  {experience.exhibits && experience.exhibits.length > 0 ? (
+                    <div className="space-y-1.5">
+                      {experience.exhibits.map((exhibit, index) => (
+                        <div
+                          key={exhibit.id || index}
+                          className={`p-2 rounded-md border ${
+                            index % 2 === 0 ? 'bg-orange-50 border-orange-200' : 'bg-white border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="text-orange-600">
+                              {getExhibitIcon(exhibit.type)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-gray-900">{exhibit.name}</p>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                                  {exhibit.type}
+                                </span>
+                                {exhibit.type === 'link' && exhibit.link && (
+                                  <a
+                                    href={exhibit.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 hover:underline"
+                                  >
+                                    Open →
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteExhibit(exhibit.id)}
+                              className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                              title="Delete exhibit"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500 italic">No exhibits yet</p>
+                  )}
+                </div>
+              </div>
+            </div>
 
-                      {experience.admin && (
-                        <Box sx={{ p: 1, bgcolor: '#fff5f0', borderRadius: 1 }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                             Admin
-                    </Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {typeof experience.admin === 'object' 
-                              ? (experience.admin.name || experience.admin.email || 'Admin')
-                              : experience.admin}
-                    </Typography>
-                  </Box>
-                      )}
+            {/* Right Column - 4/12 */}
+            <div className="lg:col-span-4 flex flex-col gap-3 overflow-auto">
+              {/* Meeting Facilitator */}
+              <div className="bg-white rounded-md shadow-sm border-l-4 border-purple-600 p-3">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <User className="w-4 h-4 text-purple-600" />
+                  <h2 className="text-base font-semibold text-purple-600">Meeting Facilitator</h2>
+                </div>
+                <select
+                  value={selectedVideoAdminId}
+                  onChange={(e) => setSelectedVideoAdminId(e.target.value)}
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-2 text-xs"
+                >
+                  <option value="">None</option>
+                  {members.map((member) => (
+                    <option 
+                      key={member.id} 
+                      value={member.client?.user?.id || member.user_id || member.id}
+                    >
+                      {member.client?.user?.name || member.user?.name || member.name || `User #${member.client?.user?.id || member.user_id || member.id}`}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleUpdateVideoAdmin}
+                  disabled={isUpdatingVideoAdmin || !selectedVideoAdminId}
+                  className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-md transition-colors text-xs font-medium"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  {isUpdatingVideoAdmin ? 'Saving...' : 'Save'}
+                </button>
+              </div>
 
-                  <Divider />
-
-                      {/* Timestamps */}
-                  <Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                          <Typography variant="caption" color="text.secondary">
-                            Created
-                          </Typography>
-                          <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                            {experience.created_at 
-                              ? new Date(experience.created_at).toLocaleDateString('en-US', { 
-                                  month: 'short', 
-                                  day: 'numeric',
-                                  year: 'numeric'
-                                })
-                              : 'N/A'}
-                          </Typography>
-                        </Box>
-                        {experience.updated_at && (
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" color="text.secondary">
-                              Updated
-                    </Typography>
-                            <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                              {new Date(experience.updated_at).toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric',
-                                year: 'numeric'
-                              })}
-                    </Typography>
-                          </Box>
+              {/* Meeting Link */}
+              <div className="bg-white rounded-md shadow-sm border-l-4 border-green-600 p-3">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <LinkIcon className="w-4 h-4 text-green-600" />
+                  <h2 className="text-base font-semibold text-green-600">Meeting Link</h2>
+                </div>
+                
+                {/* Current Link */}
+                {experience.link && (
+                  <div className="mb-2">
+                    <p className="text-xs text-gray-500 mb-1">Current Link:</p>
+                    <div className="flex gap-2">
+                      <div className="flex-1 p-2 bg-green-50 border border-green-200 rounded-md">
+                        <p className="text-xs font-mono text-green-800 break-all">
+                          {experience.link}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleCopyLink(experience.link)}
+                        className="flex items-center justify-center px-2 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
+                        title="Copy link"
+                      >
+                        {copiedLink ? (
+                          <Check className="w-3.5 h-3.5" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
                         )}
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-              </Stack>
-            </Grid>
-          </Grid>
-        </Box>
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Generated Link (if any) */}
+                {generatedLink && (
+                  <div className="mb-2">
+                    <p className="text-xs text-gray-500 mb-1">New Generated Link:</p>
+                    <div className="flex gap-2">
+                      <div className="flex-1 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                        <p className="text-xs font-mono text-blue-800 break-all">
+                          {generatedLink}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleCopyLink(generatedLink)}
+                        className="flex items-center justify-center px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                        title="Copy link"
+                      >
+                        {copiedLink ? (
+                          <Check className="w-3.5 h-3.5" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Action Buttons */}
+                <div className="space-y-2">
+                  <button
+                    onClick={handleGenerateLink}
+                    className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors text-xs font-medium"
+                  >
+                    <LinkIcon className="w-3.5 h-3.5" />
+                    Generate New Link
+                  </button>
+                  
+                  {generatedLink && (
+                    <button
+                      onClick={handleSaveLink}
+                      disabled={isSavingLink}
+                      className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-md transition-colors text-xs font-medium"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      {isSavingLink ? 'Saving...' : 'Save Link'}
+                    </button>
+                  )}
+                </div>
+                
+                {!experience.link && !generatedLink && (
+                  <p className="text-xs text-gray-500 italic mt-2">No meeting link yet. Click "Generate New Link" to create one.</p>
+                )}
+              </div>
+
+              {/* Metadata */}
+              <div className="bg-white rounded-md shadow-sm border-l-4 border-gray-400 p-3">
+                <h2 className="text-base font-semibold text-gray-700 mb-2">Metadata</h2>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <div className="p-2 bg-gray-50 rounded-md">
+                    <p className="text-xs text-gray-500 mb-0.5">Experience ID</p>
+                    <p className="text-xs font-bold text-gray-900">#{experience.id}</p>
+                  </div>
+                  <div className="p-2 bg-gray-50 rounded-md">
+                    <p className="text-xs text-gray-500 mb-0.5">Team ID</p>
+                    <p className="text-xs font-bold text-gray-900">#{experience.fire_team_id || fireteamId}</p>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  {experience.created_at && (
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-500">Created</span>
+                      <span className="font-semibold text-gray-900">
+                        {new Date(experience.created_at).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  {experience.updated_at && (
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-500">Updated</span>
+                      <span className="font-semibold text-gray-900">
+                        {new Date(experience.updated_at).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Edit Modal */}
         <EditExperienceModal
@@ -1008,7 +1015,6 @@ export default function ExperienceDetailPage() {
               return;
             }
             try {
-              // Prepare agenda data - filter out items without required fields
               const agendaData = editExperienceData.agenda
                 .filter(step => step.title?.trim())
                 .map(step => ({
@@ -1017,7 +1023,6 @@ export default function ExperienceDetailPage() {
                   duration: step.duration || '5 minutes',
                 }));
 
-              // Prepare exhibits data - filter out items without required fields
               const exhibitsData = editExperienceData.exhibits
                 .filter(ex => ex.name?.trim())
                 .map(ex => ({
@@ -1027,20 +1032,25 @@ export default function ExperienceDetailPage() {
                   link: ex.type === 'link' ? ex.link : undefined,
                 }));
 
-              await experienceService.updateExperience(experience.id, {
+              // Prepare update payload according to API spec
+              const updatePayload = {
                 title: editExperienceData.title,
                 experience: editExperienceData.experience,
-                // Send field names for meeting facilitator (NOT system admin/creator)
-                // added_by should NOT be sent - that tracks the system admin who created it
-                videoAdminId: editExperienceData.videoAdminId,
-                admin: editExperienceData.videoAdminId,
-                video_admin_id: editExperienceData.videoAdminId,
-                link: editExperienceData.link,
+                link: editExperienceData.link || experience.link, // Preserve the meeting link
+                status: experience.status, // Preserve status
+                report: experience.report, // Preserve report
+                summary: experience.summary, // Preserve summary
+                admin: editExperienceData.videoAdminId ? parseInt(editExperienceData.videoAdminId) : undefined, // Meeting facilitator
                 agenda: agendaData,
                 exhibits: exhibitsData,
-              });
+              };
+
+              console.log('💾 [SAVE] Saving experience with payload:', updatePayload);
+              console.log('💾 [SAVE] Meeting link being saved:', updatePayload.link);
+              console.log('💾 [SAVE] Meeting facilitator (admin):', updatePayload.admin);
+
+              await experienceService.updateExperience(experience.id, updatePayload);
               
-              // Handle exhibits that were deleted (not in the new list)
               const currentExhibitIds = experience.exhibits?.map(ex => ex.id).filter(Boolean) || [];
               const updatedExhibitIds = exhibitsData.map(ex => ex.id).filter(Boolean);
               
@@ -1054,7 +1064,6 @@ export default function ExperienceDetailPage() {
                 }
               }
               
-              // Handle agenda steps that were deleted (not in the new list)
               const currentAgendaIds = experience.agenda?.map(step => step.id).filter(Boolean) || [];
               const updatedAgendaIds = agendaData.map(step => step.id).filter(Boolean);
               
@@ -1086,152 +1095,194 @@ export default function ExperienceDetailPage() {
           experienceService={experienceService}
         />
 
-        {/* Add Agenda Step Dialog */}
-        <Dialog 
-          open={showAddAgendaDialog} 
-          onClose={() => {
-            setShowAddAgendaDialog(false);
-            setNewAgendaStep({ title: '', duration: '' });
-          }}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle sx={{ bgcolor: '#002147', color: 'white', fontWeight: 700 }}>
-            Add Agenda Step
-          </DialogTitle>
-          <DialogContent sx={{ mt: 2 }}>
-            <Stack spacing={2}>
-              <TextField
-                label="Step Title"
-                fullWidth
-                required
-                value={newAgendaStep.title}
-                onChange={(e) => setNewAgendaStep(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="e.g., Introduction & Icebreaker"
-                sx={{ mt: 1 }}
-              />
-              <TextField
-                label="Duration"
-                fullWidth
-                value={newAgendaStep.duration}
-                onChange={(e) => setNewAgendaStep(prev => ({ ...prev, duration: e.target.value }))}
-                placeholder="e.g., 10 minutes"
-                helperText="Optional - specify the estimated duration"
-              />
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
-            <Button 
-              onClick={() => {
-                setShowAddAgendaDialog(false);
-                setNewAgendaStep({ title: '', duration: '' });
-              }}
-              sx={{ color: 'text.secondary' }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSubmitAgendaStep}
-              variant="contained"
-              sx={{ 
-                bgcolor: '#002147',
-                '&:hover': { bgcolor: '#003366' }
-              }}
-            >
-              Add Step
-            </Button>
-          </DialogActions>
-        </Dialog>
+        {/* Add Agenda Step Modal */}
+        {showAddAgendaDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="bg-blue-900 text-white px-4 py-3 rounded-t-lg">
+                <h3 className="text-base font-semibold">Add Agenda Step</h3>
+              </div>
+              <div className="p-4 space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Step Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newAgendaStep.title}
+                    onChange={(e) => setNewAgendaStep(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="e.g., Introduction & Icebreaker"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Duration
+                  </label>
+                  <input
+                    type="text"
+                    value={newAgendaStep.duration}
+                    onChange={(e) => setNewAgendaStep(prev => ({ ...prev, duration: e.target.value }))}
+                    placeholder="e.g., 10 minutes"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs"
+                  />
+                  <p className="text-xs text-gray-500 mt-0.5">Optional - specify the estimated duration</p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 px-4 py-3 bg-gray-50 rounded-b-lg">
+                <button
+                  onClick={() => {
+                    setShowAddAgendaDialog(false);
+                    setNewAgendaStep({ title: '', duration: '' });
+                  }}
+                  className="px-3 py-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitAgendaStep}
+                  className="px-3 py-1.5 bg-blue-900 hover:bg-blue-800 text-white rounded-md transition-colors font-medium text-xs"
+                >
+                  Add Step
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-        {/* Add Exhibit Dialog */}
-        <Dialog 
-          open={showAddExhibitDialog} 
-          onClose={() => {
-            setShowAddExhibitDialog(false);
-            setNewExhibit({ name: '', type: 'link', link: '' });
-          }}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle sx={{ bgcolor: '#ff5e1a', color: 'white', fontWeight: 700 }}>
-            Add Exhibit
-          </DialogTitle>
-          <DialogContent sx={{ mt: 2 }}>
-            <Stack spacing={2}>
-              <TextField
-                label="Exhibit Name"
-                fullWidth
-                required
-                value={newExhibit.name}
-                onChange={(e) => setNewExhibit(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., Leadership Framework"
-                sx={{ mt: 1 }}
-              />
-              <TextField
-                label="Type"
-                fullWidth
-                required
-                select
-                value={newExhibit.type}
-                onChange={(e) => setNewExhibit(prev => ({ ...prev, type: e.target.value }))}
-                SelectProps={{
-                  native: true,
-                }}
-              >
-                <option value="link">Link</option>
-                <option value="image">Image</option>
-                <option value="video">Video</option>
-                <option value="document">Document</option>
-              </TextField>
-              {newExhibit.type === 'link' && (
-                <TextField
-                  label="Link URL"
-                  fullWidth
-                  required
-                  value={newExhibit.link}
-                  onChange={(e) => setNewExhibit(prev => ({ ...prev, link: e.target.value }))}
-                  placeholder="https://example.com"
-                  helperText="Enter the full URL including https://"
+        {/* Add Exhibit Modal */}
+        {showAddExhibitDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="bg-orange-500 text-white px-4 py-3 rounded-t-lg">
+                <h3 className="text-base font-semibold">Add Exhibit</h3>
+              </div>
+              <div className="p-4 space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Exhibit Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newExhibit.name}
+                    onChange={(e) => setNewExhibit(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., Leadership Framework"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={newExhibit.type}
+                    onChange={(e) => setNewExhibit(prev => ({ ...prev, type: e.target.value }))}
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent text-xs"
+                  >
+                    <option value="link">Link</option>
+                    <option value="image">Image</option>
+                    <option value="video">Video</option>
+                    <option value="document">Document</option>
+                  </select>
+                </div>
+                {newExhibit.type === 'link' && (
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Link URL <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newExhibit.link}
+                      onChange={(e) => setNewExhibit(prev => ({ ...prev, link: e.target.value }))}
+                      placeholder="https://example.com"
+                      className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent text-xs"
+                    />
+                    <p className="text-xs text-gray-500 mt-0.5">Enter the full URL including https://</p>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-end gap-2 px-4 py-3 bg-gray-50 rounded-b-lg">
+                <button
+                  onClick={() => {
+                    setShowAddExhibitDialog(false);
+                    setNewExhibit({ name: '', type: 'link', link: '' });
+                  }}
+                  className="px-3 py-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitExhibit}
+                  className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors font-medium text-xs"
+                >
+                  Add Exhibit
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Objective Modal */}
+        {showAddObjectiveDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="bg-amber-500 text-white px-4 py-3 rounded-t-lg">
+                <h3 className="text-base font-semibold">Add Learning Objective</h3>
+              </div>
+              <div className="p-4">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Objective <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={newObjective.objective}
+                  onChange={(e) => setNewObjective({ objective: e.target.value })}
+                  placeholder="e.g., Understand the key principles of effective leadership"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent text-xs"
                 />
-              )}
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
-            <Button 
-              onClick={() => {
-                setShowAddExhibitDialog(false);
-                setNewExhibit({ name: '', type: 'link', link: '' });
-              }}
-              sx={{ color: 'text.secondary' }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSubmitExhibit}
-              variant="contained"
-              sx={{ 
-                bgcolor: '#ff5e1a',
-                '&:hover': { bgcolor: '#e04d0a' }
-              }}
-            >
-              Add Exhibit
-            </Button>
-          </DialogActions>
-        </Dialog>
+                <p className="text-xs text-gray-500 mt-0.5">Describe what participants should learn or achieve</p>
+              </div>
+              <div className="flex justify-end gap-2 px-4 py-3 bg-gray-50 rounded-b-lg">
+                <button
+                  onClick={() => {
+                    setShowAddObjectiveDialog(false);
+                    setNewObjective({ objective: '' });
+                  }}
+                  className="px-3 py-1.5 text-gray-700 hover:bg-gray-100 rounded-md transition-colors text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddObjective}
+                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-md transition-colors font-medium text-xs"
+                >
+                  Add Objective
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-        {/* Success/Error Snackbars */}
-        <Snackbar open={!!success} autoHideDuration={3000} onClose={() => setSuccess("")}>
-          <Alert onClose={() => setSuccess("")} severity="success" sx={{ width: '100%' }}>
-            {success}
-          </Alert>
-        </Snackbar>
-        <Snackbar open={!!error} autoHideDuration={3000} onClose={() => setError("")}>
-          <Alert onClose={() => setError("")} severity="error" sx={{ width: '100%' }}>
-            {error}
-          </Alert>
-        </Snackbar>
+        {/* Success/Error Toast Notifications */}
+        {success && (
+          <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50 animate-slide-up">
+            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+            <span className="text-sm">{success}</span>
+            <button onClick={() => setSuccess("")} className="ml-1">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+        {error && (
+          <div className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50 animate-slide-up">
+            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+            <span className="text-sm">{error}</span>
+            <button onClick={() => setError("")} className="ml-1">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
 }
-

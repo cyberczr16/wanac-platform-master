@@ -1,26 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Sidebar from "../../../../components/dashboardcomponents/sidebar";
 import ClientTopbar from "../../../../components/dashboardcomponents/clienttopbar";
 import {
-  FaBold,
-  FaItalic,
-  FaUnderline,
-  FaListUl,
-  FaListOl,
-  FaLink,
-  FaMinus,
+  FaSearch,
+  FaCalendarAlt,
+  FaEdit,
+  FaTrash,
+  FaDownload,
+  FaTh,
+  FaList,
+  FaBook,
+  FaSave,
 } from "react-icons/fa";
-import { Tooltip } from "react-tooltip";
 import { journalService } from "../../../services/api/journal.service";
 
 const tabs = [
-  { key: "morning", label: " Morning Mindset" },
-  { key: "evening", label: " Evening Review" },
-  { key: "growth", label: " Growth Prompts" },
-  { key: "weekly", label: " Weekly Review" },
-  { key: "monthly", label: " Monthly Review" },
+  { key: "morning", label: "Morning Mindset" },
+  { key: "evening", label: "Evening Review" },
+  { key: "growth", label: "Growth Prompts" },
+  { key: "weekly", label: "Weekly Review" },
+  { key: "monthly", label: "Monthly Review" },
 ];
 
 export default function JournalUI() {
@@ -29,197 +30,394 @@ export default function JournalUI() {
   const [search, setSearch] = useState("");
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState(null);
-  const [showReflectionModal, setShowReflectionModal] = useState(false);
-  const [reflectionDraft, setReflectionDraft] = useState("");
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [viewMode, setViewMode] = useState("list"); // 'list' or 'card'
+  const [editingEntry, setEditingEntry] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [wordCount, setWordCount] = useState(0);
 
-  const handleOpenReflection = () => {
-    setReflectionDraft("");
-    setShowReflectionModal(true);
-  };
-  const handleCloseReflection = () => {
-    setShowReflectionModal(false);
-  };
-  const handleSubmitReflection = () => {
-    setEntry(reflectionDraft);
-    setShowReflectionModal(false);
-  };
+  // Calculate word count
+  useEffect(() => {
+    const words = entry.trim().split(/\s+/).filter(w => w.length > 0);
+    setWordCount(words.length);
+  }, [entry]);
 
   // Fetch journals on tab change
-  useEffect(() => {
+  const fetchEntries = useCallback(async () => {
     setLoading(true);
     setError("");
-    journalService.getJournals()
-      .then((data) => {
-        // Filter by tab label (title)
+    try {
+      const data = await journalService.getJournals();
         const tabLabel = tabs.find((t) => t.key === selectedTab)?.label;
-        setEntries(data.filter((j) => j.title === tabLabel));
-      })
-      .catch(() => setError("Failed to load journal entries."))
-      .finally(() => setLoading(false));
+      const filtered = data.filter((j) => j.title === tabLabel);
+      setEntries(filtered);
+    } catch {
+      setError("Failed to load journal entries.");
+    } finally {
+      setLoading(false);
+    }
   }, [selectedTab]);
+
+  useEffect(() => {
+    fetchEntries();
+  }, [selectedTab, fetchEntries]);
 
   // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
     try {
       const tabLabel = tabs.find((t) => t.key === selectedTab)?.label;
+      if (editingEntry) {
+        // Update existing entry
+        await journalService.updateJournal(editingEntry.id, { title: tabLabel, content: entry });
+        setSuccess("Entry updated successfully!");
+        setEditingEntry(null);
+      } else {
+        // Create new entry
       await journalService.addJournal({ title: tabLabel, content: entry });
+        setSuccess("Entry saved successfully!");
+      }
       setEntry("");
-      // Refresh entries
-      const data = await journalService.getJournals();
-      setEntries(data.filter((j) => j.title === tabLabel));
+      setWordCount(0);
+      await fetchEntries();
+      setTimeout(() => setSuccess(""), 3000);
     } catch {
-      setError("Failed to submit journal entry.");
+      setError(editingEntry ? "Failed to update entry." : "Failed to save entry.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Edit entry
+  const handleEdit = (entryToEdit) => {
+    setEntry(entryToEdit.content);
+    setEditingEntry(entryToEdit);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Cancel edit
+  const handleCancelEdit = () => {
+    setEntry("");
+    setEditingEntry(null);
+    setWordCount(0);
+  };
+
+  // Delete entry
+  const handleDelete = async (entryId) => {
+    try {
+      await journalService.deleteJournal(entryId);
+      setSuccess("Entry deleted successfully!");
+      setShowDeleteConfirm(null);
+      await fetchEntries();
+      setTimeout(() => setSuccess(""), 3000);
+    } catch {
+      setError("Failed to delete entry.");
+    }
+  };
+
+  // Export entries
+  const handleExport = () => {
+    const tabLabel = tabs.find((t) => t.key === selectedTab)?.label;
+    const exportData = entries.map(e => ({
+      title: e.title,
+      content: e.content,
+      date: new Date(e.created_at).toLocaleString()
+    }));
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const exportFileDefaultName = `journal-${selectedTab}-${new Date().toISOString().split('T')[0]}.json`;
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  // Group entries by date
+  const groupedEntries = entries.reduce((acc, entry) => {
+    const date = new Date(entry.created_at).toLocaleDateString();
+    if (!acc[date]) acc[date] = [];
+    acc[date].push(entry);
+    return acc;
+  }, {});
+
+  // Filter entries by search
+  const filteredGroupedEntries = Object.entries(groupedEntries).reduce((acc, [date, dateEntries]) => {
+    const filtered = dateEntries.filter(j =>
+      search.trim() ? j.content?.toLowerCase().includes(search.toLowerCase()) : true
+    );
+    if (filtered.length > 0) acc[date] = filtered;
+    return acc;
+  }, {});
+
   return (
-    <div className="h-screen flex bg-gray-50 font-serif">
+    <div className="h-screen flex bg-white font-body">
       <Sidebar className="w-56 bg-white border-r border-gray-200" collapsed={collapsed} setCollapsed={setCollapsed} />
       <div className="flex-1 flex flex-col h-full transition-all duration-300">
         <ClientTopbar user={user} />
-        <main className="flex-1 h-0 overflow-y-auto px-4 md:px-12 py-8 bg-gray-50">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col lg:flex-row gap-8">
-              <div className="flex-1 space-y-10">
-                <h1 className="text-2xl md:text-3xl font-bold text-primary mb-4 tracking-tight">Journal</h1>
-                <div className="flex flex-wrap gap-2 mb-4">
+        <main className="flex-1 h-0 overflow-y-auto px-4 md:px-6 py-3 bg-gray-50">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1 space-y-3">
+                {/* Header Section */}
+                <section className="bg-gradient-to-br from-[#002147] to-[#003875] rounded-xl p-4 shadow-lg relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-10">
+                    <img 
+                      src="/veterancommunity.png" 
+                      alt="Background" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="relative z-10 flex items-center justify-between">
+                    <div>
+                      <h1 className="text-xl font-bold text-white mb-1">Journal</h1>
+                      <p className="text-white/90 text-xs">Reflect, grow, and track your journey</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setViewMode(viewMode === "list" ? "card" : "list")}
+                        className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 transition-colors text-white text-sm"
+                        title={`Switch to ${viewMode === "list" ? "card" : "list"} view`}
+                      >
+                        {viewMode === "list" ? <FaTh /> : <FaList />}
+                      </button>
+                      {entries.length > 0 && (
+                        <button
+                          onClick={handleExport}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 transition-colors text-xs font-medium text-white"
+                        >
+                          <FaDownload size={10} />
+                          Export
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Success/Error Messages */}
+                {success && (
+                  <div className="p-2 bg-green-50 border border-green-200 rounded-lg text-green-700 flex items-center gap-2 text-xs">
+                    <span>✓</span>
+                    {success}
+                  </div>
+                )}
+                {error && (
+                  <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center gap-2 text-xs">
+                    <span>⚠</span>
+                    {error}
+                  </div>
+                )}
+
+                {/* Tabs */}
+                <div className="flex flex-wrap gap-2">
                   {tabs.map((tab) => (
                     <button
                       key={tab.key}
-                      onClick={() => setSelectedTab(tab.key)}
-                      className={`relative px-4 py-1.5 text-sm rounded-full border transition-all font-medium flex items-center gap-2
-                        ${selectedTab === tab.key
-                          ? "bg-white border-primary-500 text-primary-600 shadow-sm"
-                          : "bg-gray-100 text-gray-600 border-transparent hover:bg-white hover:text-primary-500"}
-                      `}
-                      style={{
-                        borderBottom: selectedTab === tab.key ? "3px solid #3b82f6" : "none",
+                      onClick={() => {
+                        setSelectedTab(tab.key);
+                        setEntry("");
+                        setEditingEntry(null);
                       }}
+                      className={`px-3 py-1.5 rounded-lg border-2 transition-all font-semibold text-[11px]
+                        ${selectedTab === tab.key
+                          ? "bg-[#002147] text-white border-[#002147] shadow-sm"
+                          : "bg-white text-gray-700 border-gray-300 hover:border-orange-500"}
+                      `}
                     >
-                      {tab.key === "morning" && <span className="text-lg"></span>}
-                      {tab.key === "evening" && <span className="text-lg"></span>}
-                      {tab.key === "growth" && <span className="text-lg"></span>}
-                      {tab.key === "weekly" && <span className="text-lg"></span>}
-                      {tab.key === "monthly" && <span className="text-lg"></span>}
                       {tab.label}
                     </button>
                   ))}
                 </div>
                 {/* Entry Form Section */}
-                <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-none">
+                <section className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow">
+                  {editingEntry && (
+                    <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-[10px]">
+                        <FaEdit size={10} />
+                        Editing entry from {new Date(editingEntry.created_at).toLocaleString()}
+                      </span>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="text-blue-600 hover:text-blue-800 underline text-[10px] font-medium"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
                   <form onSubmit={handleSubmit}>
+                    <div className="relative">
                     <textarea
                       value={entry}
                       onChange={(e) => setEntry(e.target.value)}
-                      placeholder="Write your thoughts..."
-                      className="w-full p-4 min-h-[120px] resize-none border-b border-gray-100 focus:outline-none rounded-t-lg"
+                        placeholder={`What's on your mind for ${tabs.find(t => t.key === selectedTab)?.label}?`}
+                        className="w-full p-3 min-h-[100px] resize-none border-2 border-gray-300 focus:border-[#002147] focus:ring-2 focus:ring-[#002147]/20 focus:outline-none rounded-lg text-gray-900 leading-relaxed text-sm"
                     ></textarea>
-                    {/* Formatting Bar */}
-                    <div className="flex items-center gap-3 px-4 py-2 text-gray-500 text-sm border-b border-gray-100">
-                      <span className="hover:text-primary-500 cursor-pointer" data-tooltip-id="bold-tip"><FaBold /></span>
-                      <Tooltip id="bold-tip" content="Bold" />
-                      <span className="hover:text-primary-500 cursor-pointer" data-tooltip-id="italic-tip"><FaItalic /></span>
-                      <Tooltip id="italic-tip" content="Italic" />
-                      <span className="hover:text-primary-500 cursor-pointer" data-tooltip-id="underline-tip"><FaUnderline /></span>
-                      <Tooltip id="underline-tip" content="Underline" />
-                      <span className="hover:text-primary-500 cursor-pointer" data-tooltip-id="ul-tip"><FaListUl /></span>
-                      <Tooltip id="ul-tip" content="Bullet List" />
-                      <span className="hover:text-primary-500 cursor-pointer" data-tooltip-id="ol-tip"><FaListOl /></span>
-                      <Tooltip id="ol-tip" content="Numbered List" />
-                      <span className="hover:text-primary-500 cursor-pointer" data-tooltip-id="link-tip"><FaLink /></span>
-                      <Tooltip id="link-tip" content="Insert Link" />
-                      <span className="hover:text-primary-500 cursor-pointer" data-tooltip-id="minus-tip"><FaMinus /></span>
-                      <Tooltip id="minus-tip" content="Divider" />
+                      <div className="absolute bottom-2 right-2 text-[10px] text-gray-400 bg-white px-1.5 py-0.5 rounded">
+                        {wordCount} {wordCount === 1 ? 'word' : 'words'}
+                      </div>
                     </div>
-                    {/* Upload */}
-                    <div className="px-4 py-3 text-sm text-gray-500 border-b border-gray-100 flex items-center gap-2">
-                      <label className="underline cursor-pointer hover:text-primary-500 transition-colors">
-                        Drop your image here, or <span className="font-semibold">Browse</span>
-                        <input type="file" accept="image/*" className="hidden" />
-                      </label>
+                    
+                    {/* Action Bar */}
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="text-[10px] text-gray-600 flex items-center gap-1.5">
+                        <FaCalendarAlt className="text-orange-500" size={10} />
+                        <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                     </div>
-                    {/* Submit Button */}
-                    <div className="px-4 py-3 flex justify-end">
+                      <div className="flex gap-2">
+                        {editingEntry && (
+                          <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className="px-3 py-1.5 text-[11px] rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 transition-all font-semibold"
+                          >
+                            Cancel
+                          </button>
+                        )}
                       <button
                         type="submit"
                         disabled={!entry.trim() || loading}
-                        className={`px-4 py-1.5 text-sm rounded-md transition-all duration-150 font-medium
+                          className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] rounded-lg transition-all font-semibold shadow-sm
                           ${entry.trim() && !loading
-                            ? "bg-orange-500 text-white hover:bg-primary/90 cursor-pointer shadow"
-                            : "bg-accent text-white opacity-60 cursor-not-allowed"}
+                              ? "bg-orange-500 text-white hover:bg-orange-600 hover:shadow-md"
+                              : "bg-gray-300 text-gray-500 cursor-not-allowed"}
                         `}
                       >
-                        {loading ? "Submitting..." : entry.trim() ? "Submit" : "Write something to submit"}
+                          <FaSave size={10} />
+                          {loading ? "Saving..." : editingEntry ? "Update" : "Save"}
                       </button>
+                      </div>
                     </div>
-                    {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
                   </form>
                 </section>
                 {/* Activity Section */}
-                <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-none">
-                  <h2 className="text-xl font-bold mb-4 text-primary">Activity</h2>
+                <section className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-semibold text-[#002147] flex items-center gap-1.5">
+                      <FaBook className="text-orange-500" size={12} />
+                      Past Entries
+                      {entries.length > 0 && (
+                        <span className="text-[10px] font-normal text-gray-500">({entries.length})</span>
+                      )}
+                    </h2>
+                  </div>
+
                   {/* Search bar */}
-                  <div className="flex items-center mb-4 gap-2">
+                  <div className="mb-3">
+                    <div className="relative">
+                      <FaSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={10} />
                     <input
                       type="text"
-                      placeholder="Search"
+                        placeholder="Search your entries..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm"
-                    />
-                    <select className="text-sm border border-gray-300 rounded-md px-2 py-1">
-                      <option>All</option>
-                      <option>Mindset</option>
-                      <option>Review</option>
-                    </select>
+                        className="w-full border-2 border-gray-300 rounded-lg pl-8 pr-3 py-1.5 text-[11px] focus:border-[#002147] focus:ring-2 focus:ring-[#002147]/20 focus:outline-none"
+                      />
+                    </div>
                   </div>
+
                   {/* Entries List */}
                   {loading ? (
-                    <div className="text-center text-gray-400 py-8">Loading...</div>
-                  ) : entries.length > 0 ? (
-                    <ul className="space-y-4">
-                      {entries
-                        .filter((j) =>
-                          search.trim() ? j.content?.toLowerCase().includes(search.toLowerCase()) : true
-                        )
-                        .map((j) => (
-                          <li key={j.id} className="border-b pb-2">
-                            <div className="font-semibold text-gray-700">{j.title}</div>
-                            <div className="text-gray-600 text-sm whitespace-pre-line">{j.content}</div>
-                            <div className="text-xs text-gray-400 mt-1">{j.created_at ? new Date(j.created_at).toLocaleString() : ""}</div>
-                          </li>
-                        ))}
-                    </ul>
-                  ) : (
-                    <div className="text-center text-gray-400 border border-dashed border-gray-300 rounded-xl py-12 px-6 bg-gray-50">
-                      <div className="flex justify-center mb-4">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="w-16 h-16 text-gray-200"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M3 3h18v18H3V3zm2 2v14h14V5H5z" />
-                        </svg>
+                    <div className="text-center text-gray-400 py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#002147] mx-auto mb-2"></div>
+                      <p className="text-[10px]">Loading entries...</p>
+                    </div>
+                  ) : Object.keys(filteredGroupedEntries).length > 0 ? (
+                    <div className="space-y-3">
+                      {Object.entries(filteredGroupedEntries).map(([date, dateEntries]) => (
+                        <div key={date}>
+                          <h3 className="text-[10px] font-semibold text-gray-600 mb-2 flex items-center gap-1.5">
+                            <FaCalendarAlt className="text-orange-500" size={10} />
+                            {date}
+                          </h3>
+                          {viewMode === "list" ? (
+                            <div className="space-y-2">
+                              {dateEntries.map((j) => (
+                                <div key={j.id} className="border-l-3 border-[#002147] pl-3 py-2 bg-blue-50/50 rounded-lg hover:bg-blue-50 transition-all group">
+                                  <div className="flex justify-between items-start gap-3">
+                                    <div className="flex-1">
+                                      <div className="text-gray-900 text-[11px] whitespace-pre-line leading-relaxed mb-1.5">
+                                        {j.content?.length > 150 ? j.content.substring(0, 150) + '...' : j.content}
+                                      </div>
+                                      <div className="text-[9px] text-gray-500 font-medium">
+                                        {j.created_at ? new Date(j.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={() => handleEdit(j)}
+                                        className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                                        title="Edit"
+                                      >
+                                        <FaEdit size={10} />
+                                      </button>
+                                      <button
+                                        onClick={() => setShowDeleteConfirm(j.id)}
+                                        className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
+                                        title="Delete"
+                                      >
+                                        <FaTrash size={10} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {dateEntries.map((j) => (
+                                <div key={j.id} className="border border-gray-200 rounded-lg p-2.5 hover:shadow-md transition-all group bg-white">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <div className="text-[9px] text-gray-500 font-medium">
+                                      {j.created_at ? new Date(j.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                                    </div>
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={() => handleEdit(j)}
+                                        className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                                        title="Edit"
+                                      >
+                                        <FaEdit size={9} />
+                                      </button>
+                                      <button
+                                        onClick={() => setShowDeleteConfirm(j.id)}
+                                        className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
+                                        title="Delete"
+                                      >
+                                        <FaTrash size={9} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div className="text-gray-900 text-[11px] whitespace-pre-line leading-relaxed">
+                                    {j.content?.length > 100 ? j.content.substring(0, 100) + '...' : j.content}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : entries.length === 0 ? (
+                    <div className="text-center border-2 border-dashed border-gray-300 rounded-xl py-8 px-4 bg-gray-50">
+                      <div className="flex justify-center mb-3">
+                        <div className="p-3 bg-gray-200 rounded-full">
+                          <FaBook className="w-6 h-6 text-gray-400" />
+                        </div>
                       </div>
-                      <p className="font-semibold text-gray-500 text-lg">Ready to reflect?</p>
-                      <p className="text-sm mt-1 text-gray-400">
-                        Fill this space with your private observations, thoughts, and dreams.
+                      <p className="font-semibold text-gray-700 text-sm mb-1">Start Your Journey</p>
+                      <p className="text-[10px] text-gray-500">
+                        Begin documenting your thoughts and experiences.
                       </p>
-                      <button
-                        className="mt-6 px-5 py-2 bg-accent text-white rounded-full shadow hover:bg-primary transition-all"
-                        onClick={handleOpenReflection}
-                      >
-                        Start your first entry
-                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-400 py-6">
+                      <FaSearch className="w-6 h-6 text-gray-300 mx-auto mb-2" />
+                      <p className="text-gray-600 text-[10px]">No entries match your search.</p>
                     </div>
                   )}
                 </section>
@@ -228,38 +426,32 @@ export default function JournalUI() {
           </div>
         </main>
       </div>
-      {/* Reflection Modal */}
-      {showReflectionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg relative">
-            <button
-              onClick={handleCloseReflection}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
-              aria-label="Close"
-            >
-              ×
-            </button>
-            <h2 className="text-xl font-bold mb-4 text-primary">New Reflection</h2>
-            <textarea
-              value={reflectionDraft}
-              onChange={e => setReflectionDraft(e.target.value)}
-              placeholder="Write your reflection..."
-              className="w-full border border-gray-300 rounded-md p-3 min-h-[120px] mb-4 focus:outline-none"
-              autoFocus
-            />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl p-4 w-full max-w-sm shadow-2xl relative">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 bg-red-100 rounded-full">
+                <FaTrash className="text-red-500" size={12} />
+              </div>
+              <h2 className="text-sm font-bold text-[#002147]">Delete Entry</h2>
+            </div>
+            <p className="text-gray-600 mb-4 text-[11px]">
+              Are you sure you want to delete this entry? This action cannot be undone.
+            </p>
             <div className="flex justify-end gap-2">
               <button
-                className="px-4 py-2 border border-gray-300 rounded-md"
-                onClick={handleCloseReflection}
+                className="px-3 py-1.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-semibold text-[11px] transition-all"
+                onClick={() => setShowDeleteConfirm(null)}
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-primary/90 disabled:opacity-60"
-                onClick={handleSubmitReflection}
-                disabled={!reflectionDraft.trim()}
+                className="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold text-[11px] transition-all shadow-sm"
+                onClick={() => handleDelete(showDeleteConfirm)}
               >
-                Add Reflection
+                Delete
               </button>
             </div>
           </div>

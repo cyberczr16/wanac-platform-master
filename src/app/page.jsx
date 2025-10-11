@@ -1,21 +1,120 @@
 // WANAC Coaching Platform - Home Page
-import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaUserTie, FaQuoteLeft } from 'react-icons/fa';
 import Script from 'next/script';
 
+// Programs Data
+const PROGRAMS = [
+  {
+    title: 'Promise Land Education Pathway (PLEP)',
+    desc: 'Navigate your educational journey with structured academic transition support.',
+    image: '/promiselandtransition.jpg',
+    alt: 'Education Pathway Program',
+    highlights: ['Academic Support', 'Mentoring'],
+    link: '/pages/plep'
+  },
+  {
+    title: 'Promise Land Career Accelerator (PLCA)',
+    desc: 'Accelerate your professional success with comprehensive career management.',
+    image: '/transitioncoaching11.jpg',
+    alt: 'Career Accelerator Program',
+    highlights: ['Career Growth', 'Strategy'],
+    link: '/pages/plca'
+  },
+  {
+    title: 'Peak Performance Coaching (PPC)',
+    desc: 'Master excellence through our structured 12-session coaching model.',
+    image: '/transitionguide.jpg',
+    alt: 'Peak Performance Coaching',
+    highlights: ['12-Sessions', 'Development'],
+    link: '/pages/ppc'
+  },
+  {
+    title: 'Vetrepreneurship Academy (VETA)',
+    desc: 'Build your entrepreneurial legacy with business planning and mentorship.',
+    image: '/Performancecoaching.png',
+    alt: 'Vetrepreneurship Academy',
+    highlights: ['Business', 'Mentorship'],
+    link: '/pages/veta'
+  }
+];
+
+// Features Data
+const FEATURES = [
+  {
+    id: 'session-booking',
+    icon: 'https://cdn.lordicon.com/uoljexdg.json',
+    title: 'Session Booking',
+    description: 'Easily book your sessions with a simple, intuitive interface that guarantees a smooth user experience.'
+  },
+  {
+    id: 'ai-assistant',
+    icon: 'https://cdn.lordicon.com/qvbrkejx.json',
+    title: 'AI Assistant',
+    description: 'Get personalized assistance with our AI-driven assistant, designed to streamline your tasks and improve productivity.'
+  },
+  {
+    id: 'real-time-updates',
+    icon: 'https://cdn.lordicon.com/nayeills.json',
+    title: 'Real-Time Updates',
+    description: 'Stay informed with real-time notifications and updates, ensuring you\'re always in the loop.'
+  }
+];
+
+// Management Cards Data
+const MANAGEMENT_CARDS = [
+  {
+    id: 'coaching-preferences',
+    icon: 'https://cdn.lordicon.com/dqxvvqzi.json',
+    title: 'Coaching Preferences',
+    description: 'Customize your coaching experience and set your learning goals',
+    ariaLabel: 'Coaching Preferences - Customize your coaching experience'
+  },
+  {
+    id: 'subscriptions',
+    icon: 'https://cdn.lordicon.com/kbtmbyzy.json',
+    title: 'Subscriptions & Sessions',
+    description: 'Track and manage your subscriptions and upcoming sessions',
+    ariaLabel: 'Subscriptions & Sessions - Track and manage your subscriptions'
+  },
+  {
+    id: 'notifications',
+    icon: 'https://cdn.lordicon.com/psnhyobz.json',
+    title: 'Notification Settings',
+    description: 'Set up your preferred notification preferences',
+    ariaLabel: 'Notification Settings - Set up your preferred notification preferences'
+  }
+];
+
+export const metadata = {
+  title: 'WANAC COACHING PLATFORM - Empowering Veterans to Thrive After Service',
+  description: 'Get tailored coaching, smart tools, and a community that truly understands your veteran journey. Join 5000+ veterans in our supportive community.',
+  keywords: 'veteran coaching, military transition, career coaching, veteran support, PTSD support, veteran community, Promise Land Education Pathway, Peak Performance Coaching',
+  openGraph: {
+    title: 'WANAC COACHING PLATFORM',
+    description: 'Empowering Veterans to Thrive After Service',
+    images: ['/landingpage4.jpg'],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'WANAC COACHING PLATFORM',
+    description: 'Empowering Veterans to Thrive After Service',
+    images: ['/landingpage4.jpg'],
+  },
+};
+
 export default function Homepage() {
   return (
     <div className="bg-background text-foreground relative overflow-x-hidden">
-      <Head>
-        <title>WANAC COACHING PLATFORM</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
-      <Script src="https://cdn.lordicon.com/lordicon.js" />
+      <Script src="https://cdn.lordicon.com/lordicon.js" strategy="lazyOnload" />
 
       {/* Hero Section */}
-<section className="min-h-[65vh] bg-[#002147] text-white py-24 relative object-cover z-0 overflow-hidden">
+<section 
+  className="min-h-[65vh] bg-[#002147] text-white py-24 relative object-cover z-0 overflow-hidden"
+  aria-label="Hero section with main call to action"
+>
   {/* Hero Background Image + Extra Gradients */}
   <div 
     className="absolute inset-0 w-full h-full z-0"
@@ -31,34 +130,39 @@ export default function Homepage() {
   {/* Animated/blurred gradients for extra pop */}
   <div className="absolute -top-32 -left-32 w-[32rem] h-[32rem] bg-gradient-to-br from-orange-400/30 via-orange-500/20 to-blue-400/20 rounded-full blur-3xl animate-pulse z-0" />
   <div className="absolute bottom-0 right-0 w-[28rem] h-[28rem] bg-gradient-to-tr from-blue-400/20 via-white/10 to-orange-400/20 rounded-full blur-2xl animate-pulse z-0" />
-  <div className="container mx-auto grid grid-cols-10 px-6 relative z-10">
-    <div className="col-start-2 col-span-8 flex flex-col">
-      <h1 className="text-5xl font-extrabold max-w-3xl leading-tight uppercase tracking-wide text-heading">
-      Empowering Veterans to Thrive After Service
+  <div className="container mx-auto grid grid-cols-1 lg:grid-cols-10 px-6 relative z-10">
+    <div className="lg:col-start-2 lg:col-span-8 flex flex-col">
+      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold max-w-3xl leading-tight uppercase tracking-wide text-heading">
+      Empowering Veterans to Thrive After Service{' '}
         <span className="text-orange-500">AND COMMUNITY SUPPORT.</span>
-      </h1>
-      <p className="text-lg mt-4 max-w-xl text-white">
+              </h1>
+      <p className="text-base sm:text-lg mt-4 max-w-xl text-white">
       Get tailored coaching, smart tools, and a community that truly understands your journey.
-      </p>
+              </p>
       <div className="mt-6 flex flex-col sm:flex-row gap-4">
-        <Link
-          href="/signup"
-          className="border-2 border-white px-6 py-2 rounded font-semibold hover:bg-white hover:text-[white] transition-all w-full sm:w-auto text-center"
-        >
+                <Link
+                  href="/signup"
+          className="border-2 border-white px-6 py-2 rounded font-semibold hover:bg-white hover:text-[#002147] transition-all w-full sm:w-auto text-center"
+                >
           Get Started for Free
-        </Link>
-        <Link
-          href="/login"
-          className="border-2 border-white px-6 py-2 rounded font-semibold hover:bg-white hover:text-background transition-all w-full sm:w-auto text-center"
-        >
+                </Link>
+                <Link
+          href="#how-we-help"
+          className="border-2 border-white px-6 py-2 rounded font-semibold hover:bg-white hover:text-[#002147] transition-all w-full sm:w-auto text-center"
+                >
           How it Works
-        </Link>
-      </div>
-    </div>
+                </Link>
+              </div>
+            </div>
   </div>
 </section>
 
-<section id="how-we-help" className="py-16 px-4 text-center relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #002147 0%, #FF7D33 15%, #FF5E1A 30%, #002147 50%)' }}>
+<section 
+  id="how-we-help" 
+  className="py-16 px-4 text-center relative overflow-hidden" 
+  style={{ background: 'linear-gradient(160deg, #002147 0%, #FF7D33 15%, #FF5E1A 30%, #002147 50%)' }}
+  aria-labelledby="programs-heading"
+>
   {/* Extra gradients for visual layering */}
   <div className="absolute top-1/3 left-0 w-96 h-96 bg-gradient-to-br from-orange-400/10 via-orange-200/10 to-blue-400/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 z-0" />
   <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-gradient-to-tr from-blue-400/10 via-white/10 to-orange-400/10 rounded-full blur-2xl z-0" />
@@ -71,50 +175,24 @@ export default function Homepage() {
   <div className="relative z-10">
     {/* Section Header */}
     <div className="mb-12">
-      <h2 className="text-3xl font-bold mt-2 mb-3 uppercase text-white">Our Programs</h2>
-      <div className="w-16 h-1 bg-white mx-auto rounded-full"/>
+      <h2 id="programs-heading" className="text-2xl sm:text-3xl lg:text-4xl font-bold mt-2 mb-3 uppercase text-white">Our Programs</h2>
+      <div className="w-16 h-1 bg-white mx-auto rounded-full" aria-hidden="true"/>
     </div>
 
     {/* Cards Grid */}
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-      {[{
-        title: 'Promise Land Education Pathway (PLEP)',
-        desc: 'Navigate your educational journey with structured academic transition support.',
-        icon: '',
-        image: '/promiselandtransition.jpg',
-        alt: 'Education Pathway Program',
-        highlights: ['Academic Support', 'Mentoring']
-      }, {
-        title: 'Promise Land Career Accelerator (PLCA)',
-        desc: 'Accelerate your professional success with comprehensive career management.',
-        icon: '',
-        image: '/transitioncoaching11.jpg',
-        alt: 'Career Accelerator Program',
-        highlights: ['Career Growth', 'Strategy']
-      }, {
-        title: 'Peak Performance Coaching (PPC)',
-        desc: 'Master excellence through our structured 12-session coaching model.',
-        icon: '',
-        image: '/transitionguide.jpg',
-        alt: 'Peak Performance Coaching',
-        highlights: ['12-Sessions', 'Development']
-      }, {
-        title: 'Vetrepreneurship Academy (VETA)',
-        desc: 'Build your entrepreneurial legacy with business planning and mentorship.',
-        icon: '',
-        image: '/Performancecoaching.png',
-        alt: 'Vetrepreneurship Academy',
-        highlights: ['Business', 'Mentorship']
-      }].map(({ title, desc, icon, image, alt, highlights }) => (
+      {PROGRAMS.map(({ title, desc, image, alt, highlights, link }) => (
         <div 
           key={title} 
-          className="group bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+          className="group bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 will-change-transform"
         >
           {/* Image Container */}
           <div className="relative h-40 overflow-hidden">
-            <img
+              <Image
               src={image}
               alt={alt}
+              width={400}
+              height={160}
               className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#002147]/50 to-transparent"/>
@@ -142,14 +220,9 @@ export default function Homepage() {
             {/* Learn More Link */}
             <div className="mt-4 flex justify-center">
               <Link
-                href={
-                  title.includes('PLEP') ? '/pages/plep' :
-                  title.includes('PLCA') ? '/pages/plca' :
-                  title.includes('PPC') ? '/pages/ppc' :
-                  title.includes('VETA') ? '/pages/veta' :
-                  '#'
-                }
+                href={link}
                 className="inline-block px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg shadow hover:bg-orange-600 transition-colors duration-300 text-sm"
+                aria-label={`Learn more about ${title}`}
               >
                 Learn More
               </Link>
@@ -159,12 +232,15 @@ export default function Homepage() {
       ))}
     </div>
    
-  </div>
+          </div>
    {/* Learn More Button */}
    
-</section>
+      </section>
 
-      <section className="py-20 px-6 bg-[#002147] text-white relative overflow-hidden">
+      <section 
+        className="py-20 px-6 bg-[#002147] text-white relative overflow-hidden"
+        aria-labelledby="features-heading"
+      >
         {/* Hero-style background image + gradient overlay */}
         <div 
           className="absolute inset-0 w-full h-full z-0"
@@ -182,64 +258,30 @@ export default function Homepage() {
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tr from-blue-400/10 via-white/10 to-orange-400/10 rounded-full blur-2xl z-0" />
         <div className="max-w-7xl mx-auto text-center relative z-10">
           {/* Section Title */}
-          <h2 className="text-3xl font-semibold mb-8">KEY WEB APP FEATURES</h2>
-          <p className="text-lg mb-12">Discover the powerful features that make our web app the best choice for your needs.</p>
+          <h2 id="features-heading" className="text-2xl sm:text-3xl lg:text-4xl font-semibold mb-8">KEY WEB APP FEATURES</h2>
+          <p className="text-base sm:text-lg mb-12">Discover the powerful features that make our web app the best choice for your needs.</p>
 
           {/* Features Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 max-w-7xl mx-auto">
-            {/* Feature 1 */}
-            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/10">
-              <div className="mb-8 relative">
-                <div className="absolute -inset-1 bg-orange-500/30 rounded-lg blur"></div>
-                <lord-icon
-                  src="https://cdn.lordicon.com/uoljexdg.json"
-                  trigger="hover"
-                  colors="primary:#ee8220,secondary:#ffffff"
-                  style={{ width: '80px', height: '80px' }}
-                  class="mx-auto relative z-10"
-                />
+            {FEATURES.map((feature) => (
+              <div key={feature.id} className="bg-white/10 backdrop-blur-sm p-8 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/10 will-change-transform">
+                <div className="mb-8 relative">
+                  <div className="absolute -inset-1 bg-orange-500/30 rounded-lg blur"></div>
+                  <lord-icon
+                    src={feature.icon}
+                    trigger="hover"
+                    loading="lazy"
+                    colors="primary:#ee8220,secondary:#ffffff"
+                    style={{ width: '80px', height: '80px' }}
+                    class="mx-auto relative z-10"
+                  />
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-center text-white">{feature.title}</h3>
+                <p className="text-lg text-gray-300 text-center leading-relaxed">
+                  {feature.description}
+                </p>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-center text-white">Session Booking</h3>
-              <p className="text-lg text-gray-300 text-center leading-relaxed">
-                Easily book your sessions with a simple, intuitive interface that guarantees a smooth user experience.
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/10">
-              <div className="mb-8 relative">
-                <div className="absolute -inset-1 bg-orange-500/30 rounded-lg blur"></div>
-                <lord-icon
-                  src="https://cdn.lordicon.com/qvbrkejx.json"
-                  trigger="hover"
-                  colors="primary:#ee8220,secondary:#ffffff"
-                  style={{ width: '80px', height: '80px' }}
-                  class="mx-auto relative z-10"
-                />
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-center text-white">AI Assistant</h3>
-              <p className="text-lg text-gray-300 text-center leading-relaxed">
-                Get personalized assistance with our AI-driven assistant, designed to streamline your tasks and improve productivity.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/10">
-              <div className="mb-8 relative">
-                <div className="absolute -inset-1 bg-orange-500/30 rounded-lg blur"></div>
-                <lord-icon
-                  src="https://cdn.lordicon.com/nayeills.json"
-                  trigger="hover"
-                  colors="primary:#ee8220,secondary:#ffffff"
-                  style={{ width: '80px', height: '80px' }}
-                  class="mx-auto relative z-10"
-                />
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-center text-white">Real-Time Updates</h3>
-              <p className="text-lg text-gray-300 text-center leading-relaxed">
-                Stay informed with real-time notifications and updates, ensuring you're always in the loop.
-              </p>
-            </div>
+            ))}
           </div>
           {/* Learn More Button */}
    <div className="mt-10 flex justify-center">
@@ -249,17 +291,21 @@ export default function Homepage() {
       >
         Start Free Trial Now
       </Link>
-    </div>
+          </div>
         </div>
       </section>
 
       {/* Community and Testimonial */}
-      <section className="py-20 px-6 bg-white text-[#002147] relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #002147 0%, #FF7D33 15%, #FF5E1A 50%, #002147 60%)' }}>
+      <section 
+        className="py-20 px-6 bg-white text-[#002147] relative overflow-hidden" 
+        style={{ background: 'linear-gradient(160deg, #002147 0%, #FF7D33 15%, #FF5E1A 50%, #002147 60%)' }}
+        aria-labelledby="testimonials-heading"
+      >
         {/* Extra gradients for testimonials */}
         <div className="absolute top-0 left-1/3 w-96 h-96 bg-gradient-to-br from-orange-400/10 via-orange-200/10 to-blue-400/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 z-0" />
         <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-gradient-to-tr from-blue-400/10 via-white/10 to-orange-400/10 rounded-full blur-2xl z-0" />
-        <div className="absolute inset-0 opacity-5 bg-[url('/testimonials-bg-pattern.jpg')] bg-cover bg-center"></div>
-        <h2 className="text-4xl font-bold mb-12 text-center uppercase text-white relative z-10">Testimonials</h2>
+        <div className="absolute inset-0 opacity-5 bg-[url('/testimonials-bg-pattern.jpg')] bg-cover bg-center" aria-hidden="true"></div>
+        <h2 id="testimonials-heading" className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-12 text-center uppercase text-white relative z-10">Testimonials</h2>
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-center relative z-10">
           {/* Testimonial 1 */}
           <div className="group bg-white/80 backdrop-blur-sm p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-500 border border-gray-100 relative overflow-hidden">
@@ -303,8 +349,8 @@ export default function Homepage() {
                 <div>
                   <h2 className="text-2xl font-semibold text-heading">Veteran Voices</h2>
                   <p className="text-orange-500 font-medium">U.S. Marine Corps Veteran</p>
-                </div>
-              </div>
+        </div>
+            </div>
               <blockquote className="italic text-foreground relative pl-8">
                 <FaQuoteLeft className="absolute left-0 top-0 text-orange-500 opacity-50" />
                 <p className="text-lg leading-relaxed">"WANAC has been a game-changer for me. The support and guidance I've received have been invaluable in my transition to civilian life."</p>
@@ -316,7 +362,11 @@ export default function Homepage() {
       </section>
 
       {/* Community CTA */}
-      <section id="community" className="relative bg-[#002147] text-white text-center py-32 px-6 overflow-hidden">
+      <section 
+        id="community" 
+        className="relative bg-[#002147] text-white text-center py-32 px-6 overflow-hidden"
+        aria-labelledby="community-heading"
+      >
         {/* Background Elements */}
         <div className="absolute inset-0 bg-[url('/community1.jpg')] bg-cover bg-center opacity-10"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#002147]/50 to-[#002147]"></div>
@@ -329,7 +379,7 @@ export default function Homepage() {
 
         {/* Content Container */}
         <div className="relative z-10 max-w-4xl mx-auto">
-          <h2 className="text-5xl font-bold mb-6 uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-orange-200">
+          <h2 id="community-heading" className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-orange-200">
             Join Our Community
           </h2>
           <p className="mb-8 text-xl text-gray-200 max-w-2xl mx-auto leading-relaxed">
@@ -385,7 +435,10 @@ export default function Homepage() {
       </section>
 
       {/* Final Section */}
-<section className="py-20 px-6 text-center relative overflow-hidden min-h-[65vh] bg-[#002147] text-white object-cover z-0">
+<section 
+  className="py-20 px-6 text-center relative overflow-hidden min-h-[65vh] bg-[#002147] text-white object-cover z-0"
+  aria-labelledby="manage-experience-heading"
+>
   {/* Hero-style background image + gradient overlay */}
   <div 
     className="absolute inset-0 w-full h-full z-0"
@@ -401,97 +454,48 @@ export default function Homepage() {
   {/* Animated/blurred gradients for extra pop */}
   <div className="absolute -top-32 -left-32 w-[32rem] h-[32rem] bg-gradient-to-br from-orange-400/30 via-orange-500/20 to-blue-400/20 rounded-full blur-3xl animate-pulse z-0" />
   <div className="absolute bottom-0 right-0 w-[28rem] h-[28rem] bg-gradient-to-tr from-blue-400/20 via-white/10 to-orange-400/20 rounded-full blur-2xl animate-pulse z-0" />
-  <h2 className="text-5xl font-extrabold mb-12 uppercase text-white text-heading relative">
+  <h2 id="manage-experience-heading" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-12 uppercase text-white text-heading relative">
     Manage Your Experience
-    <span className="block h-1 w-20 bg-blue-400 mx-auto mt-4"></span>
+    <span className="block h-1 w-20 bg-blue-400 mx-auto mt-4" aria-hidden="true"></span>
   </h2>
-  {/* Keep the existing grid and card alignment unchanged */}
+  {/* Management Cards Grid */}
   <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-    {/* Card 1 */}
-    <div className="group bg-white/10 backdrop-blur-sm rounded-xl p-8 transition-all duration-500 hover:bg-orange-500/20 hover:scale-105 cursor-pointer border border-white/10 hover:border-orange-500/50">
-      <div className="flex flex-col items-center text-white">
-        <div className="relative mb-6">
-          <div className="absolute -inset-1 bg-orange-500/30 rounded-full blur group-hover:bg-orange-500/50 transition-all duration-500"></div>
-          <lord-icon
-            src="https://cdn.lordicon.com/dqxvvqzi.json"
-            trigger="hover"
-            colors="primary:#ee8220,secondary:#ffffff"
-            style={{ width: '64px', height: '64px' }}
-            class="relative z-10"
-          />
-        </div>
-        <h3 className="text-2xl font-bold mb-4 group-hover:text-orange-400 transition-colors duration-300">Coaching Preferences</h3>
-        <p className="text-gray-300 text-center leading-relaxed group-hover:text-white transition-colors duration-300">
-          Customize your coaching experience and set your learning goals
-        </p>
-        <div className="mt-6 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-          <span className="text-orange-400 flex items-center gap-2">
-            Learn More 
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </span>
-        </div>
-      </div>
-    </div>
-    {/* Card 2 */}
-    <div className="group bg-white/10 backdrop-blur-sm rounded-xl p-8 transition-all duration-500 hover:bg-orange-500/20 hover:scale-105 cursor-pointer border border-white/10 hover:border-orange-500/50">
-      <div className="flex flex-col items-center text-white">
-        <div className="relative mb-6">
-          <div className="absolute -inset-1 bg-orange-500/30 rounded-full blur group-hover:bg-orange-500/50 transition-all duration-500"></div>
-          <lord-icon
-            src="https://cdn.lordicon.com/kbtmbyzy.json"
-            trigger="hover"
-            colors="primary:#ee8220,secondary:#ffffff"
-            style={{ width: '64px', height: '64px' }}
-            class="relative z-10"
-          />
-        </div>
-        <h3 className="text-2xl font-bold mb-4 group-hover:text-orange-400 transition-colors duration-300">Subscriptions & Sessions</h3>
-        <p className="text-gray-300 text-center leading-relaxed group-hover:text-white transition-colors duration-300">
-          Track and manage your subscriptions and upcoming sessions
-        </p>
-        <div className="mt-6 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-          <span className="text-orange-400 flex items-center gap-2">
-            Learn More 
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </span>
+    {MANAGEMENT_CARDS.map((card) => (
+      <div 
+        key={card.id}
+        className="group bg-white/10 backdrop-blur-sm rounded-xl p-8 transition-all duration-500 hover:bg-orange-500/20 hover:scale-105 cursor-pointer border border-white/10 hover:border-orange-500/50 will-change-transform"
+        role="button"
+        tabIndex={0}
+        aria-label={card.ariaLabel}
+      >
+        <div className="flex flex-col items-center text-white">
+          <div className="relative mb-6">
+            <div className="absolute -inset-1 bg-orange-500/30 rounded-full blur group-hover:bg-orange-500/50 transition-all duration-500"></div>
+            <lord-icon
+              src={card.icon}
+              trigger="hover"
+              loading="lazy"
+              colors="primary:#ee8220,secondary:#ffffff"
+              style={{ width: '64px', height: '64px' }}
+              class="relative z-10"
+            />
+          </div>
+          <h3 className="text-2xl font-bold mb-4 group-hover:text-orange-400 transition-colors duration-300">{card.title}</h3>
+          <p className="text-gray-300 text-center leading-relaxed group-hover:text-white transition-colors duration-300">
+            {card.description}
+          </p>
+          <div className="mt-6 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+            <span className="text-orange-400 flex items-center gap-2">
+              Learn More 
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </div>
         </div>
       </div>
-    </div>
-    {/* Card 3 */}
-    <div className="group bg-white/10 backdrop-blur-sm rounded-xl p-8 transition-all duration-500 hover:bg-orange-500/20 hover:scale-105 cursor-pointer border border-white/10 hover:border-orange-500/50">
-      <div className="flex flex-col items-center text-white">
-        <div className="relative mb-6">
-          <div className="absolute -inset-1 bg-orange-500/30 rounded-full blur group-hover:bg-orange-500/50 transition-all duration-500"></div>
-          <lord-icon
-            src="https://cdn.lordicon.com/psnhyobz.json"
-            trigger="hover"
-            colors="primary:#ee8220,secondary:#ffffff"
-            style={{ width: '64px', height: '64px' }}
-            class="relative z-10"
-          />
-        </div>
-        <h3 className="text-2xl font-bold mb-4 group-hover:text-orange-400 transition-colors duration-300">Notification Settings</h3>
-        <p className="text-gray-300 text-center leading-relaxed group-hover:text-white transition-colors duration-300">
-          Set up your preferred notification preferences
-        </p>
-        <div className="mt-6 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-          <span className="text-orange-400 flex items-center gap-2">
-            Learn More 
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </span>
-        </div>
-      </div>
-    </div>
+    ))}
   </div>
-</section>
-<section>
-  
 </section>
 
     </div>

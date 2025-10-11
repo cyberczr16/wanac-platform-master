@@ -1,95 +1,197 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from '../../../../components/dashboardcomponents/sidebar';
 import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
 import HomePage from "./components/HomePage";
-
-const mockExperience = {
-  id: 1,
-  title: "Customer Discovery Workshop",
-  date: "2025-09-20",
-  time: "10:00 AM",
-  description: "Learn practical market research for startups with your fireteam.",
-  location: "Room 3A",
-  facilitator: "Jane Doe"
-};
-
-function CourseMaterialsModal({ open, onClose }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md relative animate-fade-in">
-        <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"
-          onClick={onClose}
-          aria-label="Close"
-        >
-          &times;
-        </button>
-        <h2 className="text-2xl font-bold text-center mb-2">Course Materials</h2>
-        <p className="text-center text-gray-500 text-sm mb-6">
-          Course materials help you understand the core concepts of the experience and prepare you for the discussion.
-        </p>
-        <div className="bg-gray-100 rounded-lg flex items-center justify-between px-4 py-3">
-          <span className="font-semibold text-sm truncate max-w-[180px]">
-            Pre-Work PDF: Customer Discovery | Practical Market Research for Startups
-          </span>
-          <div className="flex items-center gap-3 ml-2">
-            {/* View icon */}
-            <a
-              href="/course-materials/customer-discovery-prework.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-500 hover:text-blue-600"
-              title="View PDF"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </a>
-            {/* Download icon */}
-            <a
-              href="/course-materials/customer-discovery-prework.pdf"
-              download
-              className="text-gray-500 hover:text-blue-600"
-              title="Download PDF"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5v-12m0 12l-3.75-3.75M12 16.5l3.75-3.75M21 21.75H3" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { FaFire, FaUsers, FaChartLine, FaCalendarAlt } from 'react-icons/fa';
+import { fireteamService } from '../../../services/api/fireteam.service';
+import { experienceService } from '../../../services/api/experience.service';
 
 export default function BreakoutRoomPage() {
   const [collapsed, setCollapsed] = useState(false);
-  // For now, always show HomePage. Replace with logic for experience selection if needed.
+  const [user, setUser] = useState(null);
+  const [stats, setStats] = useState({
+    totalExperiences: 0,
+    upcomingExperiences: 0,
+    completedExperiences: 0,
+    fireteams: 0
+  });
+
+  useEffect(() => {
+    const userData = localStorage.getItem('wanacUser');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        fetchStats();
+      } catch (e) {
+        setUser(null);
+      }
+    }
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const fireteams = await fireteamService.getFireteams();
+      let totalExp = 0;
+      let upcomingExp = 0;
+      let completedExp = 0;
+
+      for (const fireteam of fireteams) {
+        try {
+          const experiences = await experienceService.getExperiences(fireteam.id);
+          totalExp += experiences.length;
+          upcomingExp += experiences.filter(e => e.status !== 'completed').length;
+          completedExp += experiences.filter(e => e.status === 'completed').length;
+        } catch (error) {
+          console.error(`Error fetching experiences for fireteam ${fireteam.id}:`, error);
+        }
+      }
+
+      setStats({
+        totalExperiences: totalExp,
+        upcomingExperiences: upcomingExp,
+        completedExperiences: completedExp,
+        fireteams: fireteams.length
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
   return (
-    <div className="h-screen flex bg-gray-50 font-serif">
+    <div className="h-screen flex bg-white font-body">
       {/* Sidebar */}
       <Sidebar className="w-56 bg-white border-r border-gray-200" collapsed={collapsed} setCollapsed={setCollapsed} />
       {/* Main Area */}
       <div className="flex-1 flex flex-col h-full transition-all duration-300">
         {/* Top Bar */}
-        <ClientTopbar />
+        <ClientTopbar user={user} />
         {/* Main Content */}
-        <main className="flex-1 h-0 overflow-y-auto px-4 md:px-12 py-8 bg-gray-50">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col lg:flex-row gap-8">
+        <main className="flex-1 h-0 overflow-y-auto px-4 md:px-6 py-3 bg-gray-50">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col lg:flex-row gap-4">
               {/* Main Content */}
-              <div className="flex-1 space-y-10">
-                {/* Breadcrumb and Title */}
-                <div className="text-sm text-gray-400 mb-2">
-                  WANAC FIRETEAMS
+              <div className="flex-1 space-y-3">
+                {/* Header Section */}
+                <section className="bg-gradient-to-br from-[#002147] to-[#003875] rounded-xl p-4 shadow-lg relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-10">
+                    <img 
+                      src="/veterancommunity.png" 
+                      alt="Background" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="relative z-10">
+                    <h1 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
+                      <FaFire className="text-orange-500" />
+                      FireTeam Experiences
+                    </h1>
+                    <p className="text-white/90 text-xs">Collaborative learning and growth with your team</p>
+                  </div>
+                </section>
+
+                {/* Stats Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1.5 bg-orange-100 rounded-lg">
+                        <FaFire className="text-orange-500 text-sm" />
+                      </div>
+                      <span className="text-[10px] text-gray-600 font-medium">Total</span>
+                    </div>
+                    <p className="text-xl font-bold text-[#002147]">{stats.totalExperiences}</p>
+                    <p className="text-[9px] text-gray-500">Experiences</p>
+                  </div>
+
+                  <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1.5 bg-blue-100 rounded-lg">
+                        <FaCalendarAlt className="text-blue-500 text-sm" />
+                      </div>
+                      <span className="text-[10px] text-gray-600 font-medium">Upcoming</span>
+                    </div>
+                    <p className="text-xl font-bold text-[#002147]">{stats.upcomingExperiences}</p>
+                    <p className="text-[9px] text-gray-500">To Complete</p>
+                  </div>
+
+                  <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1.5 bg-green-100 rounded-lg">
+                        <FaChartLine className="text-green-500 text-sm" />
+                      </div>
+                      <span className="text-[10px] text-gray-600 font-medium">Completed</span>
+                    </div>
+                    <p className="text-xl font-bold text-[#002147]">{stats.completedExperiences}</p>
+                    <p className="text-[9px] text-gray-500">Finished</p>
+                  </div>
+
+                  <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1.5 bg-purple-100 rounded-lg">
+                        <FaUsers className="text-purple-500 text-sm" />
+                      </div>
+                      <span className="text-[10px] text-gray-600 font-medium">FireTeams</span>
+                    </div>
+                    <p className="text-xl font-bold text-[#002147]">{stats.fireteams}</p>
+                    <p className="text-[9px] text-gray-500">Active</p>
+                  </div>
                 </div>
-                {/* Pass mockExperience to HomePage */}
-                <HomePage experience={mockExperience} />
+
+                {/* HomePage Component */}
+                <HomePage />
               </div>
+
+              {/* Right Sidebar */}
+              <aside className="lg:w-64 space-y-3">
+                {/* Quick Info Card */}
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-sm p-4 text-white">
+                  <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                    <FaFire />
+                    What is FireTeam?
+                  </h3>
+                  <p className="text-[10px] text-white/90 mb-3 leading-relaxed">
+                    FireTeam is a collaborative learning environment where you work alongside fellow veterans to complete experiences, share insights, and grow together.
+                  </p>
+                  <div className="space-y-2 text-[10px]">
+                    <div className="flex items-start gap-2">
+                      <span className="text-white mt-0.5">•</span>
+                      <span>Participate in group sessions</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-white mt-0.5">•</span>
+                      <span>Complete pre-work assignments</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-white mt-0.5">•</span>
+                      <span>Collaborate with your team</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tips Card */}
+                <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow p-4">
+                  <h3 className="text-sm font-semibold text-[#002147] mb-3">Tips for Success</h3>
+                  <div className="space-y-2 text-[10px] text-gray-700">
+                    <div className="flex items-start gap-2 p-2 bg-blue-50 rounded">
+                      <span className="text-orange-500 font-bold">1.</span>
+                      <span>Complete pre-work before sessions</span>
+                    </div>
+                    <div className="flex items-start gap-2 p-2 bg-green-50 rounded">
+                      <span className="text-orange-500 font-bold">2.</span>
+                      <span>Participate actively in discussions</span>
+                    </div>
+                    <div className="flex items-start gap-2 p-2 bg-yellow-50 rounded">
+                      <span className="text-orange-500 font-bold">3.</span>
+                      <span>Share your experiences with the team</span>
+                    </div>
+                    <div className="flex items-start gap-2 p-2 bg-purple-50 rounded">
+                      <span className="text-orange-500 font-bold">4.</span>
+                      <span>Review session summaries and recordings</span>
+                    </div>
+                  </div>
+                </div>
+              </aside>
             </div>
           </div>
         </main>

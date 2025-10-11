@@ -10,4 +10,14 @@ export const journalService = {
     const response = await apiClient.post('/api/v1/journals/add', { title, content });
     return response.data;
   },
+
+  async updateJournal(id: string, { title, content }: { title: string; content?: string }) {
+    const response = await apiClient.put(`/api/v1/journals/${id}`, { title, content });
+    return response.data;
+  },
+
+  async deleteJournal(id: string) {
+    const response = await apiClient.delete(`/api/v1/journals/${id}`);
+    return response.data;
+  },
 }; 
