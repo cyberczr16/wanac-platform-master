@@ -74,9 +74,9 @@ export default function Navbar({ hideNavbar = false }) {
         
         { label: "Our Approach", href: "/pages/howwehelp#approach" },
         { label: "PLEP", href: "/pages/wanacplep" },
-        { label: "PLCA", href: "/pages/wanaplca" },
-        { label: "PPC", href: "/pages/wanappc" },
-        { label: "VETA", href: "/pages/wanaveta" },
+        { label: "PLCA", href: "/pages/wanacplca" },
+        { label: "PPC", href: "/pages/wanacppc" },
+        { label: "VETA", href: "/pages/vetaacademy" },
         { label: "CPPC", href: "/pages/wanacppc" }
       ]
     },

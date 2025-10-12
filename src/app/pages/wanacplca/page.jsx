@@ -215,67 +215,13 @@ const WanacPLCA = () => {
 
   return (
     <div className="min-h-screen bg-[#faf9f7]">
-      {/* Header Navigation */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        {/* Top bar */}
-        <div className="bg-white border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-2 text-sm">
-              <div className="flex items-center space-x-4">
-                <select className="bg-transparent border-none text-gray-600 focus:outline-none cursor-pointer">
-                  <option>English</option>
-                </select>
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Sign in/Sign up</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Customer Support</a>
-              </div>
-              <div className="flex items-center space-x-4">
-                <button className="p-1 text-gray-600 hover:text-gray-900 transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </button>
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Log in</a>
-                <button className="bg-[#ff5e1a] text-white px-4 py-2 rounded-md hover:bg-[#e54e16] transition-colors">
-                  Join
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main navigation */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <Image
-                src="/WANAC N 8 Old Glory.svg"
-                alt="WANAC Logo"
-                width={120}
-                height={40}
-                className="h-8 w-auto cursor-pointer"
-                onClick={() => router.push('/')}
-              />
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <a href="#" className="text-gray-700 hover:text-[#ff5e1a] font-medium transition-colors">Products</a>
-              <a href="#" className="text-gray-700 hover:text-[#ff5e1a] font-medium transition-colors">Solutions</a>
-              <a href="#" className="text-gray-700 hover:text-[#ff5e1a] font-medium transition-colors">Pricing</a>
-              <a href="#" className="text-gray-700 hover:text-[#ff5e1a] font-medium transition-colors">Resources</a>
-            </nav>
-            <div className="hidden md:flex space-x-4">
-              <button className="bg-[#002147] text-white px-6 py-2 rounded-md hover:bg-[#001530] transition-colors text-sm">
-                Apply for PLCA
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+     
 
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-[#faf9f7] to-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-block bg-[#ff5e1a] bg-opacity-10 text-[#ff5e1a] px-4 py-2 rounded-full text-sm font-semibold mb-6">
+            <div className="inline-block bg-[#ff5e1a] bg-opacity-10 text-white px-4 py-2 rounded-full text-sm font-semibold mb-6">
               Career Accelerator • UCLA Anderson-Inspired
             </div>
             <h1 className="text-5xl lg:text-6xl font-bold text-[#002147] mb-6 leading-tight">
@@ -781,80 +727,7 @@ const WanacPLCA = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-[#002147] text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-            <div>
-              <h4 className="font-bold text-lg mb-4">Programs</h4>
-              <ul className="space-y-3 text-gray-300">
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">PLEP (Education)</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">PLCA (Career)</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">PPC (Performance)</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">CPPC (Certified Coach)</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">VETA (Entrepreneurship)</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-lg mb-4">PLCA Resources</h4>
-              <ul className="space-y-3 text-gray-300">
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Resume Templates</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">STAR Story Guide</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Outreach Scripts</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Interview Prep</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-lg mb-4">Company</h4>
-              <ul className="space-y-3 text-gray-300">
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-[#ff5e1a] transition-colors">Terms of Service</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-lg mb-4">Connect</h4>
-              <div className="flex space-x-4 mb-6">
-                <a href="#" className="w-10 h-10 bg-white bg-opacity-10 rounded-full flex items-center justify-center hover:bg-[#ff5e1a] transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
-                  </svg>
-                </a>
-                <a href="#" className="w-10 h-10 bg-white bg-opacity-10 rounded-full flex items-center justify-center hover:bg-[#ff5e1a] transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm3 8h-1.35c-.538 0-.65.221-.65.778V10h2l-.209 2H13v7h-3v-7H8v-2h2V7.692C10 5.923 10.931 5 13.029 5H15v3z"/>
-                  </svg>
-                </a>
-                <a href="#" className="w-10 h-10 bg-white bg-opacity-10 rounded-full flex items-center justify-center hover:bg-[#ff5e1a] transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                  </svg>
-                </a>
-              </div>
-              <p className="text-sm text-gray-300 mt-4">
-                Your path to career success
-              </p>
-            </div>
-          </div>
-          <div className="border-t border-gray-700 pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm">
-              <div className="mb-4 md:mb-0">
-                <p>&copy; 2025 WANAC. All rights reserved.</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Image
-                  src="/WANAC N 8 Old Glory.svg"
-                  alt="WANAC Logo"
-                  width={80}
-                  height={30}
-                  className="opacity-80"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      
     </div>
   );
 };
