@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // ✅ REQUIRED for Azure Static Web Apps (no SSR, no API)
-  output: "export",
+
 
   // ✅ Required when using next/image with static export
   images: {
