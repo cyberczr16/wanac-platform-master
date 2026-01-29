@@ -221,64 +221,19 @@ export default function ClientDashboard() {
                     href="/client/fireteam"
                     color="fireteam"
                   />
+                   <QuickActionCard
+                    icon={FaCalendar}
+                    title="Sessions"
+                    description="Group collaboration"
+                    href="/client/session"
+                    color="fireteam"
+                  />
                 </section>
 
                 {/* Content Grid */}
                 <section className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   {/* Upcoming Sessions */}
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm hover:shadow-md transition-all duration-200 animate-fadeIn motion-reduce:animate-none">
-                    <h3
-                      className="text-lg font-semibold mb-4 flex items-center gap-2 text-[#002147]"
-                      style={{ fontFamily: 'var(--font-heading)' }}
-                    >
-                      <FaCalendar className="text-orange-500" />
-                      Upcoming Sessions
-                    </h3>
-                    <div className="space-y-4">
-                      {loading ? (
-                        <p className="text-gray-500 text-sm">Loading...</p>
-                      ) : upcomingSessions.length === 0 ? (
-                        <p className="text-gray-500 text-sm">No sessions scheduled yet.</p>
-                      ) : (
-                        upcomingSessions.map((session) => {
-                          // Format date and time
-                          const dateObj = new Date(session.scheduled_at);
-                          const dateStr = dateObj.toLocaleDateString();
-                          const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                          return (
-                            <div
-                              key={session.id}
-                              className="border-l-4 border-[#002147] pl-4 py-3 bg-blue-50/50 rounded-lg hover:bg-blue-50 active:bg-blue-100 transition-all duration-200 cursor-pointer"
-                            >
-                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-gray-900">{session.type || session.title}</p>
-                                  <p className="text-sm text-gray-600 mt-1">
-                                    with {
-                                      typeof session.coach === 'object'
-                                        ? session.coach.name || session.coach.user?.name || '-'
-                                        : session.coach || '-'
-                                    }
-                                  </p>
-                                </div>
-                                <div className="text-left sm:text-right shrink-0">
-                                  <p className="text-sm font-semibold text-gray-900">{dateStr}</p>
-                                  <p className="text-xs text-gray-600 mt-0.5">{timeStr}</p>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                    <button 
-                      className="mt-4 md:mt-5 py-2.5 md:py-1 min-h-[44px] md:min-h-0 w-full sm:w-auto justify-center sm:justify-start text-[#002147] hover:text-orange-500 text-sm font-semibold transition-colors duration-150 flex items-center gap-1 group rounded-lg hover:bg-gray-50 active:bg-gray-100 motion-reduce:transition-none [touch-action:manipulation]" 
-                      onClick={() => router.push('/client/session')}
-                    >
-                      View All Sessions 
-                      <span className="group-hover:translate-x-1 transition-transform duration-150 motion-reduce:transition-none">→</span>
-                    </button>
-                  </div>
+                  
 
                   {/* Life Score */}
                   <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm hover:shadow-md transition-all duration-200 animate-fadeIn motion-reduce:animate-none">
