@@ -238,8 +238,7 @@ export default function Signup() {
           email: form.email.trim().toLowerCase(),
           password: form.password,
           password_confirmation: form.password_confirmation,
-          role: userType.toLowerCase(),
-          social: false,
+          role: userType.toUpperCase(),
           phone: form.phone ? (form.phone.startsWith('+') ? form.phone : `+${form.phone}`)?.trim() : undefined,
           timezone: form.timezone === 'Eastern Time (ET)' ? 'America/New_York' : form.timezone,
           bio: form.bio?.trim() || undefined,
@@ -251,12 +250,20 @@ export default function Signup() {
 
         // Call the registration API
         const response = await authService.register(registrationData);
-        toast.success(response.message || 'Registration successful! Please log in.');
-        // Redirect to login after a short delay for user to see the toast
-        setTimeout(() => {
-          router.push("/login");
-        }, 1200);
-
+        
+        // Store the token and user preferences
+        if (response.token) {
+          localStorage.setItem('auth_token', response.token);
+          if (form.rememberMe) {
+            localStorage.setItem('remember_me', 'true');
+          }
+          
+          // Show success message
+          toast.success('Registration successful! Welcome aboard!');
+          
+          // Redirect based on user type
+          router.push(userType === "client" ? "/client" : "/coach");
+        }
       } catch (error) {
         if (error.response && error.response.data) {
           if (error.response?.data?.errors) {
