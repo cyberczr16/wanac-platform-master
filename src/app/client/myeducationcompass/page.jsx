@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Sidebar from '../../../../components/dashboardcomponents/sidebar';
 import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
 import SectionSidebar from '../../../../components/dashboardcomponents/SectionSidebar';
+import CareerCompassModal from '../../../../components/dashboardcomponents/CareerCompassModal';
 import { BookOpen, Briefcase, Users, ClipboardList, CheckCircle, Home, FolderOpen, BarChart2, Image, Video, FileText, Search, ShoppingCart, Calendar, Clock, Play, Download, Upload, Star, Award, Target, TrendingUp } from 'lucide-react';
+import { FaPlus } from 'react-icons/fa';
 
 // Comprehensive program data with sessions and modules
 const program = {
@@ -153,7 +155,7 @@ const ProgramOverview = ({ program }) => {
 };
 
 // Module Card Component
-const ModuleCard = ({ module, expanded, onToggle }) => {
+const ModuleCard = ({ module, expanded, onToggle, onAddAssignment }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'text-green-600 bg-green-100';
@@ -260,6 +262,15 @@ const ModuleCard = ({ module, expanded, onToggle }) => {
                 </div>
               ))}
             </div>
+            {onAddAssignment && (
+              <button
+                type="button"
+                onClick={() => onAddAssignment(module.id)}
+                className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#002147] hover:underline"
+              >
+                <FaPlus className="text-xs" /> Add assignment
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -267,9 +278,53 @@ const ModuleCard = ({ module, expanded, onToggle }) => {
   );
 };
 
+const EDUCATION_SECTIONS = [
+  { name: 'Home', sectionId: 'overview' },
+  { name: 'Syllabus', sectionId: 'syllabus' },
+  { name: 'Modules', sectionId: 'modules' },
+  { name: 'Assignments', sectionId: 'assignments' },
+  { name: 'Quizzes', sectionId: 'quizzes' },
+  { name: 'Grades', sectionId: 'grades' },
+  { name: 'Media Gallery', sectionId: 'media-gallery' },
+  { name: 'Zoom', sectionId: 'zoom' },
+  { name: 'Course Reader Solutions', sectionId: 'reader-solutions' },
+  { name: 'Library Resources', sectionId: 'library-resources' },
+  { name: 'Store Course Materials', sectionId: 'store-materials' },
+  { name: 'Media Reserves', sectionId: 'media-reserves' },
+  { name: 'Search', sectionId: 'search' },
+];
+
+const MODULE_STATUS_OPTIONS = ['upcoming', 'in-progress', 'completed'];
+const ASSIGNMENT_STATUS_OPTIONS = ['pending', 'in-progress', 'submitted'];
+const SESSION_TYPE_OPTIONS = ['lecture', 'lab', 'workshop', 'other'];
+
 export default function MyEducationCompassPage() {
+  const [programState, setProgramState] = useState(() => JSON.parse(JSON.stringify(program)));
   const [expandedModuleId, setExpandedModuleId] = useState(null);
+  const [selectedSection, setSelectedSection] = useState('overview');
   const [user, setUser] = useState(null);
+
+  // Add Module modal
+  const [addModuleOpen, setAddModuleOpen] = useState(false);
+  const [moduleForm, setModuleForm] = useState({ title: '', code: '', credits: 3, status: 'in-progress' });
+  const [moduleFormError, setModuleFormError] = useState('');
+
+  // Add Assignment modal (per module)
+  const [addAssignmentOpen, setAddAssignmentOpen] = useState(false);
+  const [assignmentModuleId, setAssignmentModuleId] = useState(null);
+  const [assignmentForm, setAssignmentForm] = useState({ title: '', dueDate: '', points: 20, status: 'pending' });
+  const [assignmentFormError, setAssignmentFormError] = useState('');
+
+  // Add Session modal (upcoming)
+  const [addSessionOpen, setAddSessionOpen] = useState(false);
+  const [sessionForm, setSessionForm] = useState({
+    title: '',
+    moduleId: '',
+    date: new Date().toISOString().slice(0, 10),
+    time: '10:00',
+    type: 'lecture',
+  });
+  const [sessionFormError, setSessionFormError] = useState('');
 
   // Fetch user from localStorage for topbar
   React.useEffect(() => {
@@ -287,6 +342,145 @@ export default function MyEducationCompassPage() {
     setExpandedModuleId(expandedModuleId === moduleId ? null : moduleId);
   };
 
+  const nextId = (items) => (items.length ? Math.max(...items.map((x) => x.id)) + 1 : 1);
+
+  const handleOpenAddModule = useCallback(() => {
+    setModuleForm({ title: '', code: '', credits: 3, status: 'in-progress' });
+    setModuleFormError('');
+    setAddModuleOpen(true);
+  }, []);
+
+  const handleCloseAddModule = useCallback(() => {
+    setAddModuleOpen(false);
+    setModuleFormError('');
+  }, []);
+
+  const handleModuleFormChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setModuleForm((prev) => ({ ...prev, [name]: name === 'credits' ? parseInt(value, 10) || 0 : value }));
+  }, []);
+
+  const handleAddModule = useCallback(() => {
+    if (!moduleForm.title?.trim()) {
+      setModuleFormError('Title is required.');
+      return;
+    }
+    if (!moduleForm.code?.trim()) {
+      setModuleFormError('Code is required.');
+      return;
+    }
+    const newModule = {
+      id: nextId(programState.modules),
+      title: moduleForm.title.trim(),
+      code: moduleForm.code.trim(),
+      credits: moduleForm.credits || 3,
+      status: moduleForm.status,
+      progress: 0,
+      sessions: [],
+      assignments: [],
+    };
+    setProgramState((prev) => ({
+      ...prev,
+      modules: [...prev.modules, newModule],
+    }));
+    handleCloseAddModule();
+  }, [moduleForm, programState.modules, handleCloseAddModule]);
+
+  const handleOpenAddAssignment = useCallback((moduleId) => {
+    setAssignmentModuleId(moduleId);
+    setAssignmentForm({
+      title: '',
+      dueDate: new Date().toISOString().slice(0, 10),
+      points: 20,
+      status: 'pending',
+    });
+    setAssignmentFormError('');
+    setAddAssignmentOpen(true);
+  }, []);
+
+  const handleCloseAddAssignment = useCallback(() => {
+    setAddAssignmentOpen(false);
+    setAssignmentModuleId(null);
+    setAssignmentFormError('');
+  }, []);
+
+  const handleAssignmentFormChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setAssignmentForm((prev) => ({
+      ...prev,
+      [name]: name === 'points' ? parseInt(value, 10) || 0 : value,
+    }));
+  }, []);
+
+  const handleAddAssignment = useCallback(() => {
+    if (!assignmentForm.title?.trim()) {
+      setAssignmentFormError('Title is required.');
+      return;
+    }
+    if (assignmentModuleId == null) return;
+    const mod = programState.modules.find((m) => m.id === assignmentModuleId);
+    const newAssignment = {
+      id: nextId(mod?.assignments ?? []),
+      title: assignmentForm.title.trim(),
+      dueDate: assignmentForm.dueDate,
+      points: assignmentForm.points || 20,
+      status: assignmentForm.status,
+      grade: null,
+    };
+    setProgramState((prev) => ({
+      ...prev,
+      modules: prev.modules.map((m) =>
+        m.id === assignmentModuleId
+          ? { ...m, assignments: [...m.assignments, newAssignment] }
+          : m
+      ),
+    }));
+    handleCloseAddAssignment();
+  }, [assignmentForm, assignmentModuleId, programState.modules, handleCloseAddAssignment]);
+
+  const handleOpenAddSession = useCallback(() => {
+    setSessionForm({
+      title: '',
+      moduleId: programState.modules[0]?.id ?? '',
+      date: new Date().toISOString().slice(0, 10),
+      time: '10:00',
+      type: 'lecture',
+    });
+    setSessionFormError('');
+    setAddSessionOpen(true);
+  }, [programState.modules]);
+
+  const handleCloseAddSession = useCallback(() => {
+    setAddSessionOpen(false);
+    setSessionFormError('');
+  }, []);
+
+  const handleSessionFormChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setSessionForm((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  const handleAddSession = useCallback(() => {
+    if (!sessionForm.title?.trim()) {
+      setSessionFormError('Title is required.');
+      return;
+    }
+    const moduleTitle = programState.modules.find((m) => m.id === Number(sessionForm.moduleId))?.title ?? '—';
+    const newSession = {
+      id: nextId(programState.upcomingSessions),
+      title: sessionForm.title.trim(),
+      module: moduleTitle,
+      date: sessionForm.date,
+      time: sessionForm.time + (sessionForm.time.length <= 2 ? ':00' : ''),
+      type: sessionForm.type,
+    };
+    setProgramState((prev) => ({
+      ...prev,
+      upcomingSessions: [...prev.upcomingSessions, newSession],
+    }));
+    handleCloseAddSession();
+  }, [sessionForm, programState.modules, programState.upcomingSessions, handleCloseAddSession]);
+
   return (
     <div className="h-screen flex bg-gray-50 font-serif">
       {/* Main Sidebar */}
@@ -294,22 +488,10 @@ export default function MyEducationCompassPage() {
       {/* Section Sidebar for Programs */}
       <SectionSidebar
         title="Education Compass"
-        items={[
-          { name: 'Home', href: '#home', icon: <Home size={18} /> },
-          { name: 'Syllabus', href: '#syllabus', icon: <BookOpen size={18} /> },
-          { name: 'Modules', href: '#modules', icon: <FolderOpen size={18} /> },
-          { name: 'Assignments', href: '#assignments', icon: <ClipboardList size={18} /> },
-          { name: 'Quizzes', href: '#quizzes', icon: <CheckCircle size={18} /> },
-          { name: 'Grades', href: '#grades', icon: <BarChart2 size={18} /> },
-          { name: 'Media Gallery', href: '#media-gallery', icon: <Image size={18} /> },
-          { name: 'Zoom', href: '#zoom', icon: <Video size={18} /> },
-          { name: 'Course Reader Solutions', href: '#reader-solutions', icon: <FileText size={18} /> },
-          { name: 'Library Resources', href: '#library-resources', icon: <BookOpen size={18} /> },
-          { name: 'Store Course Materials', href: '#store-materials', icon: <ShoppingCart size={18} /> },
-          { name: 'Media Reserves', href: '#media-reserves', icon: <FolderOpen size={18} /> },
-          { name: 'Search', href: '#search', icon: <Search size={18} /> },
-        ]}
+        items={EDUCATION_SECTIONS}
         collapsedDefault={true}
+        onSectionSelect={setSelectedSection}
+        activeSectionId={selectedSection}
       />
       {/* Main Area */}
       <div className="flex-1 flex flex-col h-full transition-all duration-300">
@@ -324,9 +506,11 @@ export default function MyEducationCompassPage() {
               </h1>
               <p className="text-gray-600">Track your academic progress and manage your learning journey</p>
             </div>
-            
+
+            {selectedSection === 'overview' ? (
+              <>
             {/* Program Overview */}
-            <ProgramOverview program={program} />
+            <ProgramOverview program={programState} />
             
             {/* Canvas-like Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
@@ -337,16 +521,26 @@ export default function MyEducationCompassPage() {
                     <FolderOpen className="w-5 h-5 text-[#002147]" />
                     Course Modules
                   </h2>
-                  <span className="text-sm text-gray-500">{program.modules.length} modules</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">{programState.modules.length} modules</span>
+                    <button
+                      type="button"
+                      onClick={handleOpenAddModule}
+                      className="inline-flex items-center gap-1 text-sm font-medium text-[#002147] hover:underline"
+                    >
+                      <FaPlus className="text-xs" /> Add module
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="space-y-3">
-                  {program.modules.map((module) => (
+                  {programState.modules.map((module) => (
                     <ModuleCard
                       key={module.id}
                       module={module}
                       expanded={expandedModuleId === module.id}
                       onToggle={handleModuleToggle}
+                      onAddAssignment={handleOpenAddAssignment}
                     />
                   ))}
                 </div>
@@ -356,12 +550,21 @@ export default function MyEducationCompassPage() {
               <div className="space-y-4">
                 {/* Upcoming Sessions */}
                 <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-[#002147]" />
-                    Upcoming Sessions
-                  </h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-[#002147]" />
+                      Upcoming Sessions
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={handleOpenAddSession}
+                      className="text-xs font-medium text-[#002147] hover:underline"
+                    >
+                      <FaPlus className="text-xs" /> Add
+                    </button>
+                  </div>
                   <div className="space-y-3">
-                    {program.upcomingSessions.map((session) => (
+                    {programState.upcomingSessions.map((session) => (
                       <div key={session.id} className="p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-3 mb-2">
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -393,7 +596,7 @@ export default function MyEducationCompassPage() {
                     Recent Activity
                   </h3>
                   <div className="space-y-3">
-                    {program.recentActivity.map((activity) => (
+                    {programState.recentActivity.map((activity) => (
                       <div key={activity.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
                         <div className={`w-2 h-2 rounded-full ${
                           activity.type === 'assignment' ? 'bg-green-500' : 
@@ -418,34 +621,233 @@ export default function MyEducationCompassPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Completed Modules</span>
                       <span className="text-sm font-semibold text-green-600">
-                        {program.modules.filter(m => m.status === 'completed').length}
+                        {programState.modules.filter(m => m.status === 'completed').length}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">In Progress</span>
                       <span className="text-sm font-semibold text-blue-600">
-                        {program.modules.filter(m => m.status === 'in-progress').length}
+                        {programState.modules.filter(m => m.status === 'in-progress').length}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Upcoming</span>
                       <span className="text-sm font-semibold text-gray-600">
-                        {program.modules.filter(m => m.status === 'upcoming').length}
+                        {programState.modules.filter(m => m.status === 'upcoming').length}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Total Assignments</span>
                       <span className="text-sm font-semibold text-[#002147]">
-                        {program.modules.reduce((acc, module) => acc + module.assignments.length, 0)}
+                        {programState.modules.reduce((acc, module) => acc + module.assignments.length, 0)}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+              </>
+            ) : (
+              <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-md">
+                <h2 className="text-xl font-bold text-[#002147] mb-2" style={{ fontFamily: 'var(--font-heading)' }}>
+                  {EDUCATION_SECTIONS.find((s) => s.sectionId === selectedSection)?.name ?? selectedSection}
+                </h2>
+                <p className="text-gray-600 text-sm">Content for this section coming soon.</p>
+              </div>
+            )}
           </div>
         </main>
       </div>
+
+      {/* Add Module Modal */}
+      <CareerCompassModal
+        open={addModuleOpen}
+        onClose={handleCloseAddModule}
+        title="Add Module"
+        icon={<FaPlus size={14} />}
+        onSubmit={handleAddModule}
+        submitLabel="Add Module"
+      >
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Title *</label>
+          <input
+            type="text"
+            name="title"
+            value={moduleForm.title}
+            onChange={handleModuleFormChange}
+            placeholder="e.g. Data Structures"
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Code *</label>
+            <input
+              type="text"
+              name="code"
+              value={moduleForm.code}
+              onChange={handleModuleFormChange}
+              placeholder="e.g. CS201"
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Credits</label>
+            <input
+              type="number"
+              name="credits"
+              min={1}
+              value={moduleForm.credits}
+              onChange={handleModuleFormChange}
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+          <select
+            name="status"
+            value={moduleForm.status}
+            onChange={handleModuleFormChange}
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+          >
+            {MODULE_STATUS_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt.replace('-', ' ')}</option>
+            ))}
+          </select>
+        </div>
+        {moduleFormError && <p className="text-red-600 text-xs">⚠ {moduleFormError}</p>}
+      </CareerCompassModal>
+
+      {/* Add Assignment Modal */}
+      <CareerCompassModal
+        open={addAssignmentOpen}
+        onClose={handleCloseAddAssignment}
+        title="Add Assignment"
+        icon={<FaPlus size={14} />}
+        onSubmit={handleAddAssignment}
+        submitLabel="Add Assignment"
+      >
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Title *</label>
+          <input
+            type="text"
+            name="title"
+            value={assignmentForm.title}
+            onChange={handleAssignmentFormChange}
+            placeholder="e.g. Essay 1"
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Due date</label>
+            <input
+              type="date"
+              name="dueDate"
+              value={assignmentForm.dueDate}
+              onChange={handleAssignmentFormChange}
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Points</label>
+            <input
+              type="number"
+              name="points"
+              min={0}
+              value={assignmentForm.points}
+              onChange={handleAssignmentFormChange}
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+          <select
+            name="status"
+            value={assignmentForm.status}
+            onChange={handleAssignmentFormChange}
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+          >
+            {ASSIGNMENT_STATUS_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt.replace('-', ' ')}</option>
+            ))}
+          </select>
+        </div>
+        {assignmentFormError && <p className="text-red-600 text-xs">⚠ {assignmentFormError}</p>}
+      </CareerCompassModal>
+
+      {/* Add Session Modal */}
+      <CareerCompassModal
+        open={addSessionOpen}
+        onClose={handleCloseAddSession}
+        title="Add Upcoming Session"
+        icon={<FaPlus size={14} />}
+        onSubmit={handleAddSession}
+        submitLabel="Add Session"
+      >
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Title *</label>
+          <input
+            type="text"
+            name="title"
+            value={sessionForm.title}
+            onChange={handleSessionFormChange}
+            placeholder="e.g. Introduction to Databases"
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Module</label>
+          <select
+            name="moduleId"
+            value={sessionForm.moduleId}
+            onChange={handleSessionFormChange}
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+          >
+            {programState.modules.map((m) => (
+              <option key={m.id} value={m.id}>{m.title}</option>
+            ))}
+          </select>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Date</label>
+            <input
+              type="date"
+              name="date"
+              value={sessionForm.date}
+              onChange={handleSessionFormChange}
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Time</label>
+            <input
+              type="time"
+              name="time"
+              value={sessionForm.time}
+              onChange={handleSessionFormChange}
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+          <select
+            name="type"
+            value={sessionForm.type}
+            onChange={handleSessionFormChange}
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#002147]/20 focus:border-[#002147] outline-none"
+          >
+            {SESSION_TYPE_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+        {sessionFormError && <p className="text-red-600 text-xs">⚠ {sessionFormError}</p>}
+      </CareerCompassModal>
     </div>
   );
 }
