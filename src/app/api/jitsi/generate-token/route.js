@@ -42,7 +42,7 @@ function buildJaaSPayload({ roomName, userId, userName, userEmail, userAvatar, m
       },
       features: {
         livestreaming: false,
-        outbound-call: false,
+        'outbound-call': false,
         transcription: false,
         recording: false,
       },
