@@ -1,5 +1,6 @@
 "use client";
 import { usePathname } from 'next/navigation';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import ChatComponent from '../../components/ChatComponent';
@@ -27,6 +28,7 @@ const excludedPaths = [
 
 export default function ClientLayoutWrapper({ children }) {
   const pathname = usePathname();
+  const reduceMotion = useReducedMotion();
   const shouldExclude = excludedPaths.some((path) => 
     pathname.startsWith(path) || pathname === path
   );
@@ -35,7 +37,23 @@ export default function ClientLayoutWrapper({ children }) {
     <>
       {!shouldExclude && <Navbar />}
       <main className="flex-grow">
-        <LenisSmoothScroll>{children}</LenisSmoothScroll>
+        <LenisSmoothScroll>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={pathname}
+              initial={reduceMotion ? false : { opacity: 0, y: 6 }}
+              animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+              exit={reduceMotion ? { opacity: 1 } : { opacity: 0, y: -6 }}
+              transition={
+                reduceMotion
+                  ? { duration: 0 }
+                  : { duration: 0.22, ease: [0.22, 1, 0.36, 1] }
+              }
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </LenisSmoothScroll>
       </main>
       {!shouldExclude && <Footer />}
       {!shouldExclude && <ChatComponent />}

@@ -3,7 +3,10 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CoachSidebar from '../../../../components/dashboardcomponents/CoachSidebar';
 import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
-import { FaCalendar, FaVideo, FaRobot, FaBookOpen, FaSpinner } from 'react-icons/fa';
+import {
+  FaCalendar, FaVideo, FaRobot, FaBookOpen, FaSpinner,
+  FaChevronRight, FaCheck, FaClock, FaPlus
+} from 'react-icons/fa';
 import { sessionsService } from '../../../services/api/sessions.service';
 import { normalizeSessions } from '../../../lib/sessions';
 
@@ -20,11 +23,7 @@ export default function CoachSessionsPage() {
   useEffect(() => {
     const userData = localStorage.getItem("wanacUser");
     if (userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch (e) {
-        setUser({ name: "Coach" });
-      }
+      try { setUser(JSON.parse(userData)); } catch (e) { setUser({ name: "Coach" }); }
     } else {
       setUser({ name: "Coach" });
     }
@@ -44,7 +43,6 @@ export default function CoachSessionsPage() {
         setLoading(false);
       }
     };
-
     fetchSessions();
   }, []);
 
@@ -53,245 +51,265 @@ export default function CoachSessionsPage() {
     const form = e.target;
     const title = form.title.value.trim();
     const notes = form.notes.value.trim();
-    const dateValue = form.date.value; // "YYYY-MM-DDTHH:mm"
+    const dateValue = form.date.value;
     const scheduled_at = dateValue ? new Date(dateValue).toISOString() : new Date().toISOString();
 
     try {
-      const sessionData = {
-        title: title || "Session",
-        description: notes || "",
-        scheduled_at,
-      };
-
+      const sessionData = { title: title || "Session", description: notes || "", scheduled_at };
       const newSession = await sessionsService.addSession(sessionData);
       const id = newSession?.id ?? newSession?.session?.id;
       const normalized = normalizeSessions([newSession])[0] || {
-        ...newSession,
-        title: title || "Session",
-        notes,
-        status: "Scheduled",
+        ...newSession, title: title || "Session", notes, status: "Scheduled",
       };
       setUpcomingSessions((prev) => [normalized, ...prev]);
-
       setShowBooking(false);
       setSuccessMessage("Session scheduled successfully!");
       form.reset();
-
-      setTimeout(() => setSuccessMessage(""), 2000);
-      setTimeout(() => {
-        if (id) router.push(`/coach/sessions/fullviewsession/${id}`);
-      }, 1000);
+      setTimeout(() => setSuccessMessage(""), 3000);
+      setTimeout(() => { if (id) router.push(`/coach/sessions/fullviewsession/${id}`); }, 1000);
     } catch (error) {
       console.error("Error booking session:", error);
       alert("Failed to book session. Please try again.");
     }
   };
 
-  return (
-    <div className="min-h-screen h-screen flex bg-white font-body overflow-x-hidden">
-      {/* Sidebar */}
-      <CoachSidebar />
-      {/* Main Area */}
-      <div className="flex-1 flex flex-col h-full min-h-0 transition-all duration-300">
-        {/* Top Bar */}
-        <ClientTopbar user={user || { name: "Coach" }} />
-        {/* Main Content */}
-        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 sm:px-4 md:px-4 py-3 sm:py-4 bg-gray-50">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col lg:flex-row gap-2">
-              <div className="flex-1 space-y-2">
-                {/* Header Section */}
-                <section className="bg-gradient-to-br from-[#002147] to-[#003875] rounded-lg p-3 shadow-lg relative overflow-hidden">
-                  <div className="absolute inset-0 opacity-10">
-                    <img 
-                      src="/veterancommunity.png" 
-                      alt="Background" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="relative z-10">
-                    <h1 className="text-lg font-bold text-white mb-1">Coaching Sessions Dashboard</h1>
-                    <p className="text-white/90 text-xs">Manage, book, join, and review your coaching sessions</p>
-              </div>
-            </section>
+  const statusColor = (status) => {
+    if (status === "Completed") return "bg-green-100 text-green-700";
+    if (status === "Cancelled") return "bg-red-100 text-red-700";
+    return "bg-blue-100 text-blue-700";
+  };
 
-            {/* All Scheduled Meetings */}
-                <section className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <FaCalendar className="text-orange-500 text-sm" />
-                    <h2 className="text-sm font-semibold text-[#002147]">Scheduled Sessions</h2>
-                  </div>
-                  {loading ? (
-                    <div className="flex items-center gap-2 py-4 text-gray-500 text-xs">
-                      <FaSpinner className="animate-spin" />
-                      Loading sessions…
+  const upcoming = upcomingSessions.filter(s => s.status !== "Completed").length;
+  const completed = upcomingSessions.filter(s => s.status === "Completed").length;
+
+  return (
+    <div className="min-h-screen h-screen flex bg-[#f8f9fb] font-body overflow-x-hidden">
+      <CoachSidebar />
+      <div className="flex-1 flex flex-col h-full min-h-0 transition-all duration-300">
+        <ClientTopbar user={user || { name: "Coach" }} />
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-6 md:px-8 py-6 bg-[#f8f9fb]">
+          <div className="max-w-5xl mx-auto space-y-5">
+
+            {/* Header Banner */}
+            <div className="bg-gradient-to-r from-[#002147] via-[#002d63] to-[#003875] rounded-2xl p-5 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="text-xl font-bold text-white">Coaching Sessions</h1>
+                  <p className="text-white/70 text-sm mt-1">Manage, schedule, and run your coaching sessions</p>
+                </div>
+                {!loading && (
+                  <div className="flex gap-3">
+                    <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2.5 text-center border border-white/10">
+                      <div className="text-2xl font-bold text-white">{upcoming}</div>
+                      <div className="text-[11px] text-white/65">Upcoming</div>
                     </div>
-                  ) : fetchError ? (
-                    <p className="text-amber-700 text-xs py-2">{fetchError}</p>
-                  ) : upcomingSessions.length === 0 ? (
-                    <p className="text-gray-500 text-xs py-2">No sessions scheduled yet. Schedule one below.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {upcomingSessions.slice(0, 5).map((session) => (
-                        <div
-                          key={session.id}
-                          className="border-l-4 border-[#002147] pl-3 py-2.5 bg-blue-50/50 rounded hover:bg-blue-50 transition-all duration-200 cursor-pointer group"
-                          onClick={() => router.push(`/coach/sessions/fullviewsession/${session.id}`)}
-                        >
-                          <div className="flex justify-between items-start gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-gray-900 text-xs truncate">{session.title}</p>
-                              {session.link && (
-                                <a
-                                  href={session.link}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:text-blue-800 text-[10px] mt-0.5 inline-block underline"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  Join Meeting
-                                </a>
-                              )}
-                            </div>
-                            <div className="text-right shrink-0">
-                              <p className="text-[10px] font-semibold text-gray-900">{session.date}</p>
-                              <p className="text-[10px] text-gray-600">{session.time}</p>
-                            </div>
-                          </div>
-                          <div className="flex justify-end mt-1.5">
-                            <span className="text-[10px] text-[#002147] font-medium group-hover:underline">
-                              View details →
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                      {upcomingSessions.length > 5 && (
-                        <button
-                          type="button"
-                          className="mt-2 text-[#002147] hover:text-orange-500 text-xs font-semibold transition-colors duration-150 flex items-center gap-1 group"
-                          onClick={() => router.push("/coach/sessions/all")}
-                        >
-                          View All Sessions ({upcomingSessions.length})
-                          <span className="group-hover:translate-x-1 transition-transform">→</span>
-                        </button>
+                    <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2.5 text-center border border-white/10">
+                      <div className="text-2xl font-bold text-white">{completed}</div>
+                      <div className="text-[11px] text-white/65">Completed</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Main Layout: 2/3 sessions + 1/3 sidebar */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+              {/* Sessions List Panel */}
+              <div className="lg:col-span-2">
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden h-full">
+                  <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <FaCalendar className="text-[#002147] text-sm" />
+                      <h2 className="font-semibold text-[#002147] text-sm">Scheduled Sessions</h2>
+                      {upcomingSessions.length > 0 && (
+                        <span className="bg-[#002147] text-white text-[10px] font-bold px-2 py-0.5 rounded-full ml-1">
+                          {upcomingSessions.length}
+                        </span>
                       )}
                     </div>
-                  )}
-                </section>
-
-                {/* Schedule a Session */}
-                <section className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <FaBookOpen className="text-orange-500 text-sm" />
-                    <h2 className="text-sm font-semibold text-[#002147]">Schedule a Session</h2>
+                    {upcomingSessions.length > 5 && (
+                      <button
+                        onClick={() => router.push("/coach/sessions/all")}
+                        className="text-xs text-orange-500 hover:text-orange-600 font-medium flex items-center gap-1 transition-colors"
+                      >
+                        View all <FaChevronRight className="text-[10px]" />
+                      </button>
+                    )}
                   </div>
-                  
-                  {successMessage && !showBooking && (
-                    <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded text-green-800 text-xs flex items-center gap-1">
-                      <span>✓</span>
-                      {successMessage}
-                    </div>
-                  )}
 
-                  <button
-                    className="px-4 py-1.5 bg-orange-500 text-white rounded text-xs font-medium hover:bg-orange-600 transition-colors"
-                    onClick={() => {
-                      setShowBooking(!showBooking);
-                      if (!showBooking) setSuccessMessage("");
-                    }}
-                  >
-                    {showBooking ? "Cancel" : "+ Schedule New Session"}
-                  </button>
-                  
-                  {showBooking && (
-                    <form
-                      onSubmit={handleBookSession}
-                      className="mt-3 bg-gray-50 border border-gray-200 rounded p-3"
-                    >
+                  <div className="p-4">
+                    {loading ? (
+                      <div className="flex items-center gap-2 py-10 text-gray-400 justify-center text-xs">
+                        <FaSpinner className="animate-spin" />
+                        Loading sessions…
+                      </div>
+                    ) : fetchError ? (
+                      <p className="text-amber-700 text-xs py-4 text-center">{fetchError}</p>
+                    ) : upcomingSessions.length === 0 ? (
+                      <div className="py-10 text-center">
+                        <FaCalendar className="text-gray-200 text-4xl mx-auto mb-3" />
+                        <p className="text-gray-500 text-sm font-semibold">No sessions yet</p>
+                        <p className="text-gray-400 text-xs mt-1">Use the panel on the right to schedule your first session.</p>
+                      </div>
+                    ) : (
                       <div className="space-y-2">
+                        {upcomingSessions.slice(0, 5).map((session) => (
+                          <div
+                            key={session.id}
+                            className="group flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-[#002147]/20 hover:bg-blue-50/40 transition-all cursor-pointer"
+                            onClick={() => router.push(`/coach/sessions/fullviewsession/${session.id}`)}
+                          >
+                            {/* Date Block */}
+                            <div className="shrink-0 w-11 h-11 rounded-xl bg-[#002147]/5 border border-[#002147]/10 flex flex-col items-center justify-center">
+                              <span className="text-sm font-bold text-[#002147] leading-tight">
+                                {session.date?.split("-")[2] || "—"}
+                              </span>
+                              <span className="text-[9px] text-gray-400 uppercase leading-tight">
+                                {session.date
+                                  ? new Date(session.date + "T00:00:00").toLocaleString("default", { month: "short" })
+                                  : ""}
+                              </span>
+                            </div>
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-gray-900 text-sm truncate">{session.title}</p>
+                              <p className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
+                                <FaClock className="text-[9px]" />
+                                {session.time || "Time TBD"}
+                              </p>
+                            </div>
+                            {/* Status + Arrow */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className={`text-[10px] font-medium px-2.5 py-0.5 rounded-full ${statusColor(session.status)}`}>
+                                {session.status || "Scheduled"}
+                              </span>
+                              <FaChevronRight className="text-gray-300 group-hover:text-[#002147] text-[10px] transition-colors" />
+                            </div>
+                          </div>
+                        ))}
+                        {upcomingSessions.length > 5 && (
+                          <button
+                            onClick={() => router.push("/coach/sessions/all")}
+                            className="w-full mt-1 py-2.5 text-xs text-center text-[#002147] hover:text-orange-500 font-medium border border-dashed border-gray-200 rounded-xl hover:border-orange-300 transition-all"
+                          >
+                            View all {upcomingSessions.length} sessions →
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Action Sidebar */}
+              <div className="space-y-4">
+
+                {/* Schedule Session Card */}
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-3.5 border-b border-gray-100">
+                    <FaBookOpen className="text-orange-500 text-sm" />
+                    <h2 className="font-semibold text-[#002147] text-sm">Schedule Session</h2>
+                  </div>
+                  <div className="p-4">
+                    {successMessage && (
+                      <div className="mb-3 p-2.5 bg-green-50 border border-green-200 rounded-xl text-green-800 text-xs flex items-center gap-1.5">
+                        <FaCheck className="text-green-500 shrink-0" />
+                        {successMessage}
+                      </div>
+                    )}
+                    {!showBooking ? (
+                      <button
+                        onClick={() => { setShowBooking(true); setSuccessMessage(""); }}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-orange-500 text-white rounded-xl text-xs font-semibold hover:bg-orange-600 transition-colors shadow-sm"
+                      >
+                        <FaPlus className="text-[11px]" /> New Session
+                      </button>
+                    ) : (
+                      <form onSubmit={handleBookSession} className="space-y-3">
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Session Title
-                          </label>
+                          <label className="block text-[11px] font-semibold text-gray-600 mb-1.5">Session Title *</label>
                           <input
                             name="title"
-                            placeholder="Enter session title"
+                            placeholder="e.g. Career Planning"
                             required
-                            className="w-full border border-gray-300 rounded px-2 py-1 text-xs focus:border-[#002147] focus:ring-1 focus:ring-[#002147]/20 focus:outline-none transition-all"
+                            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:border-[#002147] focus:ring-1 focus:ring-[#002147]/20 focus:outline-none transition-all bg-gray-50 focus:bg-white"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Description
-                          </label>
+                          <label className="block text-[11px] font-semibold text-gray-600 mb-1.5">Description</label>
                           <textarea
                             name="notes"
-                            placeholder="Add session description (optional)"
-                            className="w-full border border-gray-300 rounded px-2 py-1 text-xs focus:border-[#002147] focus:ring-1 focus:ring-[#002147]/20 focus:outline-none transition-all"
+                            placeholder="Add notes (optional)"
                             rows={2}
+                            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:border-[#002147] focus:ring-1 focus:ring-[#002147]/20 focus:outline-none transition-all bg-gray-50 focus:bg-white resize-none"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Date & Time
-                          </label>
+                          <label className="block text-[11px] font-semibold text-gray-600 mb-1.5">Date & Time *</label>
                           <input
                             name="date"
                             type="datetime-local"
                             required
                             min={minDate}
-                            className="w-full border border-gray-300 rounded px-2 py-1 text-xs focus:border-[#002147] focus:ring-1 focus:ring-[#002147]/20 focus:outline-none transition-all"
+                            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:border-[#002147] focus:ring-1 focus:ring-[#002147]/20 focus:outline-none transition-all bg-gray-50 focus:bg-white"
                           />
                         </div>
-                      </div>
-                      <div className="mt-3 flex gap-2">
-                        <button
-                          type="submit"
-                          className="px-4 py-1.5 bg-[#002147] text-white rounded text-xs font-medium hover:bg-[#003875] transition-colors"
-                        >
-                          Confirm
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShowBooking(false)}
-                          className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded text-xs font-medium hover:bg-gray-300 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </section>
-                {/* Live Video Meeting & AI Insights - Combined in grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <section className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <FaVideo className="text-blue-500 text-sm" />
-                      <h2 className="text-sm font-semibold text-[#002147]">Live Video</h2>
-                    </div>
-                    <p className="text-gray-600 text-[10px] mb-2">
-                      Start a live video session
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            type="submit"
+                            className="flex-1 py-2.5 bg-[#002147] text-white rounded-xl text-xs font-semibold hover:bg-[#003875] transition-colors shadow-sm"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowBooking(false)}
+                            className="flex-1 py-2.5 bg-gray-100 text-gray-600 rounded-xl text-xs font-medium hover:bg-gray-200 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                </div>
+
+                {/* Live Video Card */}
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-3.5 border-b border-gray-100">
+                    <FaVideo className="text-blue-500 text-sm" />
+                    <h2 className="font-semibold text-[#002147] text-sm">Live Video</h2>
+                  </div>
+                  <div className="p-4">
+                    <p className="text-[11px] text-gray-500 mb-3 leading-relaxed">
+                      Start a live video coaching session instantly without scheduling.
                     </p>
                     <button
                       onClick={() => router.push("/coach/sessions/live-session")}
-                      className="px-4 py-1.5 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors w-full"
+                      className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-1.5"
                     >
-                      Start Meeting
+                      <FaVideo className="text-[11px]" /> Start Meeting
                     </button>
-                  </section>
-
-                  <section className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <FaRobot className="text-purple-500 text-sm" />
-                      <h2 className="text-sm font-semibold text-[#002147]">AI Insights</h2>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100 rounded p-2">
-                      <p className="text-gray-700 text-[10px]">
-                        Upload recordings for AI-generated transcripts and insights
-                      </p>
-                    </div>
-                  </section>
+                  </div>
                 </div>
+
+                {/* AI Insights Card */}
+                <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 border border-purple-100 rounded-2xl p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FaRobot className="text-purple-500 text-sm" />
+                    <h2 className="font-semibold text-[#002147] text-sm">AI Insights</h2>
+                  </div>
+                  <p className="text-[11px] text-gray-600 leading-relaxed">
+                    Upload session recordings to generate AI-powered transcripts and personalized coaching insights.
+                  </p>
+                  <div className="mt-3 px-3 py-2 bg-purple-100 rounded-xl text-[10px] text-purple-700 font-semibold text-center tracking-wide uppercase">
+                    Coming Soon
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>

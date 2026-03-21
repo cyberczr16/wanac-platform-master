@@ -1,3 +1,4 @@
+@config "../../tailwind.config.js";
 @import "tailwindcss";
 @import "./responsive-utils.css";
 @import "tw-animate-css";
@@ -41,6 +42,14 @@
   --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
   --sidebar-border: oklch(0.928 0.006 264.531);
   --sidebar-ring: oklch(0.707 0.022 261.325);
+  /* Breakout-style shell and cards */
+  --core-tertiary: #ffffff;
+  --core-on-tertiary: #1f2937;
+  --surface: #f3f4f6;
+  --breakout-accent: #ffca00;
+  --breakout-accent-hover: #ffd633;
+  --breakout-muted: #f8f8f8;
+  --breakout-border: #e5e7eb;
 }
 
 /* Tailwind Theme Token Aliases */
@@ -78,6 +87,13 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-core-tertiary: var(--core-tertiary);
+  --color-core-on-tertiary: var(--core-on-tertiary);
+  --color-surface: var(--surface);
+  --color-breakout-accent: var(--breakout-accent);
+  --color-breakout-accent-hover: var(--breakout-accent-hover);
+  --color-breakout-muted: var(--breakout-muted);
+  --color-breakout-border: var(--breakout-border);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -103,6 +119,11 @@
   src: url('/fonts/whitney-regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
+}
+
+/* LiveKit: hide tile overlay metadata (mic/network icons, name bar) */
+.lk-participant-metadata {
+  display: none !important;
 }
 
 @font-face {

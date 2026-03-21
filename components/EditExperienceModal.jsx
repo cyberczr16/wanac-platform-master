@@ -1,476 +1,671 @@
 "use client";
 
-import React, { useCallback, useRef, useEffect, useState, memo } from 'react';
-import PropTypes from 'prop-types';
+import React, { useCallback, useRef, useEffect, useState, memo } from "react";
+import PropTypes from "prop-types";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Trash2, Plus, Upload, RefreshCw, CheckCircle2, Loader2, AlertCircle, X, Save } from 'lucide-react';
+  Trash2,
+  Plus,
+  Upload,
+  CheckCircle2,
+  Loader2,
+  AlertCircle,
+  X,
+  Save,
+  RefreshCw,
+  Clock,
+  Link as LinkIcon,
+  Image,
+  FileText,
+  Film,
+  Paperclip,
+  User,
+  Copy,
+  Check,
+  Video,
+  List,
+  BookOpen,
+  Settings,
+} from "lucide-react";
 
-// Constants
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const DEBOUNCE_DELAY = 500;
+/* ─────────────────────────────────────────
+   Constants & Utilities
+───────────────────────────────────────── */
 
-// URL validation utility
-function isValidUrl(string) {
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const DEBOUNCE_DELAY = 600;
+
+function isValidUrl(str) {
   try {
-    const url = new URL(string);
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch (_) {
+    const u = new URL(str);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
     return false;
   }
 }
 
-// Debounce utility with cleanup
+/** Generate a LiveKit-compatible room name for an experience */
+function generateLivekitRoomName(fireteamId, experienceId) {
+  const uid =
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID().replace(/-/g, "").slice(0, 10)
+      : Date.now().toString(36);
+  return `wanac-ft${fireteamId}-exp${experienceId}-${uid}`;
+}
+
 function useDebounce(callback, delay) {
-  const timeoutRef = useRef(null);
-  const callbackRef = useRef(callback);
+  const timerRef = useRef(null);
+  const cbRef = useRef(callback);
 
   useEffect(() => {
-    callbackRef.current = callback;
+    cbRef.current = callback;
   }, [callback]);
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
   return useCallback((...args) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      callbackRef.current(...args);
-    }, delay);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => cbRef.current(...args), delay);
   }, [delay]);
 }
 
-// Sub-component for Agenda Step
-const AgendaStepItem = memo(function AgendaStepItem({
-  step,
-  idx,
-  onUpdate,
-  onDelete,
-  onSubmit,
-  canDelete,
-  experienceService,
-  setError
-}) {
+/* ─────────────────────────────────────────
+   Shared sub-components
+───────────────────────────────────────── */
+
+const inputCls = "w-full px-3 py-2 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 transition-shadow";
+
+function Field({ label, required, hint, error, children }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-gray-700 mb-1">
+        {label}
+        {required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+      {children}
+      {error && (
+        <p className="flex items-center gap-1 text-xs text-red-500 mt-1">
+          <AlertCircle className="w-3 h-3 flex-shrink-0" />{error}
+        </p>
+      )}
+      {!error && hint && <p className="text-xs text-gray-400 mt-0.5">{hint}</p>}
+    </div>
+  );
+}
+
+function Avatar({ name, size = "sm" }) {
+  const initials = (name || "?")
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  const sz = size === "sm" ? "w-7 h-7 text-xs" : "w-9 h-9 text-sm";
+  const colors = ["bg-blue-100 text-blue-700", "bg-amber-100 text-amber-700", "bg-green-100 text-green-700", "bg-purple-100 text-purple-700", "bg-rose-100 text-rose-700"];
+  const color = colors[(name || "").charCodeAt(0) % colors.length];
+  return (
+    <div className={`${sz} ${color} rounded-full flex items-center justify-center font-bold flex-shrink-0`}>
+      {initials}
+    </div>
+  );
+}
+
+function getExhibitIcon(type) {
+  switch (type) {
+    case "image": return <Image className="w-4 h-4" />;
+    case "video": return <Film className="w-4 h-4" />;
+    case "document": return <FileText className="w-4 h-4" />;
+    case "link": return <LinkIcon className="w-4 h-4" />;
+    default: return <Paperclip className="w-4 h-4" />;
+  }
+}
+
+/* ─────────────────────────────────────────
+   AgendaStepItem
+───────────────────────────────────────── */
+
+const AgendaStepItem = memo(function AgendaStepItem({ step, idx, onUpdate, onDelete, onSubmit, experienceService, setError }) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const isPersisted = !!step.id;
 
-  const debouncedUpdate = useDebounce(async (field, value) => {
-    // Only auto-save if this step has already been persisted
-    if (step.id) {
-      setIsSaving(true);
-      setSaveSuccess(false);
-      try {
-        await experienceService.updateAgendaStep(step.id, { [field]: value });
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000);
-      } catch (error) {
-        console.error('Failed to update agenda step:', error);
-        setError(`Failed to update agenda step: ${error.message}`);
-      } finally {
-        setIsSaving(false);
-      }
+  const debouncedSave = useDebounce(async (field, value) => {
+    if (!step.id) return;
+    setIsSaving(true);
+    setSaveSuccess(false);
+    try {
+      await experienceService.updateAgendaStep(step.id, { [field]: value });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
+    } catch (err) {
+      setError("Failed to update step: " + err.message);
+    } finally {
+      setIsSaving(false);
     }
   }, DEBOUNCE_DELAY);
 
-  const handleSubmitClick = async () => {
-    setIsSubmitting(true);
-    try {
-      await onSubmit(idx);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
-    <div className={`p-4 border rounded-lg transition-colors ${isPersisted ? 'border-green-200 bg-green-50/30 hover:border-green-300' : 'border-amber-300 bg-amber-50 hover:border-amber-400'}`}>
-      {isPersisted ? (
-        <div className="flex items-center gap-1.5 mb-3 text-xs text-green-700 font-medium">
-          <CheckCircle2 className="h-3.5 w-3.5" />
-          Saved — changes auto-save as you type
+    <div className={`group flex items-center gap-3 p-3 rounded-xl border transition-colors ${isPersisted ? "bg-white border-gray-100" : "bg-amber-50 border-amber-200"}`}>
+      {/* step number */}
+      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-bold flex items-center justify-center">
+        {idx + 1}
+      </span>
+
+      {/* fields */}
+      <div className="flex-1 min-w-0 grid grid-cols-2 gap-2">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Step title"
+            value={step.title || ""}
+            onChange={(e) => { onUpdate(idx, "title", e.target.value); debouncedSave("title", e.target.value); }}
+            className={`${inputCls} pr-7`}
+          />
+          {isSaving && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 animate-spin text-blue-400" />}
+          {saveSuccess && <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-green-500" />}
         </div>
-      ) : (
-        <div className="flex items-center gap-1.5 mb-3 text-xs text-amber-700 font-medium">
-          <AlertCircle className="h-3.5 w-3.5" />
-          Unsaved — fill in the fields and click Submit to save
-        </div>
-      )}
-      <div className="flex gap-3">
-        <div className="flex-1 space-y-3">
-          <div className="relative">
-            <Input
-              placeholder="Step Title"
-              value={step.title || ''}
-              onChange={(e) => {
-                const v = e.target.value;
-                onUpdate(idx, 'title', v);
-                debouncedUpdate('title', v);
-              }}
-              className="bg-white"
-              aria-label={`Agenda step ${idx + 1} title`}
-            />
-            {isSaving && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-blue-500" />
-            )}
-            {saveSuccess && (
-              <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
-            )}
-          </div>
-          <Input
-            placeholder="Duration (e.g., 15 minutes)"
-            value={step.duration || ''}
-            onChange={(e) => {
-              const v = e.target.value;
-              onUpdate(idx, 'duration', v);
-              debouncedUpdate('duration', v);
-            }}
-            className="bg-white"
-            aria-label={`Agenda step ${idx + 1} duration`}
+        <div className="relative flex items-center">
+          <Clock className="absolute left-2.5 w-3.5 h-3.5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Duration (e.g. 10 min)"
+            value={step.duration || ""}
+            onChange={(e) => { onUpdate(idx, "duration", e.target.value); debouncedSave("duration", e.target.value); }}
+            className={`${inputCls} pl-8`}
           />
         </div>
-        <div className="flex flex-col gap-2 shrink-0">
-          {!isPersisted && (
-            <Button
-              type="button"
-              variant="default"
-              size="icon"
-              onClick={handleSubmitClick}
-              disabled={isSubmitting || (!step.title?.trim() && !step.duration?.trim())}
-              className="bg-green-600 hover:bg-green-700 text-white"
-              aria-label={`Submit agenda step ${step.title || idx + 1}`}
-              title="Submit to save"
-            >
-              {isSubmitting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
-            </Button>
-          )}
-          <Button
-            type="button"
-            variant="destructive"
-            size="icon"
-            onClick={onDelete}
-            disabled={!canDelete}
-            aria-label={`Delete agenda step ${step.title || idx + 1}`}
+      </div>
+
+      {/* actions */}
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        {!isPersisted && (
+          <button
+            onClick={async () => { setIsSubmitting(true); try { await onSubmit(idx); } finally { setIsSubmitting(false); } }}
+            disabled={isSubmitting || !step.title?.trim()}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white rounded-lg text-xs font-semibold transition-colors"
           >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+            {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+            Save
+          </button>
+        )}
+        <button
+          onClick={onDelete}
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   );
 });
 
 AgendaStepItem.propTypes = {
-  step: PropTypes.shape({
-    id: PropTypes.string,
-    _tempId: PropTypes.number,
-    title: PropTypes.string,
-    duration: PropTypes.string,
-  }).isRequired,
+  step: PropTypes.object.isRequired,
   idx: PropTypes.number.isRequired,
   onUpdate: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
-  canDelete: PropTypes.bool.isRequired,
   experienceService: PropTypes.object.isRequired,
   setError: PropTypes.func.isRequired,
 };
 
-// Sub-component for Exhibit
-const ExhibitItem = memo(function ExhibitItem({
-  exhibit,
-  idx,
-  onUpdate,
-  onDelete,
-  onSubmit,
-  canDelete,
-  experienceService,
-  setError
-}) {
+/* ─────────────────────────────────────────
+   ExhibitItem
+───────────────────────────────────────── */
+
+const ExhibitItem = memo(function ExhibitItem({ exhibit, idx, onUpdate, onDelete, onSubmit, experienceService, setError }) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [linkError, setLinkError] = useState('');
+  const [linkError, setLinkError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const isPersisted = !!exhibit.id;
 
-  const debouncedUpdate = useDebounce(async (field, value) => {
-    // Only auto-save if this exhibit has already been persisted
-    if (exhibit.id) {
-      setIsSaving(true);
-      setSaveSuccess(false);
-      try {
-        await experienceService.updateExhibit(exhibit.id, { [field]: value });
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000);
-      } catch (error) {
-        console.error('Failed to update exhibit:', error);
-        setError(`Failed to update exhibit: ${error.message}`);
-      } finally {
-        setIsSaving(false);
-      }
+  const debouncedSave = useDebounce(async (field, value) => {
+    if (!exhibit.id) return;
+    setIsSaving(true);
+    setSaveSuccess(false);
+    try {
+      await experienceService.updateExhibit(exhibit.id, { [field]: value });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
+    } catch (err) {
+      setError("Failed to update exhibit: " + err.message);
+    } finally {
+      setIsSaving(false);
     }
   }, DEBOUNCE_DELAY);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > MAX_FILE_SIZE) {
-      setError(`File size must be less than ${MAX_FILE_SIZE / 1024 / 1024}MB`);
-      e.target.value = '';
-      return;
-    }
-
-    const validTypes = {
-      image: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
-      video: ['video/mp4', 'video/webm', 'video/ogg'],
-      document: [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-powerpoint',
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'text/plain'
-      ]
-    };
-
-    if (exhibit.type in validTypes && !validTypes[exhibit.type].includes(file.type)) {
-      setError(`Invalid file type for ${exhibit.type}. Please select a valid file.`);
-      e.target.value = '';
-      return;
-    }
-
-    onUpdate(idx, 'file', file);
+    if (file.size > MAX_FILE_SIZE) { setError(`File must be under ${MAX_FILE_SIZE / 1024 / 1024}MB`); e.target.value = ""; return; }
+    onUpdate(idx, "file", file);
   };
 
   const handleLinkChange = (e) => {
-    const newLink = e.target.value;
-    setLinkError('');
-
-    if (newLink && !isValidUrl(newLink)) {
-      setLinkError('Please enter a valid URL (starting with http:// or https://)');
-    }
-
-    onUpdate(idx, 'link', newLink);
-    debouncedUpdate('link', newLink);
-  };
-
-  const handleSubmitClick = async () => {
-    setIsSubmitting(true);
-    try {
-      await onSubmit(idx);
-    } finally {
-      setIsSubmitting(false);
-    }
+    const v = e.target.value;
+    setLinkError(v && !isValidUrl(v) ? "Please enter a valid URL (https://…)" : "");
+    onUpdate(idx, "link", v);
+    debouncedSave("link", v);
   };
 
   return (
-    <div className={`p-4 border rounded-lg transition-colors ${isPersisted ? 'border-green-200 bg-green-50/30 hover:border-green-300' : 'border-amber-300 bg-amber-50 hover:border-amber-400'}`}>
-      {isPersisted ? (
-        <div className="flex items-center gap-1.5 mb-3 text-xs text-green-700 font-medium">
-          <CheckCircle2 className="h-3.5 w-3.5" />
-          Saved — changes auto-save as you type
-        </div>
-      ) : (
-        <div className="flex items-center gap-1.5 mb-3 text-xs text-amber-700 font-medium">
-          <AlertCircle className="h-3.5 w-3.5" />
-          Unsaved — fill in the fields and click Submit to save
-        </div>
-      )}
-      <div className="flex gap-3">
-        <div className="flex-1 space-y-3">
-          <div className="relative">
-            <Input
-              placeholder="Exhibit Name"
-              value={exhibit.name || ''}
-              onChange={(e) => {
-                const v = e.target.value;
-                onUpdate(idx, 'name', v);
-                debouncedUpdate('name', v);
-              }}
-              required
-              className="bg-white"
-              aria-label={`Exhibit ${idx + 1} name`}
-            />
-            {isSaving && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-blue-500" />
-            )}
-            {saveSuccess && (
-              <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
-            )}
+    <div className={`p-4 rounded-xl border transition-colors ${isPersisted ? "bg-white border-gray-100" : "bg-amber-50 border-amber-200"}`}>
+      {/* header row */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className={`p-1.5 rounded-lg ${isPersisted ? "bg-gray-50 text-gray-500" : "bg-amber-100 text-amber-600"}`}>
+            {getExhibitIcon(exhibit.type)}
           </div>
-
-          <select
-            value={exhibit.type || 'link'}
-            onChange={(e) => {
-              const newType = e.target.value;
-              onUpdate(idx, 'type', newType, true);
-              if (exhibit.id) {
-                experienceService.updateExhibit(exhibit.id, { type: newType }).catch(error => {
-                  console.error('Failed to update exhibit type:', error);
-                  setError(`Failed to update exhibit type: ${error.message}`);
-                });
-              }
-            }}
-            className="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            aria-label={`Exhibit ${idx + 1} type`}
-          >
-            <option value="link">Link</option>
-            <option value="document">Document</option>
-            <option value="image">Image</option>
-            <option value="video">Video</option>
-          </select>
-
-          {exhibit.type === 'link' ? (
-            <div>
-              <Input
-                placeholder="https://example.com"
-                value={exhibit.link || ''}
-                onChange={handleLinkChange}
-                type="url"
-                className={`bg-white ${linkError ? 'border-red-500' : ''}`}
-                aria-label={`Exhibit ${idx + 1} URL`}
-                aria-invalid={!!linkError}
-              />
-              {linkError && (
-                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  {linkError}
-                </p>
-              )}
-            </div>
-          ) : (
-            <div>
-              <label
-                className="flex items-center justify-center w-full h-9 px-4 border border-input rounded-md bg-white hover:bg-gray-50 cursor-pointer transition-colors"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.target.querySelector('input[type="file"]')?.click();
-                  }
-                }}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                <span className="text-sm">
-                  {exhibit.file ? exhibit.file.name : `Upload ${exhibit.type}`}
-                </span>
-                <input
-                  type="file"
-                  accept={
-                    exhibit.type === 'image' ? 'image/*' :
-                    exhibit.type === 'video' ? 'video/*' :
-                    exhibit.type === 'document' ? '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt' : '*/*'
-                  }
-                  hidden
-                  onChange={handleFileChange}
-                  aria-label={`Upload ${exhibit.type} for exhibit ${idx + 1}`}
-                />
-              </label>
-              {exhibit.file && (
-                <p className="text-xs text-gray-500 mt-2">
-                  Selected: {exhibit.file.name} ({(exhibit.file.size / 1024 / 1024).toFixed(2)} MB)
-                </p>
-              )}
-            </div>
-          )}
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Exhibit name"
+              value={exhibit.name || ""}
+              onChange={(e) => { onUpdate(idx, "name", e.target.value); debouncedSave("name", e.target.value); }}
+              className={`${inputCls} pr-7`}
+            />
+            {isSaving && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 animate-spin text-blue-400" />}
+            {saveSuccess && <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-green-500" />}
+          </div>
         </div>
-        <div className="flex flex-col gap-2 shrink-0">
+
+        {/* type selector */}
+        <select
+          value={exhibit.type || "link"}
+          onChange={(e) => {
+            const t = e.target.value;
+            onUpdate(idx, "type", t, true);
+            if (exhibit.id) experienceService.updateExhibit(exhibit.id, { type: t }).catch((err) => setError(err.message));
+          }}
+          className="px-2.5 py-2 border border-gray-200 rounded-xl bg-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-gray-300"
+        >
+          <option value="link">Link</option>
+          <option value="image">Image</option>
+          <option value="video">Video</option>
+          <option value="document">Document</option>
+        </select>
+
+        {/* actions */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {!isPersisted && (
-            <Button
-              type="button"
-              variant="default"
-              size="icon"
-              onClick={handleSubmitClick}
+            <button
+              onClick={async () => { setIsSubmitting(true); try { await onSubmit(idx); } finally { setIsSubmitting(false); } }}
               disabled={isSubmitting || !exhibit.name?.trim()}
-              className="bg-green-600 hover:bg-green-700 text-white"
-              aria-label={`Submit exhibit ${exhibit.name || idx + 1}`}
-              title="Submit to save"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white rounded-lg text-xs font-semibold transition-colors"
             >
-              {isSubmitting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
-            </Button>
+              {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+              Save
+            </button>
           )}
-          <Button
-            type="button"
-            variant="destructive"
-            size="icon"
-            onClick={onDelete}
-            disabled={!canDelete}
-            aria-label={`Delete exhibit ${exhibit.name || idx + 1}`}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <button onClick={onDelete} className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors">
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
+
+      {/* link / file field */}
+      {exhibit.type === "link" ? (
+        <div>
+          <div className="relative flex items-center">
+            <LinkIcon className="absolute left-3 w-3.5 h-3.5 text-gray-400" />
+            <input
+              type="url"
+              placeholder="https://example.com"
+              value={exhibit.link || ""}
+              onChange={handleLinkChange}
+              className={`${inputCls} pl-8 ${linkError ? "border-red-400" : ""}`}
+            />
+          </div>
+          {linkError && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{linkError}</p>}
+        </div>
+      ) : (
+        <label className="flex items-center justify-center gap-2 w-full h-9 border border-dashed border-gray-300 rounded-xl bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors text-sm text-gray-500">
+          <Upload className="w-3.5 h-3.5" />
+          {exhibit.file ? exhibit.file.name : `Upload ${exhibit.type}`}
+          <input
+            type="file"
+            hidden
+            accept={exhibit.type === "image" ? "image/*" : exhibit.type === "video" ? "video/*" : ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"}
+            onChange={handleFileChange}
+          />
+        </label>
+      )}
+      {!isPersisted && (
+        <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" />
+          Unsaved — click Save to persist
+        </p>
+      )}
     </div>
   );
 });
 
 ExhibitItem.propTypes = {
-  exhibit: PropTypes.shape({
-    id: PropTypes.string,
-    _tempId: PropTypes.number,
-    name: PropTypes.string,
-    type: PropTypes.string,
-    link: PropTypes.string,
-    file: PropTypes.object,
-  }).isRequired,
+  exhibit: PropTypes.object.isRequired,
   idx: PropTypes.number.isRequired,
   onUpdate: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
-  canDelete: PropTypes.bool.isRequired,
   experienceService: PropTypes.object.isRequired,
   setError: PropTypes.func.isRequired,
 };
 
-// Empty state component
-const EmptyState = memo(function EmptyState({ title, description, onAdd, buttonText }) {
+/* ─────────────────────────────────────────
+   EmptyState
+───────────────────────────────────────── */
+
+function EmptyState({ icon: Icon, description, onAdd, buttonText }) {
   return (
-    <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-      <p className="text-sm text-gray-500 mb-4">{description}</p>
-      <Button type="button" variant="outline" size="sm" onClick={onAdd}>
-        <Plus className="h-4 w-4 mr-2" />
-        {buttonText}
-      </Button>
+    <div className="flex flex-col items-center justify-center py-10 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
+      {Icon && <div className="w-10 h-10 rounded-2xl bg-gray-100 flex items-center justify-center mb-3 text-gray-400"><Icon className="w-5 h-5" /></div>}
+      <p className="text-sm text-gray-400 mb-4">{description}</p>
+      <button onClick={onAdd} className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 hover:bg-gray-700 text-white rounded-full text-xs font-semibold transition-colors">
+        <Plus className="w-3.5 h-3.5" />{buttonText}
+      </button>
     </div>
   );
-});
+}
 
-EmptyState.propTypes = {
-  title: PropTypes.string,
-  description: PropTypes.string.isRequired,
-  onAdd: PropTypes.func.isRequired,
-  buttonText: PropTypes.string.isRequired,
-};
+/* ─────────────────────────────────────────
+   TAB: Details
+───────────────────────────────────────── */
 
-// Main Modal Component
+function DetailsTab({ data, setData, validationErrors, clearValidationErrors }) {
+  return (
+    <div className="space-y-5">
+      <Field label="Experience Title" required error={validationErrors.title}>
+        <input
+          type="text"
+          value={data.title}
+          onChange={(e) => { setData((p) => ({ ...p, title: e.target.value })); clearValidationErrors(); }}
+          placeholder="e.g., Customer Discovery Workshop"
+          className={`${inputCls} ${validationErrors.title ? "border-red-400" : ""}`}
+        />
+      </Field>
+
+      <Field label="Experience Description" required error={validationErrors.experience} hint="Describe what participants will learn and do during this experience">
+        <textarea
+          rows={6}
+          value={data.experience}
+          onChange={(e) => { setData((p) => ({ ...p, experience: e.target.value })); clearValidationErrors(); }}
+          placeholder="Describe the experience content, learning activities, and expected outcomes…"
+          className={`${inputCls} resize-none ${validationErrors.experience ? "border-red-400" : ""}`}
+        />
+      </Field>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   TAB: Agenda
+───────────────────────────────────────── */
+
+function AgendaTab({ data, setData, handleAddAgendaStep, handleSubmitAgendaStep, experienceService, setError, selectedExperienceToEdit }) {
+  const [isAdding, setIsAdding] = useState(false);
+
+  const handleUpdate = useCallback((idx, field, value) => {
+    setData((p) => ({ ...p, agenda: p.agenda.map((s, i) => i === idx ? { ...s, [field]: value } : s) }));
+  }, [setData]);
+
+  const handleDelete = useCallback(async (idx, step) => {
+    if (step.id) {
+      try { await experienceService.deleteAgendaStep(step.id); }
+      catch (err) { setError("Failed to delete step: " + (err.response?.data?.message || err.message)); return; }
+    }
+    setData((p) => ({ ...p, agenda: p.agenda.filter((_, i) => i !== idx) }));
+  }, [setData, experienceService, setError]);
+
+  const totalDuration = data.agenda.reduce((acc, s) => {
+    const match = (s.duration || "").match(/(\d+)/);
+    return acc + (match ? parseInt(match[1]) : 0);
+  }, 0);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <p className="text-xs text-gray-400">
+            {data.agenda.length} step{data.agenda.length !== 1 ? "s" : ""}
+            {totalDuration > 0 && ` · ${totalDuration} min total`}
+          </p>
+          {data.agenda.filter((s) => !s.id).length > 0 && (
+            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
+              {data.agenda.filter((s) => !s.id).length} unsaved
+            </span>
+          )}
+        </div>
+        <button
+          onClick={async () => {
+            if (!selectedExperienceToEdit) return;
+            setIsAdding(true);
+            try { await handleAddAgendaStep(); }
+            catch (err) { setError("Failed to add step: " + err.message); }
+            finally { setIsAdding(false); }
+          }}
+          disabled={isAdding}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-gray-700 disabled:opacity-50 text-white rounded-full text-xs font-semibold transition-colors"
+        >
+          {isAdding ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+          Add Step
+        </button>
+      </div>
+
+      {data.agenda.length > 0 ? (
+        <div className="space-y-2">
+          {data.agenda.map((step, idx) => (
+            <AgendaStepItem
+              key={step.id || step._tempId || idx}
+              step={step}
+              idx={idx}
+              onUpdate={handleUpdate}
+              onDelete={() => handleDelete(idx, step)}
+              onSubmit={handleSubmitAgendaStep}
+              experienceService={experienceService}
+              setError={setError}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          icon={List}
+          description="No agenda steps yet. Build your session flow."
+          onAdd={async () => {
+            if (!selectedExperienceToEdit) return;
+            setIsAdding(true);
+            try { await handleAddAgendaStep(); }
+            catch (err) { setError("Failed to add step: " + err.message); }
+            finally { setIsAdding(false); }
+          }}
+          buttonText="Add First Step"
+        />
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   TAB: Exhibits
+───────────────────────────────────────── */
+
+function ExhibitsTab({ data, setData, handleAddExhibit, handleSubmitExhibit, experienceService, setError }) {
+  const handleUpdate = useCallback((idx, field, value, resetFields = false) => {
+    setData((p) => ({
+      ...p,
+      exhibits: p.exhibits.map((ex, i) => {
+        if (i !== idx) return ex;
+        if (resetFields && field === "type") return { ...ex, type: value, file: null, link: value === "link" ? ex.link : "" };
+        return { ...ex, [field]: value };
+      }),
+    }));
+  }, [setData]);
+
+  const handleDelete = useCallback(async (idx, exhibit) => {
+    if (exhibit.id) {
+      try { await experienceService.deleteExhibit(exhibit.id); }
+      catch (err) { setError("Failed to delete exhibit: " + err.message); return; }
+    }
+    setData((p) => ({ ...p, exhibits: p.exhibits.filter((_, i) => i !== idx) }));
+  }, [setData, experienceService, setError]);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs text-gray-400">
+          {data.exhibits.length} exhibit{data.exhibits.length !== 1 ? "s" : ""}
+          {data.exhibits.filter((e) => !e.id).length > 0 && (
+            <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
+              {data.exhibits.filter((e) => !e.id).length} unsaved
+            </span>
+          )}
+        </p>
+        <button
+          onClick={handleAddExhibit}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-gray-700 text-white rounded-full text-xs font-semibold transition-colors"
+        >
+          <Plus className="w-3.5 h-3.5" /> Add Exhibit
+        </button>
+      </div>
+
+      {data.exhibits.length > 0 ? (
+        <div className="space-y-3">
+          {data.exhibits.map((exhibit, idx) => (
+            <ExhibitItem
+              key={exhibit.id || exhibit._tempId || idx}
+              exhibit={exhibit}
+              idx={idx}
+              onUpdate={handleUpdate}
+              onDelete={() => handleDelete(idx, exhibit)}
+              onSubmit={handleSubmitExhibit}
+              experienceService={experienceService}
+              setError={setError}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          icon={BookOpen}
+          description="No exhibits yet. Add links, documents, or images."
+          onAdd={handleAddExhibit}
+          buttonText="Add First Exhibit"
+        />
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   TAB: Settings (Facilitator + Room)
+───────────────────────────────────────── */
+
+function SettingsTab({ data, setData, members, selectedExperienceToEdit, id: fireteamId }) {
+  const [copied, setCopied] = useState(false);
+
+  const selectedMember = members.find((m) => {
+    const uid = String(m.client?.user?.id || m.user_id || m.id);
+    return uid === String(data.videoAdminId);
+  });
+  const selectedName = selectedMember
+    ? (selectedMember.client?.user?.name || selectedMember.user?.name || selectedMember.name || "Member")
+    : null;
+
+  const handleCopyRoom = async () => {
+    try {
+      await navigator.clipboard.writeText(data.link || "");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  };
+
+  const handleGenerateRoom = () => {
+    const expId = selectedExperienceToEdit?.id || "new";
+    const roomName = generateLivekitRoomName(fireteamId, expId);
+    setData((p) => ({ ...p, link: roomName }));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Meeting Facilitator */}
+      <div>
+        <p className="text-xs font-semibold text-gray-700 mb-3 flex items-center gap-1.5">
+          <User className="w-3.5 h-3.5" /> Meeting Facilitator
+        </p>
+
+        {selectedName && (
+          <div className="flex items-center gap-2.5 mb-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+            <Avatar name={selectedName} size="sm" />
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{selectedName}</p>
+              <p className="text-xs text-gray-400">Current facilitator</p>
+            </div>
+          </div>
+        )}
+
+        <select
+          value={data.videoAdminId || ""}
+          onChange={(e) => setData((p) => ({ ...p, videoAdminId: e.target.value }))}
+          className={inputCls}
+        >
+          <option value="">— No facilitator —</option>
+          {members.map((m) => {
+            const uid = String(m.client?.user?.id || m.user_id || m.id);
+            const name = m.client?.user?.name || m.user?.name || m.name || `User #${uid}`;
+            return <option key={m.id} value={uid}>{name}</option>;
+          })}
+        </select>
+        <p className="text-xs text-gray-400 mt-1.5">The facilitator controls the meeting flow and has host permissions.</p>
+      </div>
+
+      {/* LiveKit Room Name */}
+      <div>
+        <p className="text-xs font-semibold text-gray-700 mb-3 flex items-center gap-1.5">
+          <Video className="w-3.5 h-3.5" /> LiveKit Room Name
+        </p>
+
+        <div className="flex gap-2 mb-2">
+          <div className="flex-1 flex items-center px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl font-mono text-xs text-gray-700 overflow-hidden">
+            <span className="truncate">{data.link || <span className="text-gray-400 italic">No room assigned</span>}</span>
+          </div>
+          <button
+            onClick={handleCopyRoom}
+            disabled={!data.link}
+            title="Copy room name"
+            className="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-gray-900 hover:bg-gray-700 disabled:opacity-40 text-white rounded-xl transition-colors"
+          >
+            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+          <button
+            onClick={handleGenerateRoom}
+            title="Generate new room name"
+            className="flex-shrink-0 w-9 h-9 flex items-center justify-center border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-xl transition-colors"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-700 space-y-1">
+          <p className="font-semibold">How LiveKit rooms work</p>
+          <p>The room name is used to connect participants. Anyone who joins with the same room name joins the same session. Click <span className="font-semibold">↻</span> to generate a fresh room name.</p>
+          {data.link && (
+            <p className="mt-1 font-mono bg-white/60 px-2 py-1 rounded-lg text-blue-800 break-all">Token endpoint: /api/livekit/token?roomName={data.link}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Main: EditExperienceModal
+───────────────────────────────────────── */
+
+const TABS = [
+  { id: "details", label: "Details", icon: BookOpen },
+  { id: "agenda", label: "Agenda", icon: List },
+  { id: "exhibits", label: "Exhibits", icon: Paperclip },
+  { id: "settings", label: "Settings", icon: Settings },
+];
+
 export default function EditExperienceModal({
   open,
   onClose,
@@ -487,457 +682,162 @@ export default function EditExperienceModal({
   error,
   members,
   selectedExperienceToEdit,
-  generateFireteamMeetingLink,
   id,
   fireteam,
   experienceService,
 }) {
-  const [isAddingStep, setIsAddingStep] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Handler for agenda step updates
-  const handleAgendaUpdate = useCallback((idx, field, value) => {
-    setEditExperienceData(prev => ({
-      ...prev,
-      agenda: prev.agenda.map((item, i) =>
-        i === idx ? { ...item, [field]: value } : item
-      )
-    }));
-  }, [setEditExperienceData]);
-
-  // Handler for agenda step deletion
-  const handleAgendaDelete = useCallback(async (idx, step) => {
-    if (step.id) {
-      try {
-        await experienceService.deleteAgendaStep(step.id);
-      } catch (error) {
-        console.error('Failed to delete agenda step:', error);
-        setError(`Failed to delete agenda step: ${error.response?.data?.message || error.message}`);
-        return;
-      }
-    }
-
-    setEditExperienceData(prev => ({
-      ...prev,
-      agenda: prev.agenda.filter((_, i) => i !== idx)
-    }));
-  }, [setEditExperienceData, experienceService, setError]);
-
-  // Handler for exhibit updates
-  const handleExhibitUpdate = useCallback((idx, field, value, shouldResetFields = false) => {
-    setEditExperienceData(prev => ({
-      ...prev,
-      exhibits: prev.exhibits.map((item, i) => {
-        if (i !== idx) return item;
-
-        if (shouldResetFields && field === 'type') {
-          return {
-            ...item,
-            type: value,
-            file: null,
-            link: value === 'link' ? item.link : ''
-          };
-        }
-        return { ...item, [field]: value };
-      })
-    }));
-  }, [setEditExperienceData]);
-
-  // Handler for exhibit deletion
-  const handleExhibitDelete = useCallback(async (idx, exhibit) => {
-    if (exhibit.id) {
-      try {
-        await experienceService.deleteExhibit(exhibit.id);
-      } catch (error) {
-        console.error('Failed to delete exhibit:', error);
-        setError(`Failed to delete exhibit: ${error.message}`);
-        return;
-      }
-    }
-    setEditExperienceData(prev => ({
-      ...prev,
-      exhibits: prev.exhibits.filter((_, i) => i !== idx)
-    }));
-  }, [setEditExperienceData, experienceService, setError]);
-
-  // Handler for video admin change
-  const handleVideoAdminChange = useCallback((adminId) => {
-    setEditExperienceData(prev => ({
-      ...prev,
-      videoAdminId: adminId,
-    }));
-  }, [setEditExperienceData]);
-
-  // Handler for regenerating meeting link
-  const handleRegenerateMeetingLink = useCallback(() => {
-    const timestamp = Date.now();
-    const newLink = generateFireteamMeetingLink(
-      id,
-      selectedExperienceToEdit?.id || `edit-${timestamp}`,
-      'system',
-      fireteam?.title || 'Fireteam Meeting'
-    );
-    setEditExperienceData(prev => ({
-      ...prev,
-      link: newLink
-    }));
-  }, [setEditExperienceData, generateFireteamMeetingLink, id, selectedExperienceToEdit, fireteam]);
-
-  // Keyboard shortcuts
+  /* Keyboard shortcuts */
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && open) {
-        onClose();
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 's' && open) {
-        e.preventDefault();
-        handleSave();
-      }
+    if (!open) return;
+    const handler = (e) => {
+      if (e.key === "Escape") onClose();
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); handleSave(); }
     };
-
-    if (open) {
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [open, onClose, handleSave]);
 
-  // Count saved and unsaved items
-  const savedAgendaCount = editExperienceData.agenda?.filter(s => s.id).length || 0;
-  const unsavedAgendaCount = editExperienceData.agenda?.filter(s => !s.id).length || 0;
-  const savedExhibitCount = editExperienceData.exhibits?.filter(e => e.id).length || 0;
-  const unsavedExhibitCount = editExperienceData.exhibits?.filter(e => !e.id).length || 0;
-  const totalUnsaved = unsavedAgendaCount + unsavedExhibitCount;
+  /* Badge counts for tab labels */
+  const unsavedAgenda = editExperienceData.agenda?.filter((s) => !s.id).length || 0;
+  const unsavedExhibits = editExperienceData.exhibits?.filter((e) => !e.id).length || 0;
+
+  if (!open) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" aria-describedby="edit-experience-description">
-        <DialogHeader>
-          <div className="flex items-center gap-2">
-            <DialogTitle>Edit Experience</DialogTitle>
+    <div
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100 flex-shrink-0">
+          <div>
+            <h2 className="text-base font-black text-gray-900">Edit Experience</h2>
             {selectedExperienceToEdit && (
-              <span className="px-2 py-1 text-xs font-medium text-primary border border-primary rounded-md">
-                Live Edit
-              </span>
+              <p className="text-xs text-gray-400 mt-0.5">{selectedExperienceToEdit.title}</p>
             )}
           </div>
-          <p id="edit-experience-description" className="text-sm text-gray-500 mt-2">
-            Use Ctrl+S (Cmd+S) to save or Escape to close
-          </p>
-        </DialogHeader>
-
-        {/* Error Display */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start gap-2">
-            <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm font-medium">Error</p>
-              <p className="text-sm">{error}</p>
-            </div>
-            <button
-              onClick={() => setError('')}
-              className="text-red-700 hover:text-red-900 transition-colors"
-              aria-label="Dismiss error"
-            >
-              <X className="h-4 w-4" />
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-1 text-[10px] font-bold bg-gray-100 text-gray-500 rounded-full uppercase tracking-wide">
+              Ctrl+S to save
+            </span>
+            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+              <X className="w-4 h-4" />
             </button>
-          </div>
-        )}
-
-        <div className="space-y-6 py-4">
-          {/* Title */}
-          <div>
-            <label htmlFor="experience-title" className="block text-sm font-medium mb-2">
-              Experience Title <span className="text-red-500">*</span>
-            </label>
-            <Input
-              id="experience-title"
-              value={editExperienceData.title}
-              onChange={(e) => {
-                setEditExperienceData(prev => ({ ...prev, title: e.target.value }));
-                if (validationErrors.title) clearValidationErrors();
-              }}
-              placeholder="Enter a descriptive title for this experience"
-              className={validationErrors.title ? 'border-red-500' : ''}
-              aria-invalid={!!validationErrors.title}
-              aria-describedby={validationErrors.title ? "title-error" : undefined}
-            />
-            {validationErrors.title && (
-              <p id="title-error" className="text-xs text-red-500 mt-1 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {validationErrors.title}
-              </p>
-            )}
-          </div>
-
-          {/* Experience Content */}
-          <div>
-            <label htmlFor="experience-content" className="block text-sm font-medium mb-2">
-              Experience Content <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              id="experience-content"
-              value={editExperienceData.experience}
-              onChange={(e) => {
-                setEditExperienceData(prev => ({ ...prev, experience: e.target.value }));
-                if (validationErrors.experience) clearValidationErrors();
-              }}
-              rows={4}
-              placeholder="Describe the experience content, learning objectives, and what participants will gain"
-              className={`flex w-full rounded-md border px-3 py-2 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
-                validationErrors.experience ? 'border-red-500' : 'border-input bg-transparent'
-              }`}
-              aria-invalid={!!validationErrors.experience}
-              aria-describedby={validationErrors.experience ? "content-error" : "content-hint"}
-            />
-            {validationErrors.experience ? (
-              <p id="content-error" className="text-xs text-red-500 mt-1 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {validationErrors.experience}
-              </p>
-            ) : (
-              <p id="content-hint" className="text-xs text-gray-500 mt-1">
-                Provide detailed content and description of the experience
-              </p>
-            )}
-          </div>
-
-          {/* Agenda Steps */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold text-heading">Agenda Steps</h3>
-                {savedAgendaCount > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
-                    {savedAgendaCount} saved
-                  </span>
-                )}
-                {unsavedAgendaCount > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">
-                    {unsavedAgendaCount} unsaved
-                  </span>
-                )}
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  if (!selectedExperienceToEdit) return;
-                  setIsAddingStep(true);
-                  try {
-                    await handleAddAgendaStep();
-                  } catch (error) {
-                    console.error('Failed to add agenda step:', error);
-                    setError(`Failed to add agenda step: ${error.message}`);
-                  } finally {
-                    setIsAddingStep(false);
-                  }
-                }}
-                disabled={isAddingStep}
-                aria-label={isAddingStep ? "Adding step..." : "Add new agenda step"}
-              >
-                {isAddingStep ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Adding...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Step
-                  </>
-                )}
-              </Button>
-            </div>
-            {validationErrors.agenda && (
-              <p className="text-xs text-red-500 mb-2 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {validationErrors.agenda}
-              </p>
-            )}
-            {editExperienceData.agenda?.length > 0 ? (
-              <div className="space-y-3" role="list" aria-label="Agenda steps">
-                {editExperienceData.agenda.map((step, idx) => (
-                  <AgendaStepItem
-                    key={step.id || step._tempId || idx}
-                    step={step}
-                    idx={idx}
-                    onUpdate={handleAgendaUpdate}
-                    onDelete={() => handleAgendaDelete(idx, step)}
-                    onSubmit={handleSubmitAgendaStep}
-                    canDelete={true}
-                    experienceService={experienceService}
-                    setError={setError}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                <p className="text-sm text-gray-500 mb-4">No agenda steps added yet.</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    if (!selectedExperienceToEdit) return;
-                    setIsAddingStep(true);
-                    try {
-                      await handleAddAgendaStep();
-                    } catch (error) {
-                      console.error('Failed to add agenda step:', error);
-                      setError(`Failed to add agenda step: ${error.message}`);
-                    } finally {
-                      setIsAddingStep(false);
-                    }
-                  }}
-                  disabled={isAddingStep}
-                >
-                  {isAddingStep ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Adding...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add First Step
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Exhibits */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold text-heading">Exhibits</h3>
-                {savedExhibitCount > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
-                    {savedExhibitCount} saved
-                  </span>
-                )}
-                {unsavedExhibitCount > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">
-                    {unsavedExhibitCount} unsaved
-                  </span>
-                )}
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleAddExhibit}
-                aria-label="Add new exhibit"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Exhibit
-              </Button>
-            </div>
-            {validationErrors.exhibits && (
-              <p className="text-xs text-red-500 mb-2 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {validationErrors.exhibits}
-              </p>
-            )}
-            {editExperienceData.exhibits?.length > 0 ? (
-              <div className="space-y-3" role="list" aria-label="Exhibits">
-                {editExperienceData.exhibits.map((exhibit, idx) => (
-                  <ExhibitItem
-                    key={exhibit.id || exhibit._tempId || idx}
-                    exhibit={exhibit}
-                    idx={idx}
-                    onUpdate={handleExhibitUpdate}
-                    onDelete={() => handleExhibitDelete(idx, exhibit)}
-                    onSubmit={handleSubmitExhibit}
-                    canDelete={true}
-                    experienceService={experienceService}
-                    setError={setError}
-                  />
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                description="No exhibits added yet."
-                buttonText="Add First Exhibit"
-                onAdd={handleAddExhibit}
-              />
-            )}
-          </div>
-
-          {/* Experience Video Admin */}
-          <div>
-            <label htmlFor="video-admin" className="block text-sm font-medium mb-2">
-              Experience Video Admin
-            </label>
-            <select
-              id="video-admin"
-              value={editExperienceData.videoAdminId || ''}
-              onChange={(e) => handleVideoAdminChange(e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              aria-label="Select video admin for this experience"
-            >
-              <option value="">Select a video admin</option>
-              {members.map(member => (
-                <option key={member.id} value={member.id}>
-                  {member.client?.user?.name || member.name || member.id}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Meeting Link */}
-          <div>
-            <label htmlFor="link" className="block text-sm font-medium mb-2">
-              Meeting Link
-              <span className="text-xs text-gray-500 ml-2">(Generated automatically at creation)</span>
-            </label>
-            <div className="flex gap-2">
-              <Input
-                id="link"
-                value={editExperienceData.link || ''}
-                onChange={(e) => setEditExperienceData(prev => ({ ...prev, link: e.target.value }))}
-                className="flex-1"
-                placeholder="https://meet.example.com/..."
-                aria-label="Meeting link"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={handleRegenerateMeetingLink}
-                title="Regenerate meeting link"
-                aria-label="Regenerate meeting link"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-1" id="link-hint">
-              Meeting link is auto-generated when the experience is created. Click the refresh button to generate a new link.
-            </p>
           </div>
         </div>
 
-        <DialogFooter>
-          {totalUnsaved > 0 && (
-            <p className="text-xs text-amber-600 mr-auto flex items-center gap-1">
-              <AlertCircle className="h-3.5 w-3.5" />
-              {totalUnsaved} unsaved item{totalUnsaved !== 1 ? 's' : ''} — submit individually or Save Changes will create them
-            </p>
+        {/* ── Tabs ── */}
+        <div className="flex gap-0.5 px-6 pt-3 pb-0 border-b border-gray-100 flex-shrink-0 bg-white">
+          {TABS.map(({ id: tabId, label, icon: Icon }) => {
+            const badge = tabId === "agenda" ? unsavedAgenda : tabId === "exhibits" ? unsavedExhibits : 0;
+            return (
+              <button
+                key={tabId}
+                onClick={() => setActiveTab(tabId)}
+                className={`relative flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-t-xl transition-colors ${
+                  activeTab === tabId
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {label}
+                {badge > 0 && (
+                  <span className="ml-0.5 px-1.5 py-0.5 bg-amber-400 text-white text-[10px] font-bold rounded-full leading-none">
+                    {badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Error bar ── */}
+        {error && (
+          <div className="mx-6 mt-3 flex-shrink-0 flex items-start gap-2 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-700">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span className="flex-1">{error}</span>
+            <button onClick={() => setError("")} className="text-red-400 hover:text-red-600"><X className="w-4 h-4" /></button>
+          </div>
+        )}
+
+        {/* ── Tab content ── */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          {activeTab === "details" && (
+            <DetailsTab
+              data={editExperienceData}
+              setData={setEditExperienceData}
+              validationErrors={validationErrors}
+              clearValidationErrors={clearValidationErrors}
+            />
           )}
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSave}
-            aria-label="Save all changes to this experience"
-          >
-            Save Changes
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          {activeTab === "agenda" && (
+            <AgendaTab
+              data={editExperienceData}
+              setData={setEditExperienceData}
+              handleAddAgendaStep={handleAddAgendaStep}
+              handleSubmitAgendaStep={handleSubmitAgendaStep}
+              experienceService={experienceService}
+              setError={setError}
+              selectedExperienceToEdit={selectedExperienceToEdit}
+            />
+          )}
+          {activeTab === "exhibits" && (
+            <ExhibitsTab
+              data={editExperienceData}
+              setData={setEditExperienceData}
+              handleAddExhibit={handleAddExhibit}
+              handleSubmitExhibit={handleSubmitExhibit}
+              experienceService={experienceService}
+              setError={setError}
+            />
+          )}
+          {activeTab === "settings" && (
+            <SettingsTab
+              data={editExperienceData}
+              setData={setEditExperienceData}
+              members={members}
+              selectedExperienceToEdit={selectedExperienceToEdit}
+              id={id}
+            />
+          )}
+        </div>
+
+        {/* ── Footer ── */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 flex-shrink-0">
+          <div className="text-xs text-gray-400">
+            {(unsavedAgenda + unsavedExhibits) > 0 ? (
+              <span className="flex items-center gap-1 text-amber-600">
+                <AlertCircle className="w-3.5 h-3.5" />
+                {unsavedAgenda + unsavedExhibits} unsaved item{(unsavedAgenda + unsavedExhibits) !== 1 ? "s" : ""} — save individually or click Save Changes
+              </span>
+            ) : (
+              <span className="text-green-600 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" /> All items saved
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors">
+              Cancel
+            </button>
+            <button
+              onClick={async () => { setIsSaving(true); try { await handleSave(); } finally { setIsSaving(false); } }}
+              disabled={isSaving}
+              className="flex items-center gap-2 px-5 py-2 bg-gray-900 hover:bg-gray-700 disabled:opacity-50 text-white rounded-full text-sm font-semibold transition-colors"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -964,8 +864,7 @@ EditExperienceModal.propTypes = {
   error: PropTypes.string,
   members: PropTypes.arrayOf(PropTypes.object).isRequired,
   selectedExperienceToEdit: PropTypes.object,
-  generateFireteamMeetingLink: PropTypes.func.isRequired,
-  id: PropTypes.string.isRequired,
+  id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   fireteam: PropTypes.object,
   experienceService: PropTypes.object.isRequired,
 };

@@ -15,22 +15,22 @@ export default function WanacControlBar({
       {/* Toggle Slide/Video View */}
       <button
         onClick={onToggleView}
-        className={`px-3 py-2 text-sm font-medium transition-all flex items-center gap-1.5 rounded-lg ${
+        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-breakout-accent focus:ring-offset-2 ${
           showSlide
-            ? 'bg-yellow-400 text-black hover:bg-yellow-500'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'border-breakout-border bg-breakout-muted text-core-on-tertiary/80 hover:bg-breakout-border'
+            : 'border-transparent bg-breakout-accent text-core-on-tertiary shadow-sm hover:bg-breakout-accent-hover'
         }`}
         title="Toggle between slides and video"
       >
         {showSlide ? (
           <>
-            <FaVideo className="text-sm" />
-            <span>Show Video</span>
+            <FaVideo className="text-[12px]" />
+            <span>Show video</span>
           </>
         ) : (
           <>
-            <FaChalkboard className="text-sm" />
-            <span>Show Slides</span>
+            <FaChalkboard className="text-[12px]" />
+            <span>Show slides</span>
           </>
         )}
       </button>
@@ -38,10 +38,10 @@ export default function WanacControlBar({
       {/* End Meeting Button */}
       <button
         onClick={onLeaveMeeting}
-        className="px-3 py-2 text-sm font-medium transition-all flex items-center gap-1.5 bg-red-600 text-white hover:bg-red-700 rounded-lg"
+        className="inline-flex items-center gap-1.5 rounded-full border border-breakout-border bg-core-tertiary px-3 py-1.5 text-xs font-medium text-core-on-tertiary/80 hover:bg-breakout-muted transition-colors focus:outline-none focus:ring-2 focus:ring-breakout-accent focus:ring-offset-2"
         title="End meeting and leave"
       >
-        <FaSignOutAlt className="text-sm" />
+        <FaSignOutAlt className="text-[12px]" />
         <span>End</span>
       </button>
     </div>

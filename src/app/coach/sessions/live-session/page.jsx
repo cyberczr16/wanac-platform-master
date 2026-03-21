@@ -1,195 +1,339 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
-import { FaUserPlus, FaCopy } from "react-icons/fa";
+import React, { useState, useCallback, useEffect } from "react";
+import {
+  LiveKitRoom,
+  GridLayout,
+  ParticipantTile,
+  RoomAudioRenderer,
+  useTracks,
+  useLocalParticipant,
+} from "@livekit/components-react";
+import { Track } from "livekit-client";
+import {
+  FaUserPlus, FaCopy, FaMicrophone, FaMicrophoneSlash,
+  FaPhoneSlash, FaSpinner, FaCheckCircle, FaVideo
+} from "react-icons/fa";
+import { MdVideocam, MdVideocamOff, MdScreenShare, MdStopScreenShare } from "react-icons/md";
+import CoachSidebar from "../../../../../components/dashboardcomponents/CoachSidebar";
+import ClientTopbar from "../../../../../components/dashboardcomponents/clienttopbar";
 
-// Use the same Jitsi domain as the rest of the app
-const JITSI_DOMAIN = process.env.NEXT_PUBLIC_JITSI_DOMAIN || "meet.jit.si";
+/* ─────────────────────────────────────────────────────────────
+   Media Controls — rendered inside <LiveKitRoom>
+───────────────────────────────────────────────────────────── */
+function RoomControls({ onLeave }) {
+  const { localParticipant } = useLocalParticipant();
+  const [micEnabled, setMicEnabled] = useState(true);
+  const [camEnabled, setCamEnabled] = useState(true);
+  const [screenSharing, setScreenSharing] = useState(false);
 
+  const toggleMic = useCallback(async () => {
+    await localParticipant.setMicrophoneEnabled(!micEnabled);
+    setMicEnabled((v) => !v);
+  }, [localParticipant, micEnabled]);
+
+  const toggleCam = useCallback(async () => {
+    await localParticipant.setCameraEnabled(!camEnabled);
+    setCamEnabled((v) => !v);
+  }, [localParticipant, camEnabled]);
+
+  const toggleScreenShare = useCallback(async () => {
+    await localParticipant.setScreenShareEnabled(!screenSharing);
+    setScreenSharing((v) => !v);
+  }, [localParticipant, screenSharing]);
+
+  return (
+    <div className="flex items-center justify-center gap-3 py-3 px-4 bg-gray-900 border-t border-gray-700">
+      <button
+        onClick={toggleMic}
+        title={micEnabled ? "Mute" : "Unmute"}
+        className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-xs font-medium transition-colors min-w-[60px] ${
+          micEnabled ? "bg-gray-700 text-white hover:bg-gray-600" : "bg-red-500 text-white hover:bg-red-600"
+        }`}
+      >
+        {micEnabled ? <FaMicrophone size={16} /> : <FaMicrophoneSlash size={16} />}
+        <span className="text-[10px]">{micEnabled ? "Mute" : "Unmute"}</span>
+      </button>
+
+      <button
+        onClick={toggleCam}
+        title={camEnabled ? "Stop Video" : "Start Video"}
+        className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-xs font-medium transition-colors min-w-[60px] ${
+          camEnabled ? "bg-gray-700 text-white hover:bg-gray-600" : "bg-red-500 text-white hover:bg-red-600"
+        }`}
+      >
+        {camEnabled ? <MdVideocam size={16} /> : <MdVideocamOff size={16} />}
+        <span className="text-[10px]">{camEnabled ? "Stop Video" : "Start Video"}</span>
+      </button>
+
+      <button
+        onClick={toggleScreenShare}
+        title={screenSharing ? "Stop sharing" : "Share screen"}
+        className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-xs font-medium transition-colors min-w-[60px] ${
+          screenSharing ? "bg-blue-500 text-white hover:bg-blue-600" : "bg-gray-700 text-white hover:bg-gray-600"
+        }`}
+      >
+        {screenSharing ? <MdStopScreenShare size={16} /> : <MdScreenShare size={16} />}
+        <span className="text-[10px]">{screenSharing ? "Stop Share" : "Share Screen"}</span>
+      </button>
+
+      <div className="w-px h-8 bg-gray-700 mx-1" />
+
+      <button
+        onClick={onLeave}
+        title="End meeting"
+        className="flex flex-col items-center gap-1 px-5 py-2 bg-red-600 text-white rounded-xl text-xs font-semibold hover:bg-red-700 transition-colors min-w-[60px]"
+      >
+        <FaPhoneSlash size={16} />
+        <span className="text-[10px]">End</span>
+      </button>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Video Grid — rendered inside <LiveKitRoom>
+───────────────────────────────────────────────────────────── */
+function VideoGrid({ onLeave }) {
+  const tracks = useTracks(
+    [
+      { source: Track.Source.Camera, withPlaceholder: true },
+      { source: Track.Source.ScreenShare, withPlaceholder: false },
+    ],
+    { onlySubscribed: false }
+  );
+
+  return (
+    <div className="flex flex-col h-full">
+      <RoomAudioRenderer />
+      <div className="flex-1 min-h-0 p-2 bg-gray-900">
+        <GridLayout
+          tracks={tracks}
+          style={{ width: "100%", height: "100%" }}
+        >
+          <ParticipantTile />
+        </GridLayout>
+      </div>
+      <RoomControls onLeave={onLeave} />
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Main Page
+───────────────────────────────────────────────────────────── */
 export default function LiveSessionPage() {
+  const [user, setUser] = useState({ name: "Coach" });
   const [inviteEmail, setInviteEmail] = useState("");
-  const jitsiContainerRef = useRef(null);
-  const jitsiApiRef = useRef(null);
+  const [copied, setCopied] = useState(false);
 
-  // Generate a unique Jitsi meeting link on each page load
-  const uniqueRoom = `wanac-room-${Math.random().toString(36).substring(2, 10)}-${Date.now()}`;
-  const meetingLink = `https://${JITSI_DOMAIN}/${uniqueRoom}`;
+  // LiveKit state
+  const [livekitToken, setLivekitToken] = useState(null);
+  const [livekitUrl, setLivekitUrl] = useState(null);
+  const [livekitLoading, setLivekitLoading] = useState(false);
+  const [livekitError, setLivekitError] = useState("");
+  const [connected, setConnected] = useState(false);
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(meetingLink);
-    alert("Meeting link copied");
-  };
-
-  const handleSendInvite = () => {
-    alert(`Invite sent to ${inviteEmail}`);
-    setInviteEmail("");
-  };
-
-  const initializeJitsi = () => {
-    if (typeof window === "undefined") return;
-    if (!jitsiContainerRef.current || !window.JitsiMeetExternalAPI) return;
-
-    try {
-      // Clear any previous instance
-      jitsiContainerRef.current.innerHTML = "";
-
-      const url = new URL(meetingLink);
-      const domain = url.hostname;
-      const pathParts = url.pathname.split("/").filter(Boolean);
-      const roomName = pathParts[pathParts.length - 1] || "";
-
-      const options = {
-        roomName,
-        width: "100%",
-        height: "100%",
-        parentNode: jitsiContainerRef.current,
-        configOverwrite: {
-          startWithAudioMuted: false,
-          startWithVideoMuted: false,
-          enableWelcomePage: false,
-          prejoinPageEnabled: false,
-          disableDeepLinking: true,
-        },
-        userInfo: {
-          displayName: "Coach",
-        },
-      };
-
-      jitsiApiRef.current = new window.JitsiMeetExternalAPI(domain, options);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("Failed to start Jitsi meeting:", err);
-    }
-  };
+  // Generate a unique room name per session load
+  const [roomName] = useState(
+    `wanac-coach-${Math.random().toString(36).substring(2, 10)}`
+  );
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const scriptSrc = `https://${JITSI_DOMAIN}/external_api.js`;
-
-    const ensureInitialized = () => {
-      if (window.JitsiMeetExternalAPI) {
-        initializeJitsi();
-      }
-    };
-
-    if (window.JitsiMeetExternalAPI) {
-      initializeJitsi();
-    } else {
-      let script = document.querySelector(`script[src="${scriptSrc}"]`);
-      if (!script) {
-        script = document.createElement("script");
-        script.src = scriptSrc;
-        script.async = true;
-        script.onload = () => {
-          setTimeout(ensureInitialized, 100);
-        };
-        script.onerror = () => {
-          // eslint-disable-next-line no-console
-          console.error("Failed to load Jitsi External API script");
-        };
-        document.head.appendChild(script);
-      } else {
-        const checkApi = setInterval(() => {
-          if (window.JitsiMeetExternalAPI) {
-            clearInterval(checkApi);
-            initializeJitsi();
-          }
-        }, 100);
-        setTimeout(() => clearInterval(checkApi), 5000);
-      }
+    const userData = localStorage.getItem("wanacUser");
+    if (userData) {
+      try { setUser(JSON.parse(userData)); } catch (e) { setUser({ name: "Coach" }); }
     }
-
-    return () => {
-      if (jitsiApiRef.current) {
-        try {
-          jitsiApiRef.current.dispose();
-        } catch (err) {
-          // eslint-disable-next-line no-console
-          console.warn("Error disposing Jitsi API:", err);
-        }
-        jitsiApiRef.current = null;
-      }
-    };
-    // meetingLink is stable for the lifetime of this component
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleFullscreen = () => {
-    const container = jitsiContainerRef.current;
-    if (!container) return;
-
-    if (container.requestFullscreen) {
-      container.requestFullscreen();
-    } else if (container.webkitRequestFullscreen) {
-      container.webkitRequestFullscreen();
-    } else if (container.mozRequestFullScreen) {
-      container.mozRequestFullScreen();
-    } else if (container.msRequestFullscreen) {
-      container.msRequestFullscreen();
+  const startMeeting = useCallback(async () => {
+    setLivekitLoading(true);
+    setLivekitError("");
+    try {
+      const userName = encodeURIComponent(user?.name || "Coach");
+      const resp = await fetch(
+        `/api/livekit/token?roomName=${encodeURIComponent(roomName)}&userName=${userName}`,
+        { cache: "no-store" }
+      );
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({}));
+        throw new Error(body?.error || `Token request failed (${resp.status})`);
+      }
+      const data = await resp.json();
+      if (!data.token || !data.url) throw new Error("Invalid token response.");
+      setLivekitToken(data.token);
+      setLivekitUrl(data.url);
+      setConnected(true);
+    } catch (err) {
+      console.error("LiveKit start error:", err);
+      setLivekitError(err.message || "Could not start meeting. Please try again.");
+    } finally {
+      setLivekitLoading(false);
     }
+  }, [user, roomName]);
+
+  const endMeeting = useCallback(() => {
+    setConnected(false);
+    setLivekitToken(null);
+    setLivekitUrl(null);
+    setLivekitError("");
+  }, []);
+
+  const joinUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/join?room=${encodeURIComponent(roomName)}`;
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(joinUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [joinUrl]);
+
+  const handleSendInvite = () => {
+    if (inviteEmail) { alert(`Invite sent to ${inviteEmail}`); setInviteEmail(""); }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center font-sans p-3 sm:p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl p-4 sm:p-6 md:p-8 flex flex-col gap-4 sm:gap-6">
-        {/* Top header with meeting name */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl sm:text-2xl font-medium text-gray-800">Meeting ready</h2>
-          <button
-            onClick={handleCopyLink}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors min-h-[44px] shrink-0"
-          >
-            <FaCopy className="text-gray-600" />
-            Copy joining info
-          </button>
-        </div>
+    <div className="h-screen flex bg-[#f8f9fb] font-body">
+      <CoachSidebar />
+      <div className="flex-1 flex flex-col h-full min-h-0">
+        <ClientTopbar user={user} />
+        <main className="flex-1 min-h-0 overflow-y-auto px-4 md:px-8 py-6 bg-[#f8f9fb]">
+          <div className="max-w-5xl mx-auto space-y-5">
 
-        {/* Meeting link display */}
-        <div className="flex flex-col gap-2">
-          <p className="text-gray-600 text-sm">Or share this meeting link with others you want in the meeting</p>
-          <input
-            type="text"
-            value={meetingLink}
-            readOnly
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 focus:outline-none"
-          />
-        </div>
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#002147] to-[#003875] rounded-2xl p-5 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h1 className="text-xl font-bold text-white">Live Coaching Session</h1>
+                  <p className="text-white/70 text-sm mt-1">Powered by LiveKit — HD video, low latency</p>
+                </div>
+                {connected && (
+                  <div className="flex items-center gap-2 bg-green-500/20 border border-green-400/30 rounded-xl px-3 py-1.5">
+                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                    <span className="text-green-300 text-xs font-semibold">Live</span>
+                  </div>
+                )}
+              </div>
+            </div>
 
-        {/* Invite section */}
-        <div className="flex flex-col md:flex-row gap-4 mt-2">
-          <input
-            type="email"
-            value={inviteEmail}
-            onChange={(e) => setInviteEmail(e.target.value)}
-            placeholder="Add people or email"
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-700"
-          />
-          <button
-            onClick={handleSendInvite}
-            disabled={!inviteEmail}
-            className={`flex items-center gap-2 px-5 py-3 rounded-lg text-white font-medium transition-colors ${
-              inviteEmail ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-300 cursor-not-allowed"
-            }`}
-          >
-            <FaUserPlus />
-            Send
-          </button>
-        </div>
+            {/* Meeting info card */}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+              <div className="flex flex-col md:flex-row md:items-end gap-4">
+                {/* Room link */}
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Meeting Link</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={connected ? joinUrl : "Start the meeting to generate a link"}
+                      readOnly
+                      className={`flex-1 rounded-xl border border-gray-200 px-3 py-2 text-xs text-gray-600 ${
+                        connected ? "bg-gray-50" : "bg-gray-100 text-gray-400 italic"
+                      }`}
+                    />
+                    <button
+                      onClick={handleCopy}
+                      disabled={!connected}
+                      className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-40 ${
+                        copied
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {copied ? <FaCheckCircle size={12} /> : <FaCopy size={12} />}
+                      {copied ? "Copied!" : "Copy"}
+                    </button>
+                  </div>
+                </div>
 
-        {/* Jitsi video container (External API) */}
-        <div className="rounded-xl overflow-hidden border border-gray-200 min-h-[280px] sm:min-h-[400px] h-[50vh] sm:h-[500px] w-full relative">
-          <div
-            ref={jitsiContainerRef}
-            className="w-full h-full"
-            style={{ border: 0 }}
-          />
-          <button
-            onClick={handleFullscreen}
-            className="absolute top-2 right-2 sm:top-4 sm:right-4 px-3 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition-colors z-10 min-h-[44px]"
-          >
-            View Full Screen
-          </button>
-        </div>
+                {/* Invite */}
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    <FaUserPlus className="inline mr-1 text-[10px]" /> Invite Participant
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      placeholder="Email address…"
+                      className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-xs focus:border-[#002147] focus:ring-1 focus:ring-[#002147]/20 focus:outline-none bg-gray-50 focus:bg-white transition"
+                    />
+                    <button
+                      onClick={handleSendInvite}
+                      disabled={!inviteEmail}
+                      className="px-3 py-2 bg-[#002147] text-white rounded-xl text-xs font-semibold hover:bg-[#003875] transition-colors disabled:opacity-40 shadow-sm"
+                    >
+                      Send
+                    </button>
+                  </div>
+                </div>
+
+                {/* Start / End button */}
+                <div className="shrink-0">
+                  {!connected ? (
+                    <button
+                      onClick={startMeeting}
+                      disabled={livekitLoading}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-60"
+                    >
+                      {livekitLoading
+                        ? <><FaSpinner className="animate-spin text-xs" /> Connecting…</>
+                        : <><FaVideo className="text-xs" /> Start Meeting</>}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={endMeeting}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors shadow-sm"
+                    >
+                      <FaPhoneSlash className="text-xs" /> End Meeting
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Error */}
+              {livekitError && (
+                <div className="mt-3 px-3 py-2.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs">
+                  {livekitError}
+                </div>
+              )}
+            </div>
+
+            {/* Video Area */}
+            <div className="bg-gray-900 rounded-2xl overflow-hidden shadow-xl">
+              {!connected ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-gray-800 flex items-center justify-center mb-4">
+                    <FaVideo className="text-gray-500 text-2xl" />
+                  </div>
+                  <p className="text-gray-300 font-semibold text-sm">Your video will appear here</p>
+                  <p className="text-gray-500 text-xs mt-2">Click "Start Meeting" above to begin your session</p>
+                  {livekitLoading && (
+                    <div className="mt-5 flex items-center gap-2 text-blue-400 text-xs">
+                      <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                      Connecting to LiveKit…
+                    </div>
+                  )}
+                </div>
+              ) : livekitToken && livekitUrl ? (
+                <div style={{ height: "560px" }}>
+                  <LiveKitRoom
+                    token={livekitToken}
+                    serverUrl={livekitUrl}
+                    connect={true}
+                    video={true}
+                    audio={true}
+                    onDisconnected={endMeeting}
+                    style={{ height: "100%", display: "flex", flexDirection: "column" }}
+                  >
+                    <VideoGrid onLeave={endMeeting} />
+                  </LiveKitRoom>
+                </div>
+              ) : null}
+            </div>
+
+          </div>
+        </main>
       </div>
     </div>
   );

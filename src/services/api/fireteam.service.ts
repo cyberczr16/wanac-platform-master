@@ -122,4 +122,40 @@ export const fireteamService = {
     const res = await apiClient.delete(`/api/v1/fireteams/objectives/delete/${id}`);
     return res.data;
   },
+
+  // ── Recordings & AI Summaries ─────────────────────────────────────────────
+  async getRecordings(fireteamId: string | number) {
+    try {
+      const res = await apiClient.get(`/api/v1/fireteams/recordings/${fireteamId}`);
+      const data = unwrapItem(res.data);
+      return Array.isArray(data) ? data : (data?.recordings ?? []);
+    } catch (error: any) {
+      console.error('Error fetching recordings:', error.response?.data ?? error.message);
+      return [];
+    }
+  },
+
+  // AI-generated summary for the coach perspective
+  async getCoachSummary(recordingId: string | number) {
+    const res = await apiClient.get(`/api/v1/fireteams/recordings/summary/coach/${recordingId}`);
+    return unwrapItem(res.data);
+  },
+
+  // AI-generated summary scoped to a specific client
+  async getClientSummary(recordingId: string | number, clientId: string | number) {
+    const res = await apiClient.get(`/api/v1/fireteams/recordings/summary/client/${recordingId}/${clientId}`);
+    return unwrapItem(res.data);
+  },
+
+  // AI-generated admin-level summary
+  async getAdminSummary(recordingId: string | number) {
+    const res = await apiClient.get(`/api/v1/fireteams/recordings/summary/admin/${recordingId}`);
+    return unwrapItem(res.data);
+  },
+
+  // Add a recording to a fireteam
+  async addRecording(data: { fire_team_id: string | number; [key: string]: any }) {
+    const res = await apiClient.post('/api/v1/fireteams/recordings/add', data);
+    return unwrapItem(res.data);
+  },
 };

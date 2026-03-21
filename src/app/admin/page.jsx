@@ -64,8 +64,11 @@ export default function AdminDashboard() {
         // Process coaches data
         const coaches = Array.isArray(coachesData) ? coachesData : (coachesData.coaches || coachesData.data || []);
         
-        // Process sessions data
-        const sessionsArray = Array.isArray(sessionsData) ? sessionsData : (sessionsData.sessions || sessionsData.data || []);
+        // Process sessions data — guard against null/non-array shapes
+        const sessionsRaw = Array.isArray(sessionsData)
+          ? sessionsData
+          : (sessionsData?.sessions || sessionsData?.data || []);
+        const sessionsArray = Array.isArray(sessionsRaw) ? sessionsRaw : [];
         
         // Process fireteams data
         const fireteamsArray = Array.isArray(fireteamsData) ? fireteamsData : [];

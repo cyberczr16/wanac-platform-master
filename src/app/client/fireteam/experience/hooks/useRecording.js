@@ -3,9 +3,10 @@ import { huggingfaceService } from '../../../../../services/api/huggingface.serv
 import { meetingService } from '../../../../../services/api/meeting.service';
 
 /**
- * Custom hook to manage meeting recording and AI processing
+ * Custom hook to manage meeting recording and AI processing.
+ * Provider-agnostic: expects a meetingRef with .current and a boolean ready flag.
  */
-export function useRecording(jitsiApiRef, jitsiReady) {
+export function useRecording(meetingRef, meetingReady) {
   const [isRecording, setIsRecording] = useState(false);
   const [currentRecordingId, setCurrentRecordingId] = useState(null);
   const [recordingBlob, setRecordingBlob] = useState(null);
@@ -19,9 +20,9 @@ export function useRecording(jitsiApiRef, jitsiReady) {
    * Toggle recording on/off
    */
   const toggleRecording = async () => {
-    if (!jitsiApiRef?.current || !jitsiReady) {
-      console.warn('⚠️ Jitsi not ready for recording');
-      throw new Error('Jitsi is not ready. Please wait a moment and try again.');
+    if (!meetingRef?.current || !meetingReady) {
+      console.warn('⚠️ Meeting not ready for recording');
+      throw new Error('The meeting is not ready. Please wait a moment and try again.');
     }
 
     try {

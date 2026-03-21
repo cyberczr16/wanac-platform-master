@@ -61,13 +61,14 @@ export default function EnhancedAgendaSidebar({
   onSendMessage,
   isLoading = false
 }) {
+  // Breakout in-session rail exposes only Agenda + Exhibits.
   const [activeTab, setActiveTab] = useState("Agenda");
   const [showPeersModal, setShowPeersModal] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const chatEndRef = useRef(null);
   const modalRef = useRef(null);
-  const tabs = ["Agenda", "Peers", "Chat", "Exhibits"];
+  const tabs = ["Exhibits", "Agenda"];
 
   // Auto-scroll chat to bottom when new messages arrive
   useEffect(() => {
@@ -133,10 +134,10 @@ export default function EnhancedAgendaSidebar({
   }, [closeModal]);
 
   return (
-    <aside className="w-96 border-l bg-white flex flex-col overflow-hidden">
+    <aside className="w-full min-w-0 border-l border-breakout-border bg-white flex flex-col overflow-hidden">
       {/* Tabs */}
-      <div 
-        className="flex justify-between border-b bg-gray-50 px-4 py-3" 
+      <div
+        className="flex justify-between border-b border-breakout-border bg-breakout-muted px-4 py-3"
         role="tablist"
         aria-label="Sidebar navigation"
       >
@@ -150,8 +151,8 @@ export default function EnhancedAgendaSidebar({
             tabIndex={activeTab === tab ? 0 : -1}
             className={`text-sm font-semibold px-3 py-2 rounded transition-colors ${
               activeTab === tab
-                ? "bg-black text-white"
-                : "text-gray-600 hover:bg-gray-200"
+                ? "bg-breakout-accent text-core-on-tertiary"
+                : "text-gray-600 hover:bg-breakout-border"
             }`}
             onClick={() => setActiveTab(tab)}
           >
@@ -202,7 +203,7 @@ export default function EnhancedAgendaSidebar({
                       <div className="flex items-center gap-2">
                         <span 
                           className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                            currentStep === i ? 'bg-yellow-600 text-white' : 'bg-gray-300 text-gray-600'
+                            currentStep === i ? 'bg-breakout-accent text-core-on-tertiary' : 'bg-breakout-border text-core-on-tertiary/70'
                           }`}
                           aria-hidden="true"
                         >

@@ -88,24 +88,24 @@ export default function CompactTimer({
 
   return (
     <div 
-      className="flex items-center gap-3 bg-gray-100 px-4 py-2 rounded-lg border border-gray-300"
+      className="flex items-center gap-3 bg-breakout-muted px-4 py-2 rounded-lg border border-breakout-border"
       role="timer"
       aria-label={`Step timer: ${formatTime(timeLeft)} remaining`}
     >
-      <FaClock className="text-gray-600 text-sm" aria-hidden="true" />
+      <FaClock className="text-core-on-tertiary/70 text-sm" aria-hidden="true" />
       
       <div className="flex flex-col min-w-[80px]">
         <div className={`text-lg font-bold leading-tight ${getTimeColor()}`}>
           {formatTime(timeLeft)}
         </div>
-        <div className="text-xs text-gray-500 leading-tight">
+        <div className="text-xs text-core-on-tertiary/60 leading-tight">
           {timeLeft === 0 ? 'Complete' : `of ${duration}`}
         </div>
       </div>
 
       <button
         onClick={handleTogglePause}
-        className="p-1.5 rounded-full hover:bg-gray-200 transition"
+        className="p-1.5 rounded-full hover:bg-breakout-border transition focus:outline-none focus:ring-2 focus:ring-breakout-accent focus:ring-offset-1"
         title={isPaused ? 'Resume timer' : 'Pause timer'}
         aria-label={isPaused ? 'Resume timer' : 'Pause timer'}
       >
@@ -117,15 +117,15 @@ export default function CompactTimer({
       </button>
 
       {/* Minimal progress indicator */}
-      <div className="w-1 h-8 bg-gray-200 rounded-full overflow-hidden">
+      <div className="w-1 h-8 bg-breakout-border rounded-full overflow-hidden">
         <div
           className={`w-full transition-all duration-1000 ${
             timeLeft === 0 
-              ? 'bg-gray-400' 
+              ? 'bg-core-on-tertiary/30' 
               : (timeLeft / totalSeconds) * 100 > 75 
               ? 'bg-red-500' 
               : (timeLeft / totalSeconds) * 100 > 50
-              ? 'bg-yellow-500'
+              ? 'bg-breakout-accent'
               : 'bg-green-500'
           }`}
           style={{ height: `${((totalSeconds - timeLeft) / totalSeconds) * 100}%` }}

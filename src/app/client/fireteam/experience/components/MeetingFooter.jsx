@@ -5,16 +5,21 @@ import React from 'react';
  */
 export default function MeetingFooter({ currentStep, agenda, totalTime }) {
   return (
-    <footer className="p-4 border-t bg-white text-xs text-gray-500 flex justify-between items-center">
-      <div>
-        <span className="font-medium">
+    <footer className="flex items-center justify-between border-t border-breakout-border bg-breakout-muted px-6 py-3 text-[11px] text-core-on-tertiary/70">
+      <div className="flex items-center gap-3">
+        <span className="font-semibold text-core-on-tertiary">
           Step {currentStep + 1} of {agenda.length}
         </span>
-        {agenda[currentStep] && <span className="ml-4">{agenda[currentStep].title}</span>}
+        {agenda[currentStep] && (
+          <>
+            <span className="h-3 w-px bg-breakout-border" />
+            <span className="truncate max-w-xs">{agenda[currentStep].title}</span>
+          </>
+        )}
       </div>
-      <div>
-        Total Session Time:
-        <span className="ml-2 text-black font-medium">{totalTime}</span>
+      <div className="flex items-center gap-2">
+        <span>Planned session time:</span>
+        <span className="font-semibold text-core-on-tertiary">{totalTime}</span>
       </div>
     </footer>
   );

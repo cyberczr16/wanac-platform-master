@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fireteamService } from '../../../../../services/api/fireteam.service';
+import { getBreakoutDeckIdForExperience } from '../../breakoutDeckMap';
+import { buildBreakoutAgenda } from '../../breakoutDeckParser';
 
 /**
  * Custom hook to load and manage meeting data (experience, fireteam, agenda)
@@ -115,6 +117,34 @@ export function useMeetingData(searchParams) {
 
         setExperience(exp || null);
         setFireteam(ft || null);
+
+        // --------------------------------------------------------------------
+        // BREAKOUT (LOCAL DEV) MODE: if we can map this experience to a deck,
+        // build agenda directly from breakout-local/breakout-data.json via a
+        // local Next.js route.
+        // --------------------------------------------------------------------
+        const breakoutDeckId = getBreakoutDeckIdForExperience({
+          experienceId: exp?.id ?? (expId ? Number(expId) : null),
+          experienceTitle: exp?.title ?? null,
+        });
+
+        if (breakoutDeckId) {
+          const res = await fetch('/api/dev/breakout-data', { cache: 'no-store' });
+          if (!res.ok) throw new Error(`Failed to load Breakout data (${res.status})`);
+          const breakoutData = await res.json();
+
+          const breakoutSteps = buildBreakoutAgenda({ breakoutData, deckId: breakoutDeckId });
+          // Breakout deck is already complete (includes Waiting Room, Learning Objectives,
+          // Session Processing, AI-generated Results, etc.). Use it directly so the
+          // UI matches Breakout slide-by-slide.
+          setAgenda(breakoutSteps);
+
+          // Exhibits: keep existing experience exhibits if present, else none.
+          if (exp?.exhibits && Array.isArray(exp.exhibits)) setExhibits(exp.exhibits);
+          else setExhibits([]);
+
+          return;
+        }
 
         // Extract and normalize agenda from experience
         if (exp) {

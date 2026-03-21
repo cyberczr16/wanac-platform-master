@@ -1,10 +1,11 @@
 import { Suspense } from "react";
 import CommunityContent from "./CommunityContent";
+import LoadingFallback from "../../../../components/LoadingFallback";
 
 // Main component with Suspense boundary
 export default function CoachCommunityPage() {
   return (
-    <Suspense fallback={<div className="h-screen flex items-center justify-center bg-gray-50">Loading...</div>}>
+    <Suspense fallback={<LoadingFallback label="Loading community…" />}>
       <CommunityContent />
     </Suspense>
   );

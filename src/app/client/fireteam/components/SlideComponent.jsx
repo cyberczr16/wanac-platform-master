@@ -3,10 +3,35 @@ import React from "react";
 export default function Slide({ step, participants = [], experienceTitle = "" }) {
   if (!step) return null;
 
+  // Breakout deck slide rendering (image-first, as in Breakout UI)
+  if (step.breakout?.slideImageURL) {
+    const firstCaption = step.breakout.captions?.[0]?.caption;
+    return (
+      <div className="w-full mx-auto h-[420px] md:h-[520px] lg:h-[620px] flex items-center justify-center">
+        {/* Deck slides render as a clean white Breakout-style card. */}
+        <div className="w-full h-full bg-white rounded-2xl shadow-lg overflow-hidden flex items-center justify-center relative border border-breakout-border">
+          <div className="w-full h-full flex items-center justify-center p-6">
+            <img
+              src={step.breakout.slideImageURL}
+              alt={step.breakout.slideImageAltText || step.title}
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+
+          {firstCaption && (
+            <div className="absolute left-6 right-6 bottom-5 bg-black/80 text-white px-4 py-3 rounded-lg text-sm leading-snug">
+              {firstCaption}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // Example: custom content for the first step (Waiting Room)
   if (step.title === "Waiting Room" || step.isWaitingRoom) {
     return (
-      <div className="bg-yellow-400 rounded-xl shadow-lg p-10 text-center w-full mx-auto h-[420px] md:h-[520px] lg:h-[620px] flex flex-col justify-center">
+      <div className="bg-breakout-accent rounded-xl shadow-lg p-10 text-center w-full mx-auto h-[420px] md:h-[520px] lg:h-[620px] flex flex-col justify-center">
         <h1 className="text-3xl font-black leading-tight mb-4">
           Welcome to your <br /> Fireteam Experience
         </h1>
@@ -182,7 +207,7 @@ export default function Slide({ step, participants = [], experienceTitle = "" })
   // Custom content for AI-generated Results step
   if (step.title === "AI-generated Results") {
     return (
-      <div className="bg-yellow-400 rounded-xl shadow-lg p-10 text-center w-full mx-auto h-[420px] md:h-[520px] lg:h-[620px]">
+      <div className="bg-breakout-accent rounded-xl shadow-lg p-10 text-center w-full mx-auto h-[420px] md:h-[520px] lg:h-[620px]">
         <h1 className="text-3xl font-black leading-tight mb-4">{step.title}</h1>
         <p className="text-md font-medium mb-4">{step.subtitle}</p>
         <p className="text-sm text-gray-700 mb-6">Duration: {step.duration}</p>
@@ -201,7 +226,7 @@ export default function Slide({ step, participants = [], experienceTitle = "" })
 
   // Placeholder for other steps
   return (
-    <div className="bg-yellow-400 rounded-xl shadow-lg p-10 text-center w-full mx-auto h-[420px] md:h-[520px] lg:h-[620px]">
+    <div className="bg-breakout-accent rounded-xl shadow-lg p-10 text-center w-full mx-auto h-[420px] md:h-[520px] lg:h-[620px]">
       <h1 className="text-3xl font-black leading-tight mb-4">{step.title}</h1>
       <p className="text-md font-medium mb-4">{step.subtitle}</p>
       <p className="text-sm text-gray-700">Duration: {step.duration}</p>

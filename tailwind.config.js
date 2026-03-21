@@ -30,6 +30,15 @@ module.exports = {
         hover: "#3366FF",
         heading: "#002147",
         muted: "#f9fafb",
+        // Breakout-style shell and cards
+        "core-tertiary": "#ffffff",
+        "core-on-tertiary": "#1f2937",
+        surface: "#f3f4f6",
+        // Breakout-style accent (primary actions, current step)
+        "breakout-accent": "#ffca00",
+        "breakout-accent-hover": "#ffd633",
+        "breakout-muted": "#f8f8f8",
+        "breakout-border": "#e5e7eb",
       },
       animation: {
         fadeIn: 'fadeIn 0.3s ease-out forwards',

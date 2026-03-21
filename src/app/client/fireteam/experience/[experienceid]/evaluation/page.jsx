@@ -28,136 +28,144 @@ export default function EvaluationPage() {
     userRole
   );
 
+  /* ── Shared shell ── */
+  const Shell = ({ children }) => (
+    <div className="h-screen flex bg-gray-100">
+      {isAdmin
+        ? <AdminSidebar collapsed={true} setCollapsed={() => {}} />
+        : <Sidebar collapsed={true} setCollapsed={() => {}} />
+      }
+      <div className="flex-1 flex flex-col min-w-0 p-4 md:p-6">
+        <div className="flex-1 bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+
   // Loading state
   if (loading) {
     return (
-      <div className="h-screen flex bg-gray-50">
-        <Sidebar collapsed={true} setCollapsed={() => {}} />
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading evaluation data...</p>
-            </div>
-          </div>
+      <Shell>
+        <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#002147] mb-4" />
+          <p className="text-sm">Loading session results…</p>
         </div>
-      </div>
+      </Shell>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <div className="h-screen flex bg-gray-50">
-        <Sidebar collapsed={true} setCollapsed={() => {}} />
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-red-500 text-6xl mb-4">⚠️</div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Evaluation</h2>
-              <p className="text-gray-600 mb-4">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
+      <Shell>
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-6">
+          <span className="text-5xl">⚠️</span>
+          <h2 className="text-lg font-semibold text-gray-800">Error loading evaluation</h2>
+          <p className="text-gray-500 text-sm">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-2 px-5 py-2 bg-orange-500 text-white rounded-xl text-sm font-medium hover:bg-orange-600 transition-colors"
+          >
+            Retry
+          </button>
         </div>
-      </div>
+      </Shell>
     );
   }
 
   if (!evaluationData) {
     return (
-      <div className="h-screen flex bg-gray-50">
-        <Sidebar collapsed={true} setCollapsed={() => {}} />
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-gray-500 text-6xl mb-4">📊</div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">No Evaluation Data</h2>
-              <p className="text-gray-600">No evaluation data available for this session.</p>
-            </div>
-          </div>
+      <Shell>
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-6">
+          <span className="text-5xl">📊</span>
+          <h2 className="text-lg font-semibold text-gray-800">No evaluation data</h2>
+          <p className="text-gray-500 text-sm">No evaluation data is available for this session yet.</p>
         </div>
-      </div>
+      </Shell>
     );
   }
 
   return (
-    <div className="h-screen flex bg-gray-50">
+    <div className="h-screen flex bg-gray-100">
       {/* Sidebar */}
-      {isAdmin ? (
-        <AdminSidebar collapsed={true} setCollapsed={() => {}} />
-      ) : (
-        <Sidebar collapsed={true} setCollapsed={() => {}} />
-      )}
+      {isAdmin
+        ? <AdminSidebar collapsed={true} setCollapsed={() => {}} />
+        : <Sidebar collapsed={true} setCollapsed={() => {}} />
+      }
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col ml-16">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Session Evaluation
-              </h1>
-              <p className="text-gray-600 mt-1">
-                {evaluationData.sessionInfo.experienceTitle} • {evaluationData.sessionInfo.duration}
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-500">
-                {evaluationData.sessionInfo.totalParticipants} participants
+      {/* Main content card */}
+      <div className="flex-1 flex flex-col min-w-0 p-4 md:p-6">
+        <div className="flex-1 bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
+
+          {/* Page header */}
+          <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+              <div>
+                <h1 className="text-3xl font-bold text-[#002147] tracking-tight">
+                  Session Results
+                </h1>
+                <p className="mt-0.5 text-sm text-gray-500">
+                  {evaluationData.sessionInfo.experienceTitle}
+                  {evaluationData.sessionInfo.duration && (
+                    <> &bull; {evaluationData.sessionInfo.duration}</>
+                  )}
+                  {evaluationData.sessionInfo.totalParticipants && (
+                    <> &bull; {evaluationData.sessionInfo.totalParticipants} participant{evaluationData.sessionInfo.totalParticipants !== 1 ? "s" : ""}</>
+                  )}
+                </p>
               </div>
               <button
                 onClick={() => window.location.href = '/client/fireteam'}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                className="self-start sm:self-auto px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
               >
-                Back to Fireteam
+                ← Back to FireTeam
               </button>
             </div>
           </div>
-        </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-7xl mx-auto space-y-6">
-            {/* Top Row - Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ConversationMap 
-                conversationMap={evaluationData.conversationMap}
-                participants={evaluationData.groupBalanceScore.participants}
-              />
-              <GroupBalanceScore 
-                groupBalanceScore={evaluationData.groupBalanceScore}
-              />
-            </div>
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto px-6 py-5">
+            <div className="max-w-7xl mx-auto space-y-6">
 
-            {/* Bottom Row - Individual Evaluation */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-              <RoleTabView userRole={userRole}>
-                <IndividualEvaluation 
-                  individualEvaluations={evaluationData.individualEvaluations}
-                  userRole={userRole}
-                />
-              </RoleTabView>
-            </div>
+              {/* Charts row */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                  <ConversationMap
+                    conversationMap={evaluationData.conversationMap}
+                    participants={evaluationData.groupBalanceScore.participants}
+                  />
+                </div>
+                <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                  <GroupBalanceScore groupBalanceScore={evaluationData.groupBalanceScore} />
+                </div>
+              </div>
 
-            {/* Footer Info */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <div className="text-blue-500 text-lg">ℹ️</div>
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">About This Evaluation</p>
-                  <p>
-                    This evaluation is based on {hasAI ? 'AI analysis of your meeting recording and transcript' : 'basic participation metrics'}. 
-                    The analysis uses Bloom's Taxonomy to assess cognitive engagement levels across different learning objectives.
+              {/* Individual evaluation */}
+              <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                <RoleTabView userRole={userRole}>
+                  <IndividualEvaluation
+                    individualEvaluations={evaluationData.individualEvaluations}
+                    userRole={userRole}
+                  />
+                </RoleTabView>
+              </div>
+
+              {/* Footer info */}
+              <div className="rounded-2xl bg-blue-50 border border-blue-100 px-5 py-4 flex items-start gap-3 text-sm text-blue-800">
+                <span className="text-lg leading-none mt-0.5">ℹ️</span>
+                <div>
+                  <p className="font-semibold mb-0.5">About This Evaluation</p>
+                  <p className="text-blue-700 leading-relaxed">
+                    This evaluation is based on{' '}
+                    {hasAI
+                      ? 'AI analysis of your meeting recording and transcript'
+                      : 'basic participation metrics'}
+                    . The analysis uses Bloom&rsquo;s Taxonomy to assess cognitive engagement levels across different learning objectives.
                   </p>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
