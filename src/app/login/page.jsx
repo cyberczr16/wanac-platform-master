@@ -203,7 +203,7 @@ export default function Login() {
         <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#002147] to-[#003875] p-8 flex-col justify-center relative overflow-hidden">
           <div className="relative z-10">
             <img 
-              src="/WANAC-logo-white-orange.svg" 
+              src="/WANAC-logo-white-orange.svg"
               alt="WANAC Logo" 
               className="h-12 mb-8 w-auto"
             />

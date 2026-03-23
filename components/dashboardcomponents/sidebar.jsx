@@ -8,27 +8,51 @@ import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import { useState, useEffect } from 'react'
 import { useDashboardMobile } from '@/contexts/DashboardMobileContext'
 
-const navItems = [
-  { name: 'Dashboard', href: '/client/dashboard', icon: <Home size={18} /> },
-  { name: 'Calendar', href: '/client/calendar', icon: <Calendar size={18} /> },
-  
-  { name: 'Lifescores', href: '/client/lifescores', icon: <HeartPulse size={18} /> },
-  { name: 'Journal', href: '/client/journal', icon: <BookOpen size={18} /> },
-  { name: 'Fireteam', href: '/client/fireteam', icon: <Users size={18} /> },
-  { name: 'Task Management', href: '/client/taskmanagement', icon: <CheckSquare size={18} /> },
-  { name: 'AI Insights', href: '/client/aiinsights', icon: <Brain size={18} /> },
-  { name: 'Community', href: '/client/community', icon: <MessageCircle size={18} /> },
-  { name: 'AI Chat Bot', href: '/client/aichatbot', icon: <Bot size={18} /> },
-  { name: 'Students', href: '/client/students', icon: <Users size={18} /> },
-  { name: 'Account Settings', href: '/client/accountsettings', icon: <UserCog size={18} /> },
-  { name: 'Sessions', href: '/client/session', icon: <Video size={18} /> }, // <-- Changed to Video icon
-  { name: 'My Career Compass', href: '/client/mycareercompass', icon: <Briefcase size={18} /> },
-  { name: 'My Education Compass', href: '/client/myeducationcompass', icon: <GraduationCap size={18} /> },
-  { name: 'Reports', href: '/client/reports', icon: <BarChart2 size={18} /> },
-]
+// -------------------- NAV ITEMS --------------------
+export const navItems = [
+  { name: "Dashboard", href: "/client/dashboard", icon: <Home size={18} /> },
+  { name: "Calendar", href: "/client/calendar", icon: <Calendar size={18} /> },
+  { name: "Lifescores", href: "/client/lifescores", icon: <HeartPulse size={18} /> },
+  { name: "Journal", href: "/client/journal", icon: <BookOpen size={18} /> },
+  { name: "Fireteam", href: "/client/fireteam", icon: <Users size={18} /> },
+  { name: "Task Management", href: "/client/taskmanagement", icon: <CheckSquare size={18} /> },
+  { name: "AI Insights", href: "/client/aiinsights", icon: <Brain size={18} /> },
+  { name: "Community", href: "/client/community", icon: <MessageCircle size={18} /> },
+  { name: "AI Chat Bot", href: "/client/aichatbot", icon: <Bot size={18} /> },
+  { name: "Students", href: "/client/students", icon: <Users size={18} /> },
+  { name: "Account Settings", href: "/client/accountsettings", icon: <UserCog size={18} /> },
+  { name: "Sessions", href: "/client/session", icon: <Video size={18} /> },
+  { name: "My Career Compass", href: "/client/mycareercompass", icon: <Briefcase size={18} /> },
+  { name: "My Education Compass", href: "/client/myeducationcompass", icon: <GraduationCap size={18} /> },
+  { name: "Reports", href: "/client/reports", icon: <BarChart2 size={18} /> },
+];
 
+// -------------------- SIDEBAR ITEM COMPONENT --------------------
+function SidebarItem({ item, isOpen, active, onClick }) {
+  return (
+    <Link
+      href={item.href}
+      className={`relative flex items-center gap-2 px-2 py-2 rounded-md text-xs font-medium transition-all
+        ${active ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-gray-100"}
+        ${isOpen ? "" : "justify-center"} group`}
+      onClick={onClick}
+      aria-current={active ? "page" : undefined}
+    >
+      {item.icon}
+      {isOpen && item.name}
+      {/* Tooltip for collapsed */}
+      {!isOpen && (
+        <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+          {item.name}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+// -------------------- SIDEBAR COMPONENT --------------------
 export default function Sidebar({ collapsed: collapsedProp, setCollapsed: setCollapsedProp }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
   const router = useRouter();
   const mobileCtx = useDashboardMobile();
   const [internalMobileOpen, setInternalMobileOpen] = useState(false);
@@ -42,35 +66,31 @@ export default function Sidebar({ collapsed: collapsedProp, setCollapsed: setCol
 
   // collapsed: user's preference; hovered: current mouse state
   const [hovered, setHovered] = useState(false)
+  const [pinned, setPinned] = useState(false);
 
-  // Load sidebar state from localStorage only if not controlled by props
+  // Load collapsed state from localStorage if uncontrolled
   useEffect(() => {
-    if (collapsedProp === undefined && typeof window !== 'undefined') {
-      const stored = localStorage.getItem('wanacSidebarCollapsed');
-      if (stored !== null) {
-        setInternalCollapsed(stored === 'true');
-      }
+    if (collapsedProp === undefined && typeof window !== "undefined") {
+      const stored = localStorage.getItem("wanacSidebarCollapsed");
+      if (stored !== null) setInternalCollapsed(stored === "true");
     }
   }, [collapsedProp]);
 
-  // Persist sidebar state to localStorage only if not controlled by props
   useEffect(() => {
-    if (collapsedProp === undefined && typeof window !== 'undefined') {
-      localStorage.setItem('wanacSidebarCollapsed', internalCollapsed);
+    if (collapsedProp === undefined && typeof window !== "undefined") {
+      localStorage.setItem("wanacSidebarCollapsed", internalCollapsed);
     }
   }, [internalCollapsed, collapsedProp]);
 
-  // Logout handler
+  // Logout
   const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('wanacUser');
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("wanacUser");
     }
-    router.push('/login');
+    router.push("/login");
   };
 
-  // Determine if sidebar should be open
-  // Only allow hover to expand/collapse if collapsed is true
-  const isOpen = !collapsed || (collapsed && hovered);
+  const isOpen = !collapsed || (collapsed && (hovered || pinned));
 
   return (
     <>
@@ -132,14 +152,16 @@ export default function Sidebar({ collapsed: collapsedProp, setCollapsed: setCol
       </aside>
       {/* Sidebar for desktop */}
       <aside
-        className={`bg-white border-r border-gray-200 flex-col h-screen transition-all duration-300 ${isOpen ? 'w-56' : 'w-16'} hidden md:flex md:static md:z-0`}
+        className={`bg-white border-r border-gray-200 flex-col h-screen transition-[width] duration-300 ease-in-out ${
+          isOpen ? "w-56" : "w-16"
+        } hidden md:flex md:static md:z-0`}
         role="navigation"
         aria-label="Sidebar"
         tabIndex={-1}
-        onMouseEnter={() => { if (collapsed) setHovered(true); }}
-        onMouseLeave={() => { if (collapsed) setHovered(false); }}
+        onMouseEnter={() => collapsed && setHovered(true)}
+        onMouseLeave={() => collapsed && setHovered(false)}
       >
-        <div className={`p-3 flex items-center ${isOpen ? 'ml-2' : 'justify-center'}`}> 
+        <div className={`p-3 flex items-center ${isOpen ? 'ml-2' : 'justify-center'}`}>
           {!isOpen && <span className="sr-only">WANAC</span>}
           <Image
             src="/WANAC N 8 Old Glory.svg"
@@ -151,18 +173,12 @@ export default function Sidebar({ collapsed: collapsedProp, setCollapsed: setCol
         </div>
         <nav className="flex-1 py-1 space-y-0.5">
           {navItems.map((item) => (
-            <Link
+            <SidebarItem
               key={item.name}
-              href={item.href}
-              className={`flex items-center gap-2 w-full px-3 py-2 rounded-none text-xs font-medium transition-all ${
-                pathname === item.href
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-700 hover:bg-gray-100'
-              } ${isOpen ? '' : 'justify-center px-0'}`}
-            >
-              {item.icon}
-              {isOpen ? item.name : null}
-            </Link>
+              item={item}
+              isOpen={isOpen}
+              active={pathname.startsWith(item.href)}
+            />
           ))}
         </nav>
         {/* Toggle button below nav items */}
@@ -179,15 +195,20 @@ export default function Sidebar({ collapsed: collapsedProp, setCollapsed: setCol
             {!collapsed ? <PushPinIcon style={{ fontSize: 16 }} /> : <PushPinOutlinedIcon style={{ fontSize: 16 }} />}
           </button>
         </div>
+
+        {/* LOGOUT */}
         <div className="p-2 border-t flex flex-col gap-1">
-          <button className={`flex items-center gap-2 px-2 py-2 text-xs text-gray-600 hover:bg-gray-100 w-full rounded-md ${isOpen ? '' : 'justify-center'}`}
+          <button
+            className={`flex items-center gap-2 px-2 py-2 text-xs text-gray-600 hover:bg-gray-100 w-full rounded-md ${
+              isOpen ? "" : "justify-center"
+            }`}
             onClick={handleLogout}
           >
             <LogOut size={18} />
-            {isOpen && 'Log Out'}
+            {isOpen && "Log Out"}
           </button>
         </div>
       </aside>
     </>
-  )
+  );
 }

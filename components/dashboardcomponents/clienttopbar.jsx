@@ -6,6 +6,11 @@ export default function ClientTopbar({ user, currentCommunity }) {
   const mobileCtx = useDashboardMobile();
   const setMobileOpen = mobileCtx?.setMobileOpen;
 
+  const handleNotificationClick = (notification) => {
+    console.log('Clicked notification:', notification.id);
+    // Here you can add logic to mark as read or navigate
+  };
+
   return (
     <nav
       className="flex items-center justify-between bg-white border-b border-gray-200 shadow-sm sticky top-0 z-30 pt-[env(safe-area-inset-top)] px-3 md:px-4 h-14 min-h-[56px] md:min-h-[52px]"
