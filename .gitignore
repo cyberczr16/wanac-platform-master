@@ -43,3 +43,6 @@ next-env.d.ts
 
 # jitsi-meet directory (contains React Native code incompatible with Next.js)
 /jitsi-meet
+
+# Large local camera RAWs — never commit (was blocking pushes)
+/public/101 selfie journal /
