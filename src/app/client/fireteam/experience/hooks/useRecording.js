@@ -30,7 +30,7 @@ export function useRecording(meetingRef, meetingReady) {
         // STOP RECORDING
         console.log('🛑 Stopping recording...');
 
-        // Stop local media recorder (we do not use Jitsi server recording to avoid login prompts)
+        // Stop local media recorder
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
           mediaRecorderRef.current.stop();
           console.log('✅ Local recorder stopped');
@@ -39,7 +39,7 @@ export function useRecording(meetingRef, meetingReady) {
         setIsRecording(false);
         console.log('✅ Recording stopped successfully');
       } else {
-        // START RECORDING (local MediaRecorder only — no Jitsi server recording = no Gmail/GitHub prompt)
+        // START RECORDING (local MediaRecorder only)
         console.log('🔴 Starting recording...');
 
         // Start local media recorder

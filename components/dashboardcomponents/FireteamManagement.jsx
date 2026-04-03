@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { cohortService } from "../../src/services/api/cohort.service";
 import { fireteamService } from "../../src/services/api/fireteam.service";
-import { generateJitsiMeetingLink } from "../../src/lib/jitsi.utils";
+import { generateFireteamMeetingLink } from "../../src/lib/livekit.utils";
 
 /* ── Icons ─────────────────────────────────────────────────────────────────── */
 function PlusIcon() {
@@ -192,7 +192,7 @@ export default function FireteamManagement({ sidebar: SidebarComponent, basePath
         showToast("Fireteam updated successfully");
       } else {
         const roomName = `wanac-fireteam-${cohortId}-${Date.now()}`;
-        const link = generateJitsiMeetingLink(roomName);
+        const link = generateFireteamMeetingLink(roomName);
         const created = await fireteamService.addFireteam({ cohort_id: cohortId, title: name, description, date: dateTime, time, link });
         if (created?.id) await fireteamService.updateFireteam(created.id, { cohort_id: cohortId, title: name, description, date: dateTime, time });
         showToast("Fireteam created successfully");

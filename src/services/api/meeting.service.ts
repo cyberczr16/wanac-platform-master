@@ -50,8 +50,7 @@ export const meetingService = {
         
         // Generate secure token
         const token = this.generateSecureToken();
-        const jitsiDomain = process.env.NEXT_PUBLIC_JITSI_DOMAIN || 'meet.jit.si';
-        const meetingLink = `https://${jitsiDomain}/wanac-exp-${experienceId}-${token}`;
+        const meetingLink = `wanac-exp-${experienceId}-${token.substring(0, 10)}`;
         
         // Try to save to backend
         try {
@@ -67,9 +66,8 @@ export const meetingService = {
       // For other errors, generate temporary link
       console.warn('Error fetching meeting link, generating temporary:', error);
       const token = this.generateSecureToken();
-      const jitsiDomain = process.env.NEXT_PUBLIC_JITSI_DOMAIN || 'meet.jit.si';
       return {
-        meetingLink: `https://${jitsiDomain}/wanac-exp-${experienceId}-${token}`,
+        meetingLink: `wanac-exp-${experienceId}-${token.substring(0, 10)}`,
         token,
       };
     }

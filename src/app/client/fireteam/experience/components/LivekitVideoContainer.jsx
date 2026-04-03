@@ -9,8 +9,6 @@ import { Track } from 'livekit-client';
 
 /**
  * LiveKit video container with loading and error overlays.
- * Mirrors the behavior of JitsiVideoContainer so the meeting page can toggle
- * between slide and video views in the same way.
  */
 export default function LivekitVideoContainer({
   showSlide,

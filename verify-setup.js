@@ -18,7 +18,7 @@ if (!fs.existsSync(envPath)) {
   console.log('📝 Please create .env.local in project root with:');
   console.log('   NEXT_PUBLIC_API_URL=https://wanac-api.kuzasports.com');
   console.log('   NEXT_PUBLIC_OPENAI_API_KEY=sk-proj-your-key');
-  console.log('   NEXT_PUBLIC_JITSI_DOMAIN=meet.jit.si\n');
+  console.log('   NEXT_PUBLIC_LIVEKIT_URL=wss://your-livekit-host\n');
   process.exit(1);
 }
 
@@ -42,10 +42,11 @@ const checks = [
     errorMsg: 'Should start with sk-proj- or sk-',
   },
   {
-    name: 'Jitsi Domain',
-    key: 'NEXT_PUBLIC_JITSI_DOMAIN',
-    pattern: /NEXT_PUBLIC_JITSI_DOMAIN=(.+)/,
-    expected: 'meet.jit.si',
+    name: 'LiveKit URL',
+    key: 'NEXT_PUBLIC_LIVEKIT_URL',
+    pattern: /NEXT_PUBLIC_LIVEKIT_URL=(.+)/,
+    validator: (val) => val && val.startsWith('wss://'),
+    errorMsg: 'Should start with wss://',
   },
 ];
 
@@ -98,7 +99,7 @@ const requiredFiles = [
   'src/services/api/fireteam.service.ts',
   'src/services/api/config.ts',
   'src/app/client/fireteam/experience/hooks/useRecording.js',
-  'src/app/client/fireteam/experience/hooks/useJitsiMeeting.js',
+  'src/app/client/fireteam/experience/hooks/useLivekitMeeting.js',
 ];
 
 let allFilesExist = true;

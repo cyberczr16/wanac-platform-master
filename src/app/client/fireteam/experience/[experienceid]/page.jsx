@@ -10,6 +10,7 @@ import { useLivekitMeeting } from "../hooks/useLivekitMeeting";
 import { useRecording } from "../hooks/useRecording";
 import { useMeetingData } from "../hooks/useMeetingData";
 import { useToast } from "../hooks/useToast";
+import { useRoomState } from "../hooks/useRoomState";
 
 // UI Components
 import LivekitVideoContainer from "../components/LivekitVideoContainer";
@@ -238,7 +239,6 @@ function useStepTimer(durationMinutes) {
 
 export default function FireteamExperienceMeeting() {
   const sessionProcessedRef = useRef(false);
-  const bcRef = useRef(null);
   const mobileCtx = useDashboardMobile();
 
   // ============================================================================
@@ -250,8 +250,7 @@ export default function FireteamExperienceMeeting() {
   const isAdmin = searchParams?.get("admin") === "true";
   const [wanacUser, setWanacUser] = useState(null);
 
-  // UI State
-  const [currentStep, setCurrentStep] = useState(0);
+  // UI State  (currentStep is now derived from useRoomState — see below)
   const [showSlide, setShowSlide] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
   const [activeTab, setActiveTab] = useState("agenda");
@@ -273,10 +272,6 @@ export default function FireteamExperienceMeeting() {
     loading: dataLoading,
     calculateTotalTime,
   } = useMeetingData(searchParams);
-
-  // Per-step countdown timer
-  const currentDuration = agenda[currentStep]?.duration;
-  const { formatted: stepTimer, pct: stepPct } = useStepTimer(currentDuration);
 
   // Load user from localStorage
   useEffect(() => {
@@ -308,38 +303,7 @@ export default function FireteamExperienceMeeting() {
     return String(currentUserId) === String(leaderUserId);
   }, [currentUserId, leaderUserId]);
 
-  // BroadcastChannel — shared slide sync across tabs
-  const channelName = useMemo(() => {
-    const ft = fireteam?.id ?? searchParams?.get("fireteamId") ?? "unknown-ft";
-    const exp = experience?.id ?? searchParams?.get("id") ?? "unknown-exp";
-    return `fireteam-breakout-${ft}-${exp}`;
-  }, [fireteam?.id, experience?.id, searchParams]);
-
-  useEffect(() => {
-    try {
-      bcRef.current = new BroadcastChannel(channelName);
-      bcRef.current.onmessage = (evt) => {
-        if (evt?.data?.type === "SET_STEP" && typeof evt.data.step === "number") {
-          setCurrentStep(evt.data.step);
-          setShowSlide(true);
-        }
-      };
-      return () => bcRef.current?.close();
-    } catch {
-      return undefined;
-    }
-  }, [channelName]);
-
-  const leaderSetStep = useCallback((nextStep) => {
-    setCurrentStep(nextStep);
-    setShowSlide(true);
-    try {
-      bcRef.current?.postMessage({ type: "SET_STEP", step: nextStep });
-    } catch {
-      // ignore
-    }
-  }, []);
-
+  // ── LiveKit meeting connection ─────────────────────────────────────────────
   const {
     roomRef,
     livekitReady,
@@ -348,11 +312,43 @@ export default function FireteamExperienceMeeting() {
     sendChatMessage,
     meetingStartTime,
     attendanceLog,
-    loading: jitsiLoading,
-    error: jitsiError,
+    loading: meetingLoading,
+    error: meetingError,
     initializeMeeting,
     leaveMeeting,
   } = useLivekitMeeting();
+
+  // ── Real-time room state (slide sync via LiveKit DataChannel) ──────────────
+  // useRoomState broadcasts slide changes to every participant in the LiveKit room.
+  // When the group leader calls advanceSlide(n), all other participants instantly
+  // receive a FIRETEAM_SLIDE_CHANGE data message and update their view.
+  const {
+    activeSlide: currentStep,   // Rename so the rest of the file is unchanged
+    isGroupLeader,
+    advanceSlide,
+    changeExhibit,
+    activeExhibitId,
+  } = useRoomState({
+    roomRef,
+    livekitReady,
+    currentUserId,
+    leaderUserId,
+    initialSlide: 0,
+  });
+
+  // Per-step countdown timer (must come after useRoomState so currentStep is defined)
+  const currentDuration = agenda[currentStep]?.duration;
+  const { formatted: stepTimer, pct: stepPct } = useStepTimer(currentDuration);
+
+  // When activeSlide changes (from remote or local), reveal the slide panel
+  useEffect(() => {
+    setShowSlide(true);
+    // Auto-switch sidebar to exhibits on discussion slides (slideType 6)
+    const slideType = agenda[currentStep]?.breakout?.slideType;
+    if (slideType === 6 && exhibits?.length > 0) {
+      setActiveTab("exhibits");
+    }
+  }, [currentStep, agenda, exhibits]);
 
   const livekitRoom = roomRef.current;
 
@@ -376,18 +372,17 @@ export default function FireteamExperienceMeeting() {
 
     async function init() {
       try {
-        setCurrentStep(0);
         setShowSummaryModal(false);
 
         let meetingLink = null;
         if (linkParam) {
           meetingLink = decodeURIComponent(linkParam);
         } else if (expId) {
-          meetingLink = `https://meet.jit.si/fireteam-exp-${expId}`;
+          meetingLink = `wanac-ft-exp-${expId}`;
         } else if (ftId) {
-          meetingLink = `https://meet.jit.si/fireteam-${ftId}`;
+          meetingLink = `wanac-ft-${ftId}`;
         } else {
-          meetingLink = `https://meet.jit.si/fireteam-default-${Date.now()}`;
+          meetingLink = `wanac-ft-default-${Date.now()}`;
         }
 
         const urlObj = new URL(meetingLink);
@@ -414,15 +409,15 @@ export default function FireteamExperienceMeeting() {
 
   const handleNext = useCallback(() => {
     if (currentStep < agenda.length - 1 && canNavigate) {
-      leaderSetStep(currentStep + 1);
+      advanceSlide(currentStep + 1);
     }
-  }, [currentStep, agenda.length, canNavigate, leaderSetStep]);
+  }, [currentStep, agenda.length, canNavigate, advanceSlide]);
 
   const handlePrevious = useCallback(() => {
     if (currentStep > 0 && canNavigate) {
-      leaderSetStep(currentStep - 1);
+      advanceSlide(currentStep - 1);
     }
-  }, [currentStep, canNavigate, leaderSetStep]);
+  }, [currentStep, canNavigate, advanceSlide]);
 
   const handleToggleRecording = useCallback(async () => {
     try {
@@ -715,6 +710,20 @@ export default function FireteamExperienceMeeting() {
                       step={agenda[currentStep]}
                       participants={participants}
                       experienceTitle={experience?.title || ""}
+                      onRatingSubmit={(stars) => {
+                        // POST rating to API (wired in Gap 6)
+                        const expId = searchParams?.get("id");
+                        const userId = currentUserId;
+                        if (expId && userId) {
+                          fetch(`/api/v1/fireteams/experience/${expId}/rating`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ stars, userId }),
+                          }).catch(() => {});
+                        }
+                      }}
+                      allSteps={agenda}
+                      currentStepIndex={currentStep}
                     />
                   </div>
                   <button
@@ -736,8 +745,8 @@ export default function FireteamExperienceMeeting() {
                   >
                     <LivekitVideoContainer
                       showSlide={showSlide}
-                      loading={jitsiLoading}
-                      error={jitsiError}
+                      loading={meetingLoading}
+                      error={meetingError}
                     />
                   </LiveKitRoom>
                 ) : (
@@ -950,13 +959,30 @@ export default function FireteamExperienceMeeting() {
               <div className="flex-1 overflow-y-auto px-4 py-4">
                 {exhibits && exhibits.length > 0 ? (
                   <div className="space-y-3">
-                    {exhibits.map((exhibit, idx) => (
-                      <div key={idx}
-                        className="rounded-xl border border-gray-100 overflow-hidden bg-gray-50 hover:border-gray-200 hover:shadow-sm transition-all cursor-pointer">
-                        {exhibit.imageUrl ? (
+                    {/* Leader hint */}
+                    {isGroupLeader && (
+                      <p className="text-[10px] text-gray-400 text-center mb-1">
+                        Tap an exhibit to show it to everyone
+                      </p>
+                    )}
+                    {exhibits.map((exhibit, idx) => {
+                      const exhibitId = exhibit.id ?? idx;
+                      const isActive  = String(activeExhibitId) === String(exhibitId);
+                      return (
+                      <div
+                        key={exhibitId}
+                        onClick={() => isGroupLeader && changeExhibit(exhibitId)}
+                        className={`rounded-xl border overflow-hidden transition-all
+                          ${isGroupLeader ? "cursor-pointer hover:shadow-sm" : "cursor-default"}
+                          ${isActive
+                            ? "border-[#E87722] ring-2 ring-[#E87722]/30 bg-orange-50"
+                            : "border-gray-100 bg-gray-50 hover:border-gray-200"
+                          }`}
+                      >
+                        {exhibit.imageUrl || exhibit.exhibitURL ? (
                           <img
-                            src={exhibit.imageUrl}
-                            alt={exhibit.title ?? `Exhibit ${idx + 1}`}
+                            src={exhibit.imageUrl || exhibit.exhibitURL}
+                            alt={exhibit.title ?? exhibit.exhibitAltText ?? `Exhibit ${idx + 1}`}
                             className="w-full h-32 object-cover"
                           />
                         ) : (
@@ -965,17 +991,24 @@ export default function FireteamExperienceMeeting() {
                           </div>
                         )}
                         <div className="px-3 py-2.5">
-                          <p className="text-xs font-semibold text-gray-700 truncate">
-                            {exhibit.title ?? `Exhibit ${idx + 1}`}
-                          </p>
-                          {exhibit.description && (
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-xs font-semibold text-gray-700 truncate flex-1">
+                              {exhibit.title ?? exhibit.exhibitCaption ?? `Exhibit ${idx + 1}`}
+                            </p>
+                            {isActive && (
+                              <span className="text-[9px] font-bold text-[#E87722] bg-orange-100 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                                LIVE
+                              </span>
+                            )}
+                          </div>
+                          {(exhibit.description || exhibit.exhibitCaption) && (
                             <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
-                              {exhibit.description}
+                              {exhibit.description || exhibit.exhibitCaption}
                             </p>
                           )}
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full text-center py-10">

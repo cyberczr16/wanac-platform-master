@@ -6,8 +6,7 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
 
-  // No Webpack customizations needed for Jitsi API
-  // Turbopack will now work without warnings
+  // Turbopack will work without warnings
 };
 
 export default nextConfig;

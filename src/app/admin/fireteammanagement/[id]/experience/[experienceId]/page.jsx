@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { fireteamService } from "../../../../../../services/api/fireteam.service";
 import { experienceService } from "../../../../../../services/api/experience.service";
-import { generateFireteamMeetingLink } from "../../../../../../lib/jitsi.utils";
+import { generateFireteamMeetingLink } from "../../../../../../lib/livekit.utils";
 import EditExperienceModal from "../../../../../../../components/EditExperienceModal";
 
 /* ─── Reusable micro-components ─── */
@@ -150,7 +150,7 @@ export default function ExperienceDetailPage() {
         : [];
       const exhibitsData =
         experience.exhibits && Array.isArray(experience.exhibits) && experience.exhibits.length > 0
-          ? experience.exhibits.map((ex) => ({ ...ex, file: null }))
+          ? experience.exhibits.map((ex) => ({ ...ex, link: ex.link || ex.url || "", file: null }))
           : [];
       setEditExperienceData((prev) => ({ ...prev, agenda: agendaData, exhibits: exhibitsData }));
     }
@@ -537,6 +537,15 @@ export default function ExperienceDetailPage() {
                 }`}>
                   {experience.status}
                 </span>
+              )}
+              {experience.status === "completed" && (
+                <button
+                  onClick={() => router.push(`/client/fireteam/experience/${experienceId}/evaluation?experienceId=${experienceId}&fireteamId=${fireteamId}`)}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-xs font-semibold transition-colors"
+                >
+                  <Target className="w-3.5 h-3.5" />
+                  View Results
+                </button>
               )}
               {experience.link && (
                 <button

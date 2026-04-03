@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Room, RoomEvent, setLogLevel, LogLevel } from 'livekit-client';
 
-// Basic LiveKit-based replacement for useJitsiMeeting.
-// Mirrors the shape of the existing hook as much as possible so the meeting page
-// can switch between Jitsi and LiveKit with minimal changes.
+// LiveKit meeting hook — manages room connection, participants, and chat.
 
 setLogLevel(LogLevel.info);
 

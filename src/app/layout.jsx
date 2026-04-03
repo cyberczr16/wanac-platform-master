@@ -28,7 +28,6 @@ export default function RootLayout({ children }) {
         <meta name="twitter:image" content="/landingpage4.jpg" />
         
         <link rel="icon" href="/WANAC N 8 Old Glory.svg" type="image/svg+xml" />
-        <link rel="stylesheet" href="/jitsi-custom.css" />
       </head>
       <body className="min-h-screen flex flex-col">
         <Toaster position="top-center" toastOptions={{

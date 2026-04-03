@@ -123,10 +123,33 @@ export const experienceService = {
     name: string;
     type: string;
     link?: string;
+    file?: File | null;
   }) {
     try {
-      const res = await apiClient.post('/api/v1/fireteams/experience/exhibit/add', data);
-      return unwrapItem(res.data);
+      let body: FormData | object;
+      if (data.file) {
+        // File upload — must use multipart/form-data so the binary is transmitted
+        const formData = new FormData();
+        formData.append('fire_team_experience_id', String(data.fire_team_experience_id));
+        formData.append('name', data.name);
+        formData.append('type', data.type);
+        formData.append('file', data.file);
+        if (data.link) formData.append('link', data.link);
+        body = formData;
+        // Do NOT set Content-Type — browser sets it automatically with the correct boundary
+        const res = await apiClient.post('/api/v1/fireteams/experience/exhibit/add', body);
+        return unwrapItem(res.data);
+      } else {
+        // Link or name-only — plain JSON is fine
+        body = {
+          fire_team_experience_id: data.fire_team_experience_id,
+          name: data.name,
+          type: data.type,
+          ...(data.link ? { link: data.link } : {}),
+        };
+        const res = await apiClient.post('/api/v1/fireteams/experience/exhibit/add', body);
+        return unwrapItem(res.data);
+      }
     } catch (error: any) {
       console.error('Error adding exhibit:', error);
       throw error;
@@ -158,6 +181,52 @@ export const experienceService = {
     }
   },
 
-  // REMOVED: getExperienceDetails, getAgendaSteps, getExhibits - API endpoints not available
-  // Experience details (including agenda and exhibits) should be fetched from the fireteam data instead
+  // ── Quiz questions ──────────────────────────────────────────────────────────
+  /**
+   * Fetch pre-work quiz questions for a given experience.
+   * Backend should return an array of question objects with:
+   *   { id, question, answers: string[], correctAnswerIndex: number,
+   *     questionType: number, explanation?: string }
+   * Only questions with questionType === 0 are pre-work MC.
+   */
+  async getQuizQuestions(experienceId: string | number) {
+    try {
+      const res = await apiClient.get(`/api/v1/fireteams/experience/${experienceId}/quiz`);
+      const data = unwrapItem(res.data);
+      return Array.isArray(data) ? data : (data?.questions ?? []);
+    } catch (error: any) {
+      console.error('Error fetching quiz questions:', error.response?.data ?? error.message);
+      return [];
+    }
+  },
+
+  /**
+   * Submit quiz answers and get pass/fail result.
+   * Returns: { passed: boolean, score: number, total: number, answers: object }
+   */
+  async submitQuiz(experienceId: string | number, answers: Record<string, number>) {
+    try {
+      const res = await apiClient.post(
+        `/api/v1/fireteams/experience/${experienceId}/quiz/submit`,
+        { answers }
+      );
+      return unwrapItem(res.data);
+    } catch (error: any) {
+      console.error('Error submitting quiz:', error.response?.data ?? error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * Get a single experience by ID.
+   */
+  async getExperience(experienceId: string | number) {
+    try {
+      const res = await apiClient.get(`/api/v1/fireteams/experience/${experienceId}`);
+      return unwrapItem(res.data);
+    } catch (error: any) {
+      console.error('Error fetching experience:', error.response?.data ?? error.message);
+      return null;
+    }
+  },
 };

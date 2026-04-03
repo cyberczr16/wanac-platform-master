@@ -5,8 +5,7 @@ import CoachSidebar from "../../../../../components/dashboardcomponents/CoachSid
 import { fireteamService } from "../../../../services/api/fireteam.service";
 import { experienceService } from "../../../../services/api/experience.service";
 import { clientsService } from "../../../../services/api/clients.service";
-import { generateFireteamMeetingLink } from "../../../../lib/jitsi.utils";
-import ExperienceVideoModal from "../../../../../components/ExperienceVideoModal";
+import { generateFireteamMeetingLink } from "../../../../lib/livekit.utils";
 import EditExperienceModal from "../../../../../components/EditExperienceModal";
 
 /* ── Icons ──────────────────────────────────────────────────────────────────── */
@@ -166,9 +165,7 @@ export default function CoachFireteamDetailPage() {
   const [showEdit, setShowEdit] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [showAddExperience, setShowAddExperience] = useState(false);
-  const [showVideoMeeting, setShowVideoMeeting] = useState(false);
   const [showEditExperience, setShowEditExperience] = useState(false);
-  const [selectedExperience, setSelectedExperience] = useState(null);
   const [selectedExperienceToEdit, setSelectedExperienceToEdit] = useState(null);
   const [selectedClient, setSelectedClient] = useState("");
   const [editData, setEditData] = useState({ title: "", description: "", date: "", time: "" });
@@ -269,11 +266,8 @@ export default function CoachFireteamDetailPage() {
 
   const handleStartExperience = async (expId) => {
     try {
-      const exp = experiences.find(e => e.id === expId);
-      if (!exp) return;
       await experienceService.startExperience(expId);
-      setSelectedExperience(exp);
-      setShowVideoMeeting(true);
+      router.push(`/coach/fireteammanagement/${id}/experience/${expId}`);
     } catch { showToast("Failed to start experience", "error"); }
   };
 
@@ -758,20 +752,8 @@ export default function CoachFireteamDetailPage() {
         experienceService={experienceService}
       />
 
-      {/* ── Video Meeting Modal ── */}
-      {showVideoMeeting && selectedExperience && (
-        <ExperienceVideoModal
-          onClose={() => {
-            setShowVideoMeeting(false);
-            if (selectedExperience) experienceService.endExperience(selectedExperience.id).catch(() => {});
-            setSelectedExperience(null);
-          }}
-          experience={selectedExperience}
-          fireteam={fireteam}
-        />
-      )}
 
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+{toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

@@ -291,7 +291,7 @@ const ExhibitItem = memo(function ExhibitItem({ exhibit, idx, onUpdate, onDelete
           {!isPersisted && (
             <button
               onClick={async () => { setIsSubmitting(true); try { await onSubmit(idx); } finally { setIsSubmitting(false); } }}
-              disabled={isSubmitting || !exhibit.name?.trim()}
+              disabled={isSubmitting || !exhibit.name?.trim() || (exhibit.type !== "link" && !exhibit.file)}
               className="flex items-center gap-1 px-2.5 py-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white rounded-lg text-xs font-semibold transition-colors"
             >
               {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
