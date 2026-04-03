@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breakout / Fireteam — AI Integration Blueprint (Whisper + Groq)</title>
+<style>
+  :root {
+    --navy: #002147;
+    --orange: #E87722;
+    --bg: #f8f8f8;
+    --card: #ffffff;
+    --border: #e0e0e0;
+    --text: #1a1a1a;
+    --dim: #656565;
+    --code-bg: #f0f0f0;
+    --source: #2563eb;
+    --impl: #dc2626;
+    --green: #16a34a;
+    --groq: #f97316;
+    --whisper: #8b5cf6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height:1.6; }
+  .container { max-width:980px; margin:0 auto; padding:24px; }
+  header { background: var(--navy); color:white; padding:32px 24px; margin-bottom:32px; border-radius:12px; }
+  header h1 { font-size:28px; margin-bottom:8px; }
+  header p { opacity:0.85; font-size:14px; }
+  h2 { font-size:22px; color:var(--navy); margin:32px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--orange); }
+  h3 { font-size:17px; color:var(--navy); margin:20px 0 10px; }
+  h4 { font-size:14px; color:var(--dim); margin:14px 0 6px; text-transform:uppercase; letter-spacing:0.5px; }
+  p, li { font-size:14px; margin-bottom:8px; }
+  ul, ol { padding-left:24px; margin-bottom:16px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:20px; margin-bottom:16px; }
+  code { font-family:'Fira Code','SF Mono',monospace; font-size:12.5px; background:var(--code-bg); padding:2px 5px; border-radius:3px; }
+  pre { background:#1e1e2e; color:#cdd6f4; padding:16px; border-radius:8px; overflow-x:auto; margin:12px 0; font-size:12.5px; line-height:1.6; }
+  pre code { background:none; padding:0; color:inherit; }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:13px; }
+  th { background:var(--navy); color:white; padding:10px 12px; text-align:left; font-weight:600; }
+  td { padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  tr:nth-child(even) { background:#fafafa; }
+  .note { background:#fffbeb; border-left:4px solid #f59e0b; padding:12px 16px; margin:12px 0; border-radius:0 8px 8px 0; font-size:13px; }
+  .groq-tag { background:#fff7ed; border-left:4px solid var(--groq); padding:12px 16px; margin:12px 0; border-radius:0 8px 8px 0; font-size:13px; }
+  .whisper-tag { background:#f5f3ff; border-left:4px solid var(--whisper); padding:12px 16px; margin:12px 0; border-radius:0 8px 8px 0; font-size:13px; }
+  .tag { display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; margin-right:4px; }
+  .tag-groq { background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; }
+  .tag-whisper { background:#f5f3ff; color:#6d28d9; border:1px solid #ddd6fe; }
+  .tag-both { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
+  .tag-db { background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
+  .flowbox { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin:12px 0; font-family: monospace; font-size:13px; line-height:2; }
+  .arrow { color:var(--orange); font-weight:700; }
+  .step { display:flex; gap:12px; margin:10px 0; }
+  .step-num { background:var(--orange); color:white; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; margin-top:2px; }
+  .toc a { color:var(--navy); text-decoration:none; font-size:14px; display:block; padding:3px 0; }
+  .toc a:hover { color:var(--orange); }
+  .model-badge { display:inline-block; background:#1e1e2e; color:#a6e3a1; font-family:monospace; font-size:11px; padding:2px 8px; border-radius:4px; margin:2px; }
+  .free-badge { display:inline-block; background:#dcfce7; color:#166534; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; }
+  .limit-badge { display:inline-block; background:#fef3c7; color:#92400e; font-size:11px; padding:2px 8px; border-radius:10px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>Breakout / Fireteam — AI Integration Blueprint</h1>
+  <p>Using <strong>Groq Whisper API</strong> (speech-to-text) + <strong>Groq LLM</strong> (evaluation, summaries, explanations)<br>
+  Stack: Laravel (PHP) · PostgreSQL (fireteam schema) · LiveKit video<br>
+  Generated: April 3, 2026 | For: WANAC Foundation Taproot Volunteers</p>
+</header>
+
+<!-- TABLE OF CONTENTS -->
+<h2>Table of Contents</h2>
+<div class="card toc">
+  <a href="#s0">0. Why Groq — Free Tier Limits at a Glance</a>
+  <a href="#s1">1. AI Touchpoint Map — Every Place AI Fits in Fireteam</a>
+  <a href="#s2">2. Architecture Overview — Data Flow Diagram</a>
+  <a href="#s3">3. Database Changes — New Tables Needed</a>
+  <a href="#s4">4. Sprint Integration Plan — When to Build Each AI Feature</a>
+  <a href="#s5">5. Feature A: Live Session Transcription (Whisper)</a>
+  <a href="#s6">6. Feature B: Bloom's Taxonomy Evaluation (Groq LLM)</a>
+  <a href="#s7">7. Feature C: Session Summary Generation (Groq LLM)</a>
+  <a href="#s8">8. Feature D: Quiz Explanation Generation (Groq LLM)</a>
+  <a href="#s9">9. Feature E: Video Caption Seeding (Whisper)</a>
+  <a href="#s10">10. Feature F: Conversation Insight Tags (Groq LLM)</a>
+  <a href="#s11">11. Groq Rate Limit Strategy</a>
+  <a href="#s12">12. Environment Variables & Config</a>
+  <a href="#s13">13. File Index — Code Files Delivered</a>
+</div>
+
+<!-- SECTION 0: GROQ FREE TIER -->
+<h2 id="s0">0. Why Groq — Free Tier Limits at a Glance</h2>
+<div class="card">
+  <p>Groq offers a free tier ("Developer" plan) that covers all the AI needs of the Fireteam platform at typical session volumes. Both Whisper and LLM inference run on the same API key.</p>
+
+  <h3>Free Tier Models Available</h3>
+  <table>
+    <tr><th>Model</th><th>Use In Fireteam</th><th>Context Window</th><th>Free Limit (per day)</th></tr>
+    <tr><td><span class="model-badge">whisper-large-v3</span></td><td>Live transcription, video captions</td><td>N/A (audio)</td><td><span class="free-badge">FREE</span> <span class="limit-badge">~7,200 seconds audio</span></td></tr>
+    <tr><td><span class="model-badge">llama-3.3-70b-versatile</span></td><td>Bloom's evaluation (complex reasoning)</td><td>128k tokens</td><td><span class="free-badge">FREE</span> <span class="limit-badge">~1,000 requests/day</span></td></tr>
+    <tr><td><span class="model-badge">llama3-8b-8192</span></td><td>Summaries, quiz explanations (simpler tasks)</td><td>8k tokens</td><td><span class="free-badge">FREE</span> <span class="limit-badge">Higher RPD</span></td></tr>
+    <tr><td><span class="model-badge">mixtral-8x7b-32768</span></td><td>Fallback for evaluation if quota hit</td><td>32k tokens</td><td><span class="free-badge">FREE</span></td></tr>
+  </table>
+
+  <div class="note">
+    <strong>Recommendation:</strong> Use <code>llama-3.3-70b-versatile</code> for Bloom's Taxonomy evaluation (needs strong reasoning) and <code>llama3-8b-8192</code> for faster/cheaper tasks like summaries and quiz explanations. Whisper endpoint is separate from the LLM quota.
+  </div>
+
+  <h3>Groq API Base URL</h3>
+  <pre><code>https://api.groq.com/openai/v1
+
+// Whisper endpoint
+POST /audio/transcriptions
+Content-Type: multipart/form-data
+
+// LLM endpoint (OpenAI-compatible)
+POST /chat/completions
+Content-Type: application/json</code></pre>
+  <p>Groq is <strong>OpenAI-API-compatible</strong> — any OpenAI PHP SDK works by just changing the base URL and API key.</p>
+</div>
+
+<!-- SECTION 1: AI TOUCHPOINT MAP -->
+<h2 id="s1">1. AI Touchpoint Map — Every Place AI Fits in Fireteam</h2>
+<div class="card">
+  <table>
+    <tr>
+      <th>#</th>
+      <th>Feature</th>
+      <th>AI Service</th>
+      <th>Trigger</th>
+      <th>Input</th>
+      <th>Output → Stored In</th>
+      <th>Sprint</th>
+    </tr>
+    <tr>
+      <td>A</td>
+      <td><strong>Live Transcription</strong></td>
+      <td><span class="tag tag-whisper">Whisper</span></td>
+      <td>Audio chunks from browser during discussion slides</td>
+      <td>WebM/WAV audio blob (30s chunks)</td>
+      <td>Per-user, per-slide transcript → <code>fireteam.transcripts</code></td>
+      <td>Sprint 3</td>
+    </tr>
+    <tr>
+      <td>B</td>
+      <td><strong>Bloom's Evaluation</strong></td>
+      <td><span class="tag tag-groq">Groq LLM</span></td>
+      <td>Session reaches slideType 11 (processingData)</td>
+      <td>Assembled transcript + rubric prompts</td>
+      <td>score, arguments, justification → <code>fireteam.rubric_results</code></td>
+      <td>Sprint 4</td>
+    </tr>
+    <tr>
+      <td>C</td>
+      <td><strong>Session Summary</strong></td>
+      <td><span class="tag tag-groq">Groq LLM</span></td>
+      <td>After evaluation completes</td>
+      <td>All transcripts + rubric results</td>
+      <td>Markdown summary → <code>fireteam.session_summaries</code></td>
+      <td>Sprint 4</td>
+    </tr>
+    <tr>
+      <td>D</td>
+      <td><strong>Quiz Explanations</strong></td>
+      <td><span class="tag tag-groq">Groq LLM</span></td>
+      <td>Instructor creates/edits a question</td>
+      <td>Question + correct answer + case study context</td>
+      <td><code>explanation</code> field → <code>fireteam.questions</code></td>
+      <td>Sprint 2</td>
+    </tr>
+    <tr>
+      <td>E</td>
+      <td><strong>Video Caption Seeding</strong></td>
+      <td><span class="tag tag-whisper">Whisper</span></td>
+      <td>Instructor uploads a video slide</td>
+      <td>Video file (MP4/WebM)</td>
+      <td>Timed captions → <code>fireteam.slide_captions</code></td>
+      <td>Sprint 2</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td><strong>Conversation Tags</strong></td>
+      <td><span class="tag tag-groq">Groq LLM</span></td>
+      <td>After evaluation</td>
+      <td>Group transcript + key concepts from slide deck</td>
+      <td>Tags/themes → <code>fireteam.session_insights</code></td>
+      <td>Sprint 4</td>
+    </tr>
+  </table>
+</div>
+
+<!-- SECTION 2: ARCHITECTURE -->
+<h2 id="s2">2. Architecture Overview — Data Flow</h2>
+<div class="card">
+  <h3>Live Session → Transcription → Evaluation</h3>
+  <div class="flowbox">
+Browser (React) <span class="arrow">──►</span> MediaRecorder API captures audio every 30s<br>
+      <span class="arrow">│</span><br>
+      <span class="arrow">▼</span><br>
+POST /api/transcribe (Laravel) <span class="arrow">──►</span> Queue::push(TranscribeAudioJob)<br>
+      <span class="arrow">│</span><br>
+      <span class="arrow">▼</span><br>
+TranscribeAudioJob <span class="arrow">──►</span> GroqWhisperService::transcribe($audioBlob)<br>
+      <span class="arrow">│</span>           <span class="arrow">──►</span> POST https://api.groq.com/openai/v1/audio/transcriptions<br>
+      <span class="arrow">│</span>           <span class="arrow">◄──</span> { text: "Student said..." }<br>
+      <span class="arrow">▼</span><br>
+Store in fireteam.transcripts (user_id, session_id, slide_id, text, chunk_index)<br>
+<br>
+── SESSION ENDS (slideType 11 reached) ──<br>
+<br>
+EvaluateSessionJob <span class="arrow">──►</span> Assemble full transcript per student<br>
+      <span class="arrow">│</span><br>
+      <span class="arrow">▼</span><br>
+GroqEvaluationService::evaluate($transcript, $rubrics)<br>
+      <span class="arrow">──►</span> POST https://api.groq.com/openai/v1/chat/completions<br>
+      <span class="arrow">◄──</span> { score, arguments, justification }  [per rubric]<br>
+      <span class="arrow">▼</span><br>
+Store in fireteam.rubric_results<br>
+<br>
+GroqSummaryService::summarize($session)<br>
+      <span class="arrow">──►</span> POST /chat/completions (llama3-8b for speed)<br>
+      <span class="arrow">◄──</span> Markdown summary<br>
+      <span class="arrow">▼</span><br>
+Store in fireteam.session_summaries
+  </div>
+
+  <h3>Audio Capture Strategy (Browser Side)</h3>
+  <div class="note">
+    <strong>How audio gets from LiveKit to Whisper:</strong> LiveKit exposes each participant's audio track via the JS SDK. Attach a <code>MediaRecorder</code> to each remote participant's audio track, collect 30-second WebM blobs, POST to your Laravel backend. Your backend queues a <code>TranscribeAudioJob</code> that sends the blob to Groq Whisper and appends the result to <code>fireteam.transcripts</code>.
+  </div>
+  <pre><code>// React (browser) — attach recorder to LiveKit participant audio
+const participant = room.getParticipantByIdentity(userId);
+const audioTrack = participant.audioTrackPublications.values().next().value?.track;
+const stream = new MediaStream([audioTrack.mediaStreamTrack]);
+const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+
+recorder.ondataavailable = async (e) => {
+  if (e.data.size > 0) {
+    const formData = new FormData();
+    formData.append('audio', e.data, 'chunk.webm');
+    formData.append('session_id', sessionId);
+    formData.append('slide_id', currentSlideId);
+    formData.append('user_id', participantUserId);
+    await fetch('/api/transcribe', { method: 'POST', body: formData });
+  }
+};
+recorder.start(30000); // 30-second chunks</code></pre>
+</div>
+
+<!-- SECTION 3: DATABASE -->
+<h2 id="s3">3. Database Changes — New Tables Needed</h2>
+<div class="card">
+  <p>Add these tables to the <code>fireteam</code> PostgreSQL schema. The migration file is included in the code deliverables.</p>
+
+  <pre><code>-- Raw audio transcripts (per user, per slide, per chunk)
+CREATE TABLE fireteam.transcripts (
+    id              BIGSERIAL PRIMARY KEY,
+    session_id      BIGINT NOT NULL REFERENCES fireteam.sessions(id) ON DELETE CASCADE,
+    experience_id   BIGINT NOT NULL REFERENCES fireteam.experiences(id),
+    slide_id        BIGINT NOT NULL REFERENCES fireteam.slides(id),
+    user_id         UUID NOT NULL,
+    chunk_index     INT NOT NULL DEFAULT 0,       -- order within slide
+    transcript_text TEXT NOT NULL,
+    duration_seconds NUMERIC(8,2),
+    whisper_model   VARCHAR(50) DEFAULT 'whisper-large-v3',
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(session_id, slide_id, user_id, chunk_index)
+);
+
+-- AI evaluation results (Bloom's Taxonomy scores per student per rubric)
+CREATE TABLE fireteam.rubric_results (
+    id              BIGSERIAL PRIMARY KEY,
+    session_id      BIGINT NOT NULL REFERENCES fireteam.sessions(id) ON DELETE CASCADE,
+    rubric_id       BIGINT NOT NULL REFERENCES fireteam.rubrics(id),
+    user_id         UUID NOT NULL,
+    score           SMALLINT NOT NULL CHECK (score BETWEEN 0 AND 6),
+    arguments       JSONB NOT NULL DEFAULT '[]',  -- string[] evidence quotes
+    justification   TEXT NOT NULL DEFAULT '',
+    disagreements   JSONB NOT NULL DEFAULT '[]',
+    groq_model      VARCHAR(100),
+    prompt_tokens   INT,
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(session_id, rubric_id, user_id)
+);
+
+-- Post-session markdown summaries
+CREATE TABLE fireteam.session_summaries (
+    id              BIGSERIAL PRIMARY KEY,
+    session_id      BIGINT NOT NULL UNIQUE REFERENCES fireteam.sessions(id) ON DELETE CASCADE,
+    summary_md      TEXT NOT NULL,
+    group_balance_score NUMERIC(4,2),            -- 0.0 - 1.0
+    groq_model      VARCHAR(100),
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Insight tags / themes extracted from group discussion
+CREATE TABLE fireteam.session_insights (
+    id              BIGSERIAL PRIMARY KEY,
+    session_id      BIGINT NOT NULL REFERENCES fireteam.sessions(id) ON DELETE CASCADE,
+    insight_type    VARCHAR(50) NOT NULL,         -- 'theme', 'key_concept', 'question_raised'
+    label           TEXT NOT NULL,
+    relevance_score NUMERIC(4,3),                -- 0.0 - 1.0
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index for fast transcript assembly
+CREATE INDEX idx_transcripts_session_user ON fireteam.transcripts(session_id, user_id);
+CREATE INDEX idx_transcripts_slide ON fireteam.transcripts(slide_id, user_id);
+CREATE INDEX idx_rubric_results_session ON fireteam.rubric_results(session_id);</code></pre>
+</div>
+
+<!-- SECTION 4: SPRINT PLAN -->
+<h2 id="s4">4. Sprint Integration Plan — When to Build Each AI Feature</h2>
+<div class="card">
+  <table>
+    <tr><th>Sprint</th><th>AI Work to Add</th><th>Dependencies</th></tr>
+    <tr>
+      <td>Sprint 2<br>(Weeks 3–4)</td>
+      <td>
+        <strong>Feature D:</strong> Quiz explanation auto-generation<br>
+        <strong>Feature E:</strong> Video caption seeding via Whisper<br>
+        <em>Both are admin/instructor tools — lower risk, good for testing the Groq connection early.</em>
+      </td>
+      <td>Groq API key configured; <code>fireteam.slide_captions</code> table exists; question CRUD API done</td>
+    </tr>
+    <tr>
+      <td>Sprint 3<br>(Weeks 5–6)</td>
+      <td>
+        <strong>Feature A:</strong> Live audio capture (browser) + Whisper transcription<br>
+        <em>Build alongside LiveKit integration. Transcripts accumulate silently in background.</em>
+      </td>
+      <td>LiveKit integrated; <code>fireteam.transcripts</code> table exists; queue worker running</td>
+    </tr>
+    <tr>
+      <td>Sprint 4<br>(Weeks 7–8)</td>
+      <td>
+        <strong>Feature B:</strong> Bloom's Taxonomy evaluation (triggered at slideType 11)<br>
+        <strong>Feature C:</strong> Session summary generation<br>
+        <strong>Feature F:</strong> Conversation insight tags<br>
+        <em>Build after transcripts are working. Evaluation is the core AI feature.</em>
+      </td>
+      <td>Feature A transcripts flowing; rubrics seeded; results display page ready</td>
+    </tr>
+  </table>
+</div>
+
+<!-- SECTION 5: LIVE TRANSCRIPTION -->
+<h2 id="s5">5. Feature A: Live Session Transcription (Whisper)</h2>
+<div class="card">
+  <div class="whisper-tag">
+    <strong>AI Service:</strong> Groq Whisper API — <code>POST /audio/transcriptions</code> using model <code>whisper-large-v3</code>
+  </div>
+
+  <h3>How It Works</h3>
+  <ol>
+    <li>During discussion slides (slideType 6), the browser starts a <code>MediaRecorder</code> for each participant's audio track from LiveKit.</li>
+    <li>Every 30 seconds, the browser POSTs the audio chunk to <code>/api/transcribe</code> with the user ID, session ID, and slide ID.</li>
+    <li>Laravel queues a <code>TranscribeAudioJob</code> — the job calls <code>GroqWhisperService::transcribe()</code>.</li>
+    <li>Groq returns the text. The job appends it to <code>fireteam.transcripts</code> with the chunk index.</li>
+    <li>When the session ends, <code>EvaluateSessionJob</code> fetches all chunks for each user ordered by chunk_index and concatenates them into a full transcript.</li>
+  </ol>
+
+  <h3>Only Transcribe Discussion Slides</h3>
+  <div class="note">
+    Only run MediaRecorder during <strong>slideType 6</strong> (discussion prompt) slides. Stop it on slide advance. This keeps Groq audio quota usage lean — you capture only the content that matters for evaluation.
+  </div>
+  <pre><code>// Frontend: watch activeSlide from room_state
+useEffect(() => {
+  if (currentSlide?.slideType === 6) {
+    startRecording(participants); // attach MediaRecorder to each participant
+  } else {
+    stopAllRecorders();           // stop + flush last chunk
+  }
+}, [activeSlide]);</code></pre>
+
+  <h3>Laravel API Endpoint</h3>
+  <pre><code>// routes/api.php
+Route::post('/transcribe', [TranscriptionController::class, 'store'])
+    ->middleware('auth:sanctum');
+
+// TranscriptionController::store
+public function store(Request $request): JsonResponse
+{
+    $request->validate([
+        'audio'      => 'required|file|mimes:webm,mp4,wav,ogg|max:25600', // 25MB Groq limit
+        'session_id' => 'required|integer|exists:fireteam.sessions,id',
+        'slide_id'   => 'required|integer|exists:fireteam.slides,id',
+        'user_id'    => 'required|uuid',
+    ]);
+
+    $path = $request->file('audio')->store('tmp/audio');
+
+    TranscribeAudioJob::dispatch(
+        storagePath: $path,
+        sessionId:   $request->session_id,
+        slideId:     $request->slide_id,
+        userId:      $request->user_id,
+    );
+
+    return response()->json(['queued' => true]);
+}</code></pre>
+</div>
+
+<!-- SECTION 6: BLOOM'S EVALUATION -->
+<h2 id="s6">6. Feature B: Bloom's Taxonomy Evaluation (Groq LLM)</h2>
+<div class="card">
+  <div class="groq-tag">
+    <strong>AI Service:</strong> Groq LLM — <code>POST /chat/completions</code> using model <code>llama-3.3-70b-versatile</code><br>
+    <strong>Trigger:</strong> Session reaches slideType 11 (processingData) → <code>EvaluateSessionJob</code> dispatched
+  </div>
+
+  <h3>Prompt Architecture (Proven from prompt_type.json)</h3>
+  <p>The production Breakout platform uses four prompt sections combined into one system message:</p>
+  <pre><code>SYSTEM PROMPT = primaryPrompt + outputPrompt + statsPrompt + reminderPrompt
+
+primaryPrompt:  Role definition + Bloom's Taxonomy explanation + task description
+outputPrompt:   JSON schema the model MUST return
+statsPrompt:    Instruction to compute score distribution
+reminderPrompt: "Be strict. Score 0 if not discussed. Use only evidence from transcript."</code></pre>
+
+  <h3>Evaluation Input Assembly</h3>
+  <pre><code>// Assembled per student:
+USER MESSAGE = """
+Case Study: {slideDeckName}
+Disciplines: {disciplines}
+Key Concepts: {keyConcepts}
+Learning Objectives: {learningObjectives}
+
+Student Transcript (slides 6–12 only):
+{concatenatedTranscriptText}
+
+Rubrics to Evaluate:
+[
+  { "id": 1, "rubric": "Market Research Methods", "rubricPrompt": "Did the student..." },
+  { "id": 2, "rubric": "SAFE Note Calculation",   "rubricPrompt": "Did the student..." },
+  { "id": 3, "rubric": "Customer Discovery",       "rubricPrompt": "Did the student..." }
+]
+
+Score each rubric 0–6 using Bloom's Taxonomy:
+0=Did Not Discuss, 1=Remembering, 2=Understanding, 3=Applying,
+4=Analyzing, 5=Evaluating, 6=Creating
+"""</code></pre>
+
+  <h3>Expected JSON Output</h3>
+  <pre><code>{
+  "results": [
+    {
+      "rubric_id": 1,
+      "score": 4,
+      "arguments": [
+        "Student identified three flaws in the survey methodology",
+        "Student proposed structured interviews as an alternative"
+      ],
+      "justification": "The student demonstrated analysis-level thinking by critically evaluating the market research approach and comparing alternatives.",
+      "disagreements": []
+    },
+    ...
+  ]
+}</code></pre>
+
+  <h3>Trigger Point in Laravel</h3>
+  <pre><code>// In your RoomStateObserver or a WebSocket message handler:
+// When activeSlide changes to slideType 11...
+
+if ($slide->slide_type === SlideType::PROCESSING_DATA) {
+    EvaluateSessionJob::dispatch($session->id)->onQueue('ai');
+}</code></pre>
+</div>
+
+<!-- SECTION 7: SESSION SUMMARY -->
+<h2 id="s7">7. Feature C: Session Summary Generation (Groq LLM)</h2>
+<div class="card">
+  <div class="groq-tag">
+    <strong>AI Service:</strong> Groq LLM — model <code>llama3-8b-8192</code> (faster, cheaper for this simpler task)<br>
+    <strong>Trigger:</strong> After <code>EvaluateSessionJob</code> completes
+  </div>
+
+  <h3>What It Produces</h3>
+  <p>A markdown document stored in <code>fireteam.session_summaries</code> that includes: what the group discussed, how well they covered the key concepts, group balance score (who dominated vs. who was quiet), and top 3 insights.</p>
+
+  <h3>Prompt</h3>
+  <pre><code>SYSTEM: You are an educational analytics assistant. Write a concise session summary
+for an instructor reviewing their students' discussion performance.
+
+USER:
+Case Study: {slideDeckName}
+Session Date: {scheduledAt}
+Participants: {participantNames}
+
+Full Group Transcripts (by participant):
+{allTranscriptsFormatted}
+
+Rubric Scores:
+{rubricResultsSummary}
+
+Write a markdown summary with these sections:
+## Overview
+## What the Group Discussed Well
+## Gaps in Coverage
+## Participation Balance
+## Top 3 Insights
+
+Also return a group_balance_score between 0.0 (one person dominated) and 1.0 (perfectly even).</code></pre>
+</div>
+
+<!-- SECTION 8: QUIZ EXPLANATIONS -->
+<h2 id="s8">8. Feature D: Quiz Explanation Generation (Groq LLM)</h2>
+<div class="card">
+  <div class="groq-tag">
+    <strong>AI Service:</strong> Groq LLM — model <code>llama3-8b-8192</code><br>
+    <strong>Trigger:</strong> Instructor saves a new question in the admin panel (or clicks "Generate Explanation")
+  </div>
+
+  <h3>What It Does</h3>
+  <p>The <code>explanation</code> field on each quiz question (shown to students when they pick the wrong answer) is expensive to write manually. Groq generates it automatically from the question + case study context.</p>
+
+  <pre><code>// Laravel: QuestionObserver or explicit controller action
+public function generateExplanation(Question $question): string
+{
+    $experience = $question->slide->experience;
+
+    $prompt = "You are a learning coach for a business case study titled '{$experience->name}'.
+The pre-work quiz question is: '{$question->question_text}'
+The correct answer is: '{$question->answers[$question->correct_answer_index]}'
+The incorrect options are: " . implode(', ', $question->wrongAnswers()) . "
+
+Write 2–3 sentences explaining WHY the correct answer is right,
+in plain language a student can understand after getting it wrong.
+Be encouraging and educational, not just factual.";
+
+    return $this->groq->chat([
+        'model'    => 'llama3-8b-8192',
+        'messages' => [['role' => 'user', 'content' => $prompt]],
+    ]);
+}</code></pre>
+
+  <div class="note">
+    <strong>UX tip:</strong> Add a "✨ Generate Explanation" button next to the explanation textarea in the instructor question editor. This calls <code>POST /api/admin/questions/{id}/generate-explanation</code> and fills the field. The instructor can edit before saving.
+  </div>
+</div>
+
+<!-- SECTION 9: VIDEO CAPTIONS -->
+<h2 id="s9">9. Feature E: Video Caption Seeding (Whisper)</h2>
+<div class="card">
+  <div class="whisper-tag">
+    <strong>AI Service:</strong> Groq Whisper API with <code>timestamp_granularities: ["segment"]</code><br>
+    <strong>Trigger:</strong> Instructor uploads a video to a slide (admin panel)
+  </div>
+
+  <h3>What It Does</h3>
+  <p>When an instructor uploads a video for a slide, Whisper generates timed caption segments matching the <code>fireteam.slide_captions</code> schema (caption, start_time, end_time). This populates accessibility captions and provides the phrase set for AI evaluation.</p>
+
+  <h3>Key: Use Verbose JSON Response</h3>
+  <pre><code>// GroqWhisperService::transcribeWithTimestamps()
+$response = Http::withToken($this->apiKey)
+    ->attach('file', file_get_contents($videoPath), basename($videoPath))
+    ->post($this->baseUrl . '/audio/transcriptions', [
+        'model'                    => 'whisper-large-v3',
+        'response_format'          => 'verbose_json',   // ← get timestamps
+        'timestamp_granularities'  => 'segment',        // sentence-level segments
+        'language'                 => 'en',
+    ]);
+
+// Response shape:
+// { "segments": [{ "text": "...", "start": 6.0, "end": 9.0 }, ...] }
+
+// Map to slide_captions:
+foreach ($response['segments'] as $seg) {
+    SlideCaption::create([
+        'slide_id'       => $slide->id,
+        'experience_id'  => $slide->experience_id,
+        'caption'        => trim($seg['text']),
+        'start_time'     => $seg['start'],
+        'end_time'       => $seg['end'],
+    ]);
+}</code></pre>
+
+  <div class="note">
+    <strong>File size limit:</strong> Groq Whisper accepts up to <strong>25MB</strong> per request. For longer videos, split into chunks using <code>ffmpeg</code> before sending. A 25MB WebM/MP4 at typical quality covers ~15–20 minutes of video.
+  </div>
+</div>
+
+<!-- SECTION 10: CONVERSATION INSIGHTS -->
+<h2 id="s10">10. Feature F: Conversation Insight Tags (Groq LLM)</h2>
+<div class="card">
+  <div class="groq-tag">
+    <strong>AI Service:</strong> Groq LLM — model <code>llama3-8b-8192</code><br>
+    <strong>Trigger:</strong> After evaluation completes (same job chain as Feature C)
+  </div>
+
+  <h3>What It Produces</h3>
+  <p>Structured tags stored in <code>fireteam.session_insights</code> that power the Conversation Map analytics view. Each tag has a type (theme, missed_concept, strong_point), a label, and a relevance score.</p>
+
+  <pre><code>// Prompt:
+"Given this group discussion transcript and the case study key concepts:
+{keyConcepts}
+
+Extract up to 10 insight tags in this JSON format:
+[
+  { 'insight_type': 'theme', 'label': 'Equity dilution risk', 'relevance_score': 0.92 },
+  { 'insight_type': 'missed_concept', 'label': 'Post-money valuation', 'relevance_score': 0.71 },
+  { 'insight_type': 'strong_point', 'label': 'Customer interview design', 'relevance_score': 0.88 }
+]
+
+insight_type values: theme | missed_concept | strong_point | question_raised"</code></pre>
+
+  <p>These tags appear in the results page as chips and power the Conversation Map's topic clustering.</p>
+</div>
+
+<!-- SECTION 11: RATE LIMIT STRATEGY -->
+<h2 id="s11">11. Groq Rate Limit Strategy</h2>
+<div class="card">
+  <h3>Free Tier Limits (April 2026)</h3>
+  <table>
+    <tr><th>Endpoint</th><th>Requests/Min</th><th>Tokens/Min</th><th>Requests/Day</th></tr>
+    <tr><td>Whisper (audio)</td><td>20 RPM</td><td>N/A</td><td>2,000 RPD</td></tr>
+    <tr><td>llama-3.3-70b-versatile</td><td>30 RPM</td><td>6,000 TPM</td><td>1,000 RPD</td></tr>
+    <tr><td>llama3-8b-8192</td><td>30 RPM</td><td>14,400 TPM</td><td>14,400 RPD</td></tr>
+    <tr><td>mixtral-8x7b-32768</td><td>30 RPM</td><td>5,000 TPM</td><td>14,400 RPD</td></tr>
+  </table>
+
+  <h3>Usage Per Session (Typical)</h3>
+  <table>
+    <tr><th>Feature</th><th>Groq Calls</th><th>Notes</th></tr>
+    <tr><td>Live transcription (4 students × 7 slides × 30s chunks)</td><td>~56 Whisper calls</td><td>~28 min audio total</td></tr>
+    <tr><td>Bloom's evaluation (4 students × 3 rubrics = 12 evaluations)</td><td>4 LLM calls</td><td>Batch all rubrics per student in 1 call</td></tr>
+    <tr><td>Session summary</td><td>1 LLM call</td><td>llama3-8b-8192</td></tr>
+    <tr><td>Insight tags</td><td>1 LLM call</td><td>llama3-8b-8192</td></tr>
+    <tr><td><strong>Total per session</strong></td><td><strong>~56 Whisper + 6 LLM</strong></td><td>Well within free tier for ~35 sessions/day</td></tr>
+  </table>
+
+  <h3>Retry + Fallback Strategy in Laravel</h3>
+  <pre><code>// In GroqBaseService.php
+protected function callWithRetry(array $payload, string $endpoint): array
+{
+    $attempts = 0;
+    $maxAttempts = 3;
+
+    while ($attempts < $maxAttempts) {
+        $response = Http::withToken($this->apiKey)
+            ->timeout(60)
+            ->post($this->baseUrl . $endpoint, $payload);
+
+        if ($response->status() === 429) {
+            // Rate limited — back off exponentially
+            $retryAfter = $response->header('Retry-After', 60);
+            sleep((int) $retryAfter);
+            $attempts++;
+            continue;
+        }
+
+        if ($response->failed()) {
+            // Try fallback model
+            if ($payload['model'] === 'llama-3.3-70b-versatile') {
+                $payload['model'] = 'mixtral-8x7b-32768';
+                $attempts++;
+                continue;
+            }
+            throw new GroqApiException($response->body());
+        }
+
+        return $response->json();
+    }
+
+    throw new GroqApiException('Max retry attempts exceeded');
+}</code></pre>
+</div>
+
+<!-- SECTION 12: CONFIG -->
+<h2 id="s12">12. Environment Variables & Config</h2>
+<div class="card">
+  <h3>.env additions</h3>
+  <pre><code># Groq API (free tier — sign up at console.groq.com)
+GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+
+# Model selection (can switch without code changes)
+GROQ_MODEL_EVALUATION=llama-3.3-70b-versatile
+GROQ_MODEL_SUMMARY=llama3-8b-8192
+GROQ_MODEL_WHISPER=whisper-large-v3
+
+# Audio chunk settings
+AUDIO_CHUNK_SECONDS=30
+AUDIO_MAX_MB=25
+
+# Queue configuration
+QUEUE_CONNECTION=database   # or redis
+AI_QUEUE_NAME=ai</code></pre>
+
+  <h3>config/groq.php</h3>
+  <pre><code>return [
+    'api_key'  => env('GROQ_API_KEY'),
+    'base_url' => env('GROQ_BASE_URL', 'https://api.groq.com/openai/v1'),
+    'models'   => [
+        'evaluation' => env('GROQ_MODEL_EVALUATION', 'llama-3.3-70b-versatile'),
+        'summary'    => env('GROQ_MODEL_SUMMARY',    'llama3-8b-8192'),
+        'whisper'    => env('GROQ_MODEL_WHISPER',    'whisper-large-v3'),
+    ],
+    'timeouts' => [
+        'transcription' => 60,
+        'evaluation'    => 120,
+        'summary'       => 60,
+    ],
+];</code></pre>
+</div>
+
+<!-- SECTION 13: FILE INDEX -->
+<h2 id="s13">13. File Index — Code Files Delivered</h2>
+<div class="card">
+  <table>
+    <tr><th>File</th><th>Purpose</th></tr>
+    <tr><td><code>app/Services/GroqWhisperService.php</code></td><td>Calls Groq Whisper API. Methods: <code>transcribe()</code>, <code>transcribeWithTimestamps()</code></td></tr>
+    <tr><td><code>app/Services/GroqEvaluationService.php</code></td><td>Bloom's Taxonomy evaluation. Assembles transcripts → calls Groq LLM → parses JSON results</td></tr>
+    <tr><td><code>app/Services/GroqSummaryService.php</code></td><td>Session summaries + quiz explanation generation + insight tags</td></tr>
+    <tr><td><code>app/Jobs/TranscribeAudioJob.php</code></td><td>Background job: receives audio chunk path → calls WhisperService → stores in transcripts table</td></tr>
+    <tr><td><code>app/Jobs/EvaluateSessionJob.php</code></td><td>Background job: assembles transcripts → calls EvaluationService → stores rubric_results</td></tr>
+    <tr><td><code>app/Http/Controllers/TranscriptionController.php</code></td><td>POST /api/transcribe endpoint. Validates audio upload → dispatches TranscribeAudioJob</td></tr>
+    <tr><td><code>database/migrations/2026_04_03_create_ai_tables.php</code></td><td>Creates transcripts, rubric_results, session_summaries, session_insights tables</td></tr>
+    <tr><td><code>app/Exceptions/GroqApiException.php</code></td><td>Custom exception for Groq API errors with retry metadata</td></tr>
+  </table>
+</div>
+
+</div>
+</body>
+</html>
