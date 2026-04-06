@@ -11,6 +11,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PeopleIcon from '@mui/icons-material/People';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import InsightsIcon from '@mui/icons-material/Insights';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import GroupsIcon from '@mui/icons-material/Groups';
 import FeedbackIcon from '@mui/icons-material/Feedback';
@@ -32,6 +33,7 @@ const coachNavItems = [
   { name: 'FireTeam Management', href: '/coach/fireteammanagement', icon: <GroupsIcon fontSize="small" /> },
   { name: 'Units Management', href: '/coach/unitsmanagement', icon: <FaLayerGroup size={18} style={{ marginRight: 2, marginLeft: 1 }} /> },
   { name: 'Community', href: '/coach/community', icon: <GroupsIcon fontSize="small" /> },
+  { name: 'Analytics', href: '/coach/analytics', icon: <InsightsIcon fontSize="small" /> },
   { name: 'Feedback', href: '/coach/feedback', icon: <FeedbackIcon fontSize="small" /> },
   { name: 'Messages', href: '/coach/messages', icon: <MailIcon fontSize="small" /> },
 ];

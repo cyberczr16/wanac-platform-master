@@ -7,6 +7,8 @@ import {
   addCommunityFeedPost,
   fetchCommunityPostsByCommunityId,
   addCommunityPostComment,
+  updateCommunityPostComment,
+  deleteCommunityPostComment,
   updateCommunityPost,
   deleteCommunityPost,
 } from "../../../../../services/api/community.service";
@@ -102,6 +104,18 @@ const Ic = {
       <polyline points="6 9 12 15 18 9"/>
     </svg>
   ),
+  AlertTriangle: ({ s = 16, cls = "" }) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cls}>
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  ),
+  RefreshCw: ({ s = 16, cls = "" }) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cls}>
+      <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+    </svg>
+  ),
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -166,7 +180,9 @@ function CommunityDetailPageInner() {
   const [commentLoading, setCommentLoading] = useState({});
   const [expandedComments, setExpandedComments] = useState({}); // postId → bool
   const [newComment, setNewComment] = useState({});
-  const [commentError, setCommentError] = useState("");
+  const [commentError, setCommentError] = useState({});   // postId → error string
+  const [commentEditId, setCommentEditId] = useState({}); // postId → { commentId, content } | null
+  const [commentDeleting, setCommentDeleting] = useState({}); // commentId → bool
 
   // ── reactions (client-side) ──
   const [reactions, setReactions] = useState({});   // postId → { likes, hearts, myLike, myHeart }
@@ -221,6 +237,26 @@ function CommunityDetailPageInner() {
         createdAt: p.created_at ? new Date(p.created_at) : new Date(),
       }));
       setFeedPosts(normalized);
+
+      // Seed comments state from any embedded comment data returned by the API
+      const seeded = {};
+      (Array.isArray(list) ? list : []).forEach(p => {
+        const raw = Array.isArray(p.comments) ? p.comments
+          : Array.isArray(p.comments?.data) ? p.comments.data
+          : [];
+        if (raw.length > 0) {
+          seeded[p.id] = raw.map(c => ({
+            id: c.id,
+            user_id: c.user_id ?? c.userId,
+            content: c.content ?? c.body ?? "",
+            userName: c.user_name ?? c.userName ?? c.user?.name ?? "Unknown",
+            createdAt: c.created_at ? new Date(c.created_at) : new Date(),
+          }));
+        }
+      });
+      if (Object.keys(seeded).length > 0) {
+        setComments(prev => ({ ...seeded, ...prev })); // don't clobber already-loaded comments
+      }
     } catch {
       setFeedError("Failed to load posts.");
       setFeedPosts([]);
@@ -248,9 +284,10 @@ function CommunityDetailPageInner() {
     }
   };
 
-  useEffect(() => {
+  const loadCommunity = () => {
     if (!communityId) return;
     setLoading(true);
+    setError("");
     fetchCommunityById(communityId)
       .then(data => {
         setCommunity(data);
@@ -268,7 +305,11 @@ function CommunityDetailPageInner() {
       })
       .catch(() => { setError("Failed to load community."); setCommunity(null); })
       .finally(() => setLoading(false));
+  };
 
+  useEffect(() => {
+    if (!communityId) return;
+    loadCommunity();
     try { setUser(JSON.parse(localStorage.getItem("wanacUser") || "null")); } catch { setUser(null); }
     loadCommunityEvents();
   }, [communityId]);
@@ -338,7 +379,7 @@ function CommunityDetailPageInner() {
     e.preventDefault();
     const content = newComment[postId]?.trim();
     if (!content || !user) return;
-    setCommentError("");
+    setCommentError(prev => ({ ...prev, [postId]: "" }));
     setCommentLoading(prev => ({ ...prev, [postId]: true }));
     try {
       const res = await addCommunityPostComment({ content, post_id: postId });
@@ -346,11 +387,14 @@ function CommunityDetailPageInner() {
       setComments(prev => ({
         ...prev,
         [postId]: [...(prev[postId] || []), {
-          id: added?.id,
+          // Spread first so explicit fields below always win
+          ...(typeof added === "object" && added !== null ? added : {}),
+          // Guarantee id is never undefined — fall back to a local temp id
+          id: added?.id ?? `local-${Date.now()}`,
           content,
+          user_id: user.id,
           userName: user.name,
           createdAt: added?.created_at ? new Date(added.created_at) : new Date(),
-          ...(typeof added === "object" ? added : {}),
         }],
       }));
       setNewComment(prev => ({ ...prev, [postId]: "" }));
@@ -367,9 +411,46 @@ function CommunityDetailPageInner() {
         } catch {}
       }
     } catch {
-      setCommentError("Failed to add comment.");
+      setCommentError(prev => ({ ...prev, [postId]: "Failed to add comment." }));
     } finally {
       setCommentLoading(prev => ({ ...prev, [postId]: false }));
+    }
+  };
+
+  // ─── delete comment ───────────────────────────────────────────────────────
+  const handleDeleteComment = async (postId, commentId) => {
+    if (!window.confirm("Delete this comment?")) return;
+    setCommentDeleting(prev => ({ ...prev, [commentId]: true }));
+    try {
+      await deleteCommunityPostComment(commentId);
+      setComments(prev => ({
+        ...prev,
+        [postId]: (prev[postId] || []).filter(c => c.id !== commentId),
+      }));
+    } catch {
+      setCommentError(prev => ({ ...prev, [postId]: "Failed to delete comment." }));
+    } finally {
+      setCommentDeleting(prev => ({ ...prev, [commentId]: false }));
+    }
+  };
+
+  // ─── save edited comment ──────────────────────────────────────────────────
+  const handleSaveEditComment = async (postId, commentId, newContent) => {
+    if (!newContent.trim()) return;
+    setCommentLoading(prev => ({ ...prev, [`edit-${commentId}`]: true }));
+    try {
+      await updateCommunityPostComment(commentId, { content: newContent });
+      setComments(prev => ({
+        ...prev,
+        [postId]: (prev[postId] || []).map(c =>
+          c.id === commentId ? { ...c, content: newContent } : c
+        ),
+      }));
+      setCommentEditId(prev => ({ ...prev, [postId]: null }));
+    } catch {
+      setCommentError(prev => ({ ...prev, [postId]: "Failed to update comment." }));
+    } finally {
+      setCommentLoading(prev => ({ ...prev, [`edit-${commentId}`]: false }));
     }
   };
 
@@ -383,23 +464,50 @@ function CommunityDetailPageInner() {
   };
 
   // ─── early returns ────────────────────────────────────────────────────────
-  const Shell = ({ children }) => (
-    <div className="h-screen flex bg-[#f5f5f5] font-body">
-      <Sidebar className="w-56 bg-white border-r border-gray-200" collapsed={collapsed} setCollapsed={setCollapsed} />
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <ClientTopbar user={user} currentCommunity={community?.name} />
-        {children}
-      </div>
-    </div>
-  );
+  const shellProps = { collapsed, setCollapsed, user, communityName: community?.name };
 
-  if (loading) return <Shell><main className="flex-1 flex items-center justify-center"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#002147]"/></main></Shell>;
-  if (error) return <Shell><main className="flex-1 flex items-center justify-center"><p className="text-red-500 text-sm">{error}</p></main></Shell>;
-  if (!community) return <Shell><main className="flex-1 flex items-center justify-center"><p className="text-gray-500 text-sm">Community not found.</p></main></Shell>;
+  if (loading) return <Shell {...shellProps}><main className="flex-1 flex items-center justify-center"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#002147]"/></main></Shell>;
+  if (error) return (
+    <Shell {...shellProps}>
+      <main className="flex-1 flex items-center justify-center p-6">
+        <div className="max-w-sm w-full bg-white rounded-2xl border border-red-100 shadow-sm p-6 text-center space-y-4">
+          {/* Icon */}
+          <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto">
+            <Ic.AlertTriangle s={28} cls="text-red-400" />
+          </div>
+          {/* Message */}
+          <div>
+            <h2 className="text-sm font-bold text-gray-900 mb-1">Couldn't load this community</h2>
+            <p className="text-[11px] text-gray-500 leading-relaxed">
+              The server returned an error. This is usually a temporary issue — try again in a moment.
+            </p>
+          </div>
+          {/* Actions */}
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={loadCommunity}
+              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-[#002147] hover:bg-[#003875] text-white rounded-xl text-xs font-semibold transition-colors"
+            >
+              <Ic.RefreshCw s={13} />
+              Try again
+            </button>
+            <button
+              onClick={() => router.push("/client/community")}
+              className="flex items-center justify-center gap-1.5 w-full px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-xl text-xs font-semibold transition-colors"
+            >
+              <Ic.ArrowLeft s={13} />
+              Back to Communities
+            </button>
+          </div>
+        </div>
+      </main>
+    </Shell>
+  );
+  if (!community) return <Shell {...shellProps}><main className="flex-1 flex items-center justify-center"><p className="text-gray-500 text-sm">Community not found.</p></main></Shell>;
 
   // ─── render ───────────────────────────────────────────────────────────────
   return (
-    <Shell>
+    <Shell {...shellProps}>
       <main className="flex-1 h-0 overflow-y-auto px-3 sm:px-5 py-4 pb-8">
         <div className="max-w-4xl mx-auto space-y-4">
 
@@ -568,6 +676,9 @@ function CommunityDetailPageInner() {
                           setNewComment={setNewComment}
                           commentLoading={commentLoading}
                           commentError={commentError}
+                          commentEditId={commentEditId}
+                          setCommentEditId={setCommentEditId}
+                          commentDeleting={commentDeleting}
                           reactions={reactions}
                           toggleReaction={toggleReaction}
                           editingPost={editingPost}
@@ -579,6 +690,8 @@ function CommunityDetailPageInner() {
                           setFeedPosts={setFeedPosts}
                           setFeedError={setFeedError}
                           handleSubmitComment={handleSubmitComment}
+                          handleDeleteComment={handleDeleteComment}
+                          handleSaveEditComment={handleSaveEditComment}
                         />
                   )}
                 </div>
@@ -772,20 +885,39 @@ function CommunityDetailPageInner() {
   );
 }
 
+// ─── Shell ───────────────────────────────────────────────────────────────────
+// Defined outside the page component so React sees a stable component identity
+// across re-renders. Defining it inside caused inputs to lose focus after every
+// keystroke because React would unmount/remount the entire subtree.
+function Shell({ collapsed, setCollapsed, user, communityName, children }) {
+  return (
+    <div className="h-screen flex bg-[#f5f5f5] font-body">
+      <Sidebar className="w-56 bg-white border-r border-gray-200" collapsed={collapsed} setCollapsed={setCollapsed} />
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <ClientTopbar user={user} currentCommunity={communityName} />
+        {children}
+      </div>
+    </div>
+  );
+}
+
 // ─── PostCard ─────────────────────────────────────────────────────────────────
 function PostCard({
   post, user, comments, expandedComments, setExpandedComments,
   newComment, setNewComment, commentLoading, commentError,
+  commentEditId, setCommentEditId, commentDeleting,
   reactions, toggleReaction,
   editingPost, setEditingPost, editPostContent, setEditPostContent,
   deletingPostId, setDeletingPostId, setFeedPosts, setFeedError,
-  handleSubmitComment,
+  handleSubmitComment, handleDeleteComment, handleSaveEditComment,
 }) {
   const postComments = comments[post.id] || [];
   const expanded = expandedComments[post.id] || false;
   const react = reactions[post.id] || { likes: 0, hearts: 0, myLike: false, myHeart: false };
   const isOwn = user && (post.user_id === user.id || post.userName === user.name);
   const [imageOpen, setImageOpen] = useState(false);
+  const postCommentError = commentError[post.id] || "";
+  const activeEdit = commentEditId[post.id] ?? null; // { commentId, content } | null
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -889,20 +1021,78 @@ function PostCard({
       {expanded && (
         <div className="border-t border-gray-100 bg-gray-50/60 px-4 pt-3 pb-4 space-y-3">
           {/* Existing comments */}
-          {postComments.length > 0 && (
+          {postComments.length === 0 ? (
+            <p className="text-center text-[10px] text-gray-400 py-2">No comments yet — be the first!</p>
+          ) : (
             <div className="space-y-2.5">
-              {postComments.map((c, ci) => (
-                <div key={c.id ?? ci} className="flex items-start gap-2.5">
-                  <Avatar name={c.userName} size={28} />
-                  <div className="flex-1 bg-white rounded-xl px-3 py-2 border border-gray-100 shadow-sm">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <p className="font-bold text-[10px] text-gray-800">{c.userName}</p>
-                      <p className="text-[9px] text-gray-400">{timeAgo(c.createdAt)}</p>
+              {postComments.map((c, ci) => {
+                const isOwnComment = user && (c.user_id === user.id || c.userName === user.name);
+                const isEditingThis = activeEdit !== null && activeEdit.commentId !== undefined && activeEdit.commentId === c.id;
+                return (
+                  <div key={c.id ?? ci} className="flex items-start gap-2.5">
+                    <Avatar name={c.userName} size={28} />
+                    <div className="flex-1 bg-white rounded-xl px-3 py-2 border border-gray-100 shadow-sm">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <p className="font-bold text-[10px] text-gray-800">{c.userName}</p>
+                        <div className="flex items-center gap-1">
+                          <p className="text-[9px] text-gray-400">{timeAgo(c.createdAt)}</p>
+                          {isOwnComment && !isEditingThis && (
+                            <>
+                              <button
+                                className="p-1 text-gray-300 hover:text-[#002147] rounded transition-colors"
+                                title="Edit comment"
+                                onClick={() => setCommentEditId(prev => ({
+                                  ...prev,
+                                  [post.id]: { commentId: c.id, content: c.content },
+                                }))}
+                              >
+                                <Ic.Pencil s={11} />
+                              </button>
+                              <button
+                                className="p-1 text-gray-300 hover:text-red-500 rounded transition-colors disabled:opacity-40"
+                                title="Delete comment"
+                                disabled={!!commentDeleting[c.id]}
+                                onClick={() => handleDeleteComment(post.id, c.id)}
+                              >
+                                <Ic.Trash s={11} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      {isEditingThis ? (
+                        <div className="mt-1 space-y-1.5">
+                          <textarea
+                            className="w-full border border-[#002147] rounded-lg px-2 py-1.5 text-[11px] focus:outline-none resize-none min-h-[56px]"
+                            value={activeEdit.content}
+                            onChange={e => setCommentEditId(prev => ({
+                              ...prev,
+                              [post.id]: { ...prev[post.id], content: e.target.value },
+                            }))}
+                          />
+                          <div className="flex gap-1.5 justify-end">
+                            <button
+                              className="px-2.5 py-1 border border-gray-200 rounded-lg text-[9px] font-semibold text-gray-600 hover:bg-gray-50"
+                              onClick={() => setCommentEditId(prev => ({ ...prev, [post.id]: null }))}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="px-2.5 py-1 bg-[#002147] text-white rounded-lg text-[9px] font-semibold hover:bg-[#003875] disabled:opacity-50"
+                              disabled={!activeEdit.content.trim() || !!commentLoading[`edit-${c.id}`]}
+                              onClick={() => handleSaveEditComment(post.id, c.id, activeEdit.content)}
+                            >
+                              {commentLoading[`edit-${c.id}`] ? "Saving…" : "Save"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-[11px] text-gray-700 leading-relaxed">{c.content}</p>
+                      )}
                     </div>
-                    <p className="text-[11px] text-gray-700 leading-relaxed">{c.content}</p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -921,11 +1111,15 @@ function PostCard({
                 disabled={!newComment[post.id]?.trim() || commentLoading[post.id]}
                 className="text-[#002147] disabled:text-gray-300 hover:text-orange-500 transition-colors p-0.5"
               >
-                <Ic.Send s={13} />
+                {commentLoading[post.id]
+                  ? <span className="w-3 h-3 border-2 border-[#002147] border-t-transparent rounded-full animate-spin inline-block" />
+                  : <Ic.Send s={13} />}
               </button>
             </div>
           </form>
-          {commentError && <p className="text-[10px] text-red-500">{commentError}</p>}
+          {postCommentError && (
+            <p className="text-[10px] text-red-500">{postCommentError}</p>
+          )}
         </div>
       )}
     </div>

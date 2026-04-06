@@ -1,15 +1,11 @@
 "use client";
 import { Menu, MessageCircle } from 'lucide-react';
 import { useDashboardMobile } from '@/contexts/DashboardMobileContext';
+import NotificationCenter from './NotificationCenter';
 
 export default function ClientTopbar({ user, currentCommunity }) {
   const mobileCtx = useDashboardMobile();
   const setMobileOpen = mobileCtx?.setMobileOpen;
-
-  const handleNotificationClick = (notification) => {
-    console.log('Clicked notification:', notification.id);
-    // Here you can add logic to mark as read or navigate
-  };
 
   return (
     <nav
@@ -33,6 +29,10 @@ export default function ClientTopbar({ user, currentCommunity }) {
             <Menu size={24} />
           </button>
         )}
+      </div>
+      {/* Right: Notifications */}
+      <div className="flex items-center gap-2">
+        <NotificationCenter />
       </div>
     </nav>
   );

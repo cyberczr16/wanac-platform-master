@@ -4,13 +4,13 @@
  * Session summary generation using Groq LLM (llama3-8b-8192).
  * Supports two modes:
  *   type: 'quick'  — 3-4 sentence summary (fast)
- *   type: 'full'   — Participant + Coach + Admin summaries (matches openai.service.ts interface)
+ *   type: 'full'   — Participant + Coach + Admin summaries (MeetingSummary shape)
  *
  * Body (JSON):
  *   type: 'quick' | 'full'
  *   transcript: string
  *   meetingTitle?: string          (for quick)
- *   meetingData?: { ... }          (for full — same shape as openai.service.ts)
+ *   meetingData?: { ... }          (for full — see groq.service generateMeetingSummaries)
  */
 
 export async function POST(req) {

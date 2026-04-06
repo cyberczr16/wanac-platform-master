@@ -1,6 +1,18 @@
 import { useState, useRef } from 'react';
-import { huggingfaceService } from '../../../../../services/api/huggingface.service';
+import { groqService } from '../../../../../services/api/groq.service';
 import { meetingService } from '../../../../../services/api/meeting.service';
+
+/** Prefer server-assigned id from POST /api/v1/fireteams/recordings/add response. */
+function extractServerRecordingId(uploaded) {
+  if (uploaded == null || typeof uploaded !== 'object') return null;
+  return (
+    uploaded.id ??
+    uploaded.recording_id ??
+    uploaded.recordingId ??
+    uploaded.data?.id ??
+    null
+  );
+}
 
 /**
  * Custom hook to manage meeting recording and AI processing.
@@ -124,22 +136,22 @@ export function useRecording(meetingRef, meetingReady) {
       const expId = searchParams?.get('id');
       const ftId = searchParams?.get('fireteamId');
 
-      console.log('🎙️ Starting transcription...');
+      console.log('🎙️ Starting transcription (Groq Whisper via /api/groq/transcribe)...');
 
-      // Step 1: Transcribe audio using OpenAI Whisper
-      const transcriptionResult = await openaiService.transcribeAudio(recordingBlob);
-      const transcript = transcriptionResult.text;
+      // Step 1: Transcribe audio — Groq Whisper (server-side route)
+      const transcriptionResult = await groqService.transcribeAudio(recordingBlob);
+      const transcript = transcriptionResult.text || '';
 
       console.log('✅ Transcription complete, length:', transcript.length);
-      console.log('🤖 Generating AI summaries...');
+      console.log('🤖 Generating AI summaries (Groq via /api/groq/summarize)...');
 
-      // Step 2: Generate all 3 summaries in parallel
-      const summaries = await huggingfaceService.generateMeetingSummaries(transcript, meetingData);
+      // Step 2: Participant + coach + admin summaries (single full request)
+      const summaries = await groqService.generateMeetingSummaries(transcript, meetingData);
 
       console.log('✅ AI summaries generated');
       console.log('📤 Uploading to backend...');
 
-      // Step 3: Upload recording with metadata using new service
+      // Step 3: Upload recording with metadata
       const metadata = {
         transcript: transcript,
         summaries: summaries,
@@ -152,22 +164,31 @@ export function useRecording(meetingRef, meetingReady) {
         attendance_log: meetingData.attendanceLog || [],
       };
 
-      await meetingService.uploadRecording(
-        ftId,
-        expId,
+      const uploaded = await meetingService.uploadRecording(
+        Number(ftId),
+        Number(expId),
         recordingBlob,
         metadata
       );
 
       console.log('✅ Recording uploaded successfully');
 
+      const serverRecordingId = extractServerRecordingId(uploaded);
+      const recordingIdForApp = serverRecordingId != null ? serverRecordingId : currentRecordingId;
+
+      if (serverRecordingId == null) {
+        console.warn(
+          'Upload response did not include recording id; evaluation may not load summaries from API. Response:',
+          uploaded
+        );
+      }
+
       // Set summaries for modal display
       setMeetingSummaries(summaries);
 
-      // Return both summaries and recording ID
       return {
         summaries,
-        recordingId: currentRecordingId
+        recordingId: recordingIdForApp,
       };
     } catch (error) {
       console.error('❌ Failed to process recording:', error);

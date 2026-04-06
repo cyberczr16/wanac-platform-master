@@ -1,44 +1,148 @@
 "use client";
-import { useState, useEffect } from "react";
-import CoachSidebar from '../../../../components/dashboardcomponents/CoachSidebar';
-import ClientTopbar from '../../../../components/dashboardcomponents/clienttopbar';
-import { FaBook, FaEdit, FaPlus, FaUsers, FaLayerGroup, FaBullhorn, FaClipboardList, FaUser, FaChartLine } from "react-icons/fa";
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
-import Stack from '@mui/material/Stack';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import LinkIcon from '@mui/icons-material/Link';
-import { ProgramsService } from '../../../services/api/programs.service';
-import { cohortService } from '../../../services/api/cohort.service';
-import { clientsService } from '../../../services/api/clients.service';
-import { MARKETING_PROGRAMS } from '../../../data/marketingPrograms';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
+import { useState, useEffect, useCallback, useRef } from "react";
+import CoachSidebar from "../../../../components/dashboardcomponents/CoachSidebar";
+import ClientTopbar from "../../../../components/dashboardcomponents/clienttopbar";
+import { ProgramsService } from "../../../services/api/programs.service";
+import { cohortService } from "../../../services/api/cohort.service";
+import { clientsService } from "../../../services/api/clients.service";
+import { programEnrollmentsService } from "../../../services/api/programEnrollments.service";
+import { MARKETING_PROGRAMS } from "../../../data/marketingPrograms";
 
-// Map marketing programs to same shape as API (id, title, description); used when API returns no programs
+// ─── Inline SVG Icons ───────────────────────────
+const BookIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+  </svg>
+);
+const LayersIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" />
+  </svg>
+);
+const UsersIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+const PlusIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+);
+const PenIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+  </svg>
+);
+const TrashIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+  </svg>
+);
+const XIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+const CalendarIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+const LinkIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  </svg>
+);
+const UploadIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
+  </svg>
+);
+const CheckIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+const UserPlusIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" />
+  </svg>
+);
+const ChevronRightIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+const ClipboardListIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /><path d="M9 12h6" /><path d="M9 16h6" />
+  </svg>
+);
+const UserMinusIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="23" y1="11" x2="17" y2="11" />
+  </svg>
+);
+
+// ─── Helpers ────────────────────────────────────
 const getPreFillPrograms = () =>
   MARKETING_PROGRAMS.map((p, i) => ({
     id: `prefill-${i}`,
     title: p.title,
     name: p.title,
-    description: p.desc || p.description || '',
+    description: p.desc || p.description || "",
   }));
 
-// Data comes from API services (Programs, Cohorts); pre-fills from marketing when API is empty
+function getInitials(name = "") {
+  return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "??";
+}
+const PALETTE = ["#9A6AE3", "#002147", "#f97316", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+function colorFor(name = "") {
+  let sum = 0;
+  for (let i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+  return PALETTE[sum % PALETTE.length];
+}
 
+// ─── Reusable Modal Shell ───────────────────────
+function Modal({ open, onClose, title, children, footer, wide }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative bg-white rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden ${wide ? "w-full max-w-2xl" : "w-full max-w-lg"}`}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+          <h3 className="text-base font-bold text-[#002147]">{title}</h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+            <XIcon size={16} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">{children}</div>
+        {footer && <div className="border-t border-gray-100 px-6 py-4 bg-gray-50/50 shrink-0 flex items-center gap-3 justify-end">{footer}</div>}
+      </div>
+    </div>
+  );
+}
+
+// Reusable form input
+function Input({ label, ...props }) {
+  return (
+    <div>
+      {label && <label className="block text-xs font-semibold text-gray-600 mb-1">{label}</label>}
+      <input {...props} className={`w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#002147]/10 focus:border-[#002147] ${props.className || ""}`} />
+    </div>
+  );
+}
+function Textarea({ label, ...props }) {
+  return (
+    <div>
+      {label && <label className="block text-xs font-semibold text-gray-600 mb-1">{label}</label>}
+      <textarea {...props} className={`w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#002147]/10 focus:border-[#002147] ${props.className || ""}`} />
+    </div>
+  );
+}
+
+// ─── Main Page ──────────────────────────────────
 export default function CourseManagementPage() {
   const [user, setUser] = useState({ name: "Coach" });
   const [programs, setPrograms] = useState([]);
@@ -46,871 +150,878 @@ export default function CourseManagementPage() {
   const [programUnits, setProgramUnits] = useState([]);
   const [cohorts, setCohorts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [showAddEditCourse, setShowAddEditCourse] = useState(false);
-  const [showAddEditUnit, setShowAddEditUnit] = useState(false);
-  const [courseForm, setCourseForm] = useState({ name: '', syllabus: '', resources: [] });
-  const [newResource, setNewResource] = useState({ type: 'link', title: '', url: '', file: null });
-  const [unitForm, setUnitForm] = useState({ name: '', resources: [] });
-  const [newUnitResource, setNewUnitResource] = useState({ type: 'link', title: '', url: '', file: null });
-  const [showAddCohortDialog, setShowAddCohortDialog] = useState(false);
-  const [cohortForm, setCohortForm] = useState({ name: '', description: '', start_date: '', end_date: '' });
-  const [showCohortDialog, setShowCohortDialog] = useState(false);
-  const [selectedCohort, setSelectedCohort] = useState(null);
-  const [clients, setClients] = useState([]);
-  const [showAddClientDialog, setShowAddClientDialog] = useState(false);
-  const [selectedClientIdToAdd, setSelectedClientIdToAdd] = useState('');
-  const [editingProgramId, setEditingProgramId] = useState(null); // null = add, id = edit
+  const [error, setError] = useState("");
+  const [toast, setToast] = useState("");
+  const [activeTab, setActiveTab] = useState("programs");
 
-  // Fetch programs and cohorts; pre-fill with marketing programs when API returns none
+  // Modals
+  const [showCourseModal, setShowCourseModal] = useState(false);
+  const [editingProgramId, setEditingProgramId] = useState(null);
+  const [courseForm, setCourseForm] = useState({ name: "", syllabus: "", resources: [] });
+  const [newResource, setNewResource] = useState({ type: "link", title: "", url: "", file: null });
+  const fileRef = useRef(null);
+
+  const [showUnitModal, setShowUnitModal] = useState(false);
+  const [unitForm, setUnitForm] = useState({ name: "", resources: [] });
+  const [newUnitResource, setNewUnitResource] = useState({ type: "link", title: "", url: "", file: null });
+  const unitFileRef = useRef(null);
+
+  const [showCohortModal, setShowCohortModal] = useState(false);
+  const [cohortForm, setCohortForm] = useState({ name: "", description: "", start_date: "", end_date: "" });
+
+  const [showCohortDetail, setShowCohortDetail] = useState(false);
+  const [selectedCohort, setSelectedCohort] = useState(null);
+
+  const [showAddClientModal, setShowAddClientModal] = useState(false);
+  const [clients, setClients] = useState([]);
+  const [selectedClientId, setSelectedClientId] = useState("");
+
+  // Enrollments
+  const [enrollments, setEnrollments] = useState([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
+  const [showEnrollModal, setShowEnrollModal] = useState(false);
+  const [enrollClientId, setEnrollClientId] = useState("");
+  const [enrollClients, setEnrollClients] = useState([]);
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await ProgramsService.getAll();
-        let programsArray = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : (Array.isArray(data.programs) ? data.programs : []));
-        if (!programsArray || programsArray.length === 0) {
-          programsArray = getPreFillPrograms();
-        }
-        setPrograms(programsArray);
-        if (programsArray.length > 0 && !selectedProgram) {
-          setSelectedProgram(programsArray[0]);
-        }
-      } catch (e) {
-        setError('Failed to fetch programs');
-        const prefill = getPreFillPrograms();
-        setPrograms(prefill);
-        setSelectedProgram(prefill[0] || null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    const fetchCohorts = async () => {
-      try {
-        const data = await cohortService.getCohorts();
-        const cohortArray = Array.isArray(data) ? data : (Array.isArray(data.cohorts) ? data.cohorts : []);
-        setCohorts(cohortArray);
-      } catch (e) {
-        setCohorts([]);
-      }
-    };
-    fetchData();
-    fetchCohorts();
+    const u = localStorage.getItem("wanacUser");
+    if (u) try { setUser(JSON.parse(u)); } catch {}
   }, []);
 
-  // Fetch units when selected program changes (skip API for prefill programs)
+  // Fetch programs
+  const loadPrograms = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await ProgramsService.getAll();
+      let arr = Array.isArray(data) ? data : (data?.data || data?.programs || []);
+      if (!arr.length) arr = getPreFillPrograms();
+      setPrograms(arr);
+      if (arr.length && !selectedProgram) setSelectedProgram(arr[0]);
+    } catch {
+      const pf = getPreFillPrograms();
+      setPrograms(pf);
+      setSelectedProgram(pf[0] || null);
+    } finally { setLoading(false); }
+  }, []);
+
+  const loadCohorts = useCallback(async () => {
+    try {
+      const data = await cohortService.getCohorts();
+      setCohorts(Array.isArray(data) ? data : (data?.cohorts || []));
+    } catch { setCohorts([]); }
+  }, []);
+
+  useEffect(() => { loadPrograms(); loadCohorts(); }, [loadPrograms, loadCohorts]);
+
+  // Load units when program changes
   useEffect(() => {
-    const fetchUnits = async () => {
-      if (!selectedProgram) {
-        setProgramUnits([]);
-        return;
-      }
-      const isPreFill = String(selectedProgram.id).startsWith('prefill-');
-      if (isPreFill) {
-        setProgramUnits([]);
-        return;
-      }
-      try {
-        const units = await ProgramsService.getUnitsByProgramId(selectedProgram.id);
-        setProgramUnits(Array.isArray(units) ? units : []);
-      } catch (e) {
-        setProgramUnits([]);
-      }
-    };
-    fetchUnits();
+    if (!selectedProgram) { setProgramUnits([]); return; }
+    if (String(selectedProgram.id).startsWith("prefill-")) { setProgramUnits([]); return; }
+    ProgramsService.getUnitsByProgramId(selectedProgram.id)
+      .then((u) => setProgramUnits(Array.isArray(u) ? u : []))
+      .catch(() => setProgramUnits([]));
   }, [selectedProgram]);
 
-  // Handler functions must be defined before return
-  const handleOpenAddCourse = () => {
+  // Load enrollments when program changes
+  const loadEnrollments = useCallback(async () => {
+    if (!selectedProgram || String(selectedProgram.id).startsWith("prefill-")) { setEnrollments([]); return; }
+    setLoadingEnrollments(true);
+    try {
+      const data = await programEnrollmentsService.getForProgram(selectedProgram.id);
+      setEnrollments(Array.isArray(data) ? data : []);
+    } catch { setEnrollments([]); }
+    finally { setLoadingEnrollments(false); }
+  }, [selectedProgram]);
+
+  useEffect(() => { loadEnrollments(); }, [loadEnrollments]);
+
+  const filteredCohorts = selectedProgram
+    ? cohorts.filter((c) => c.program_id === selectedProgram.id)
+    : [];
+
+  // ── Course handlers ──
+  const openAddCourse = () => {
     setEditingProgramId(null);
-    setCourseForm({ name: '', syllabus: '', resources: [] });
-    setNewResource({ type: 'link', title: '', url: '', file: null });
-    setShowAddEditCourse(true);
+    setCourseForm({ name: "", syllabus: "", resources: [] });
+    setNewResource({ type: "link", title: "", url: "", file: null });
+    setShowCourseModal(true);
   };
-  const handleOpenEditCourse = (program) => {
-    setEditingProgramId(program.id);
-    setCourseForm({
-      name: program.title || program.name || '',
-      syllabus: program.description || '',
-      resources: Array.isArray(program.resources) ? program.resources : [],
-    });
-    setNewResource({ type: 'link', title: '', url: '', file: null });
-    setShowAddEditCourse(true);
+  const openEditCourse = (p) => {
+    setEditingProgramId(p.id);
+    setCourseForm({ name: p.title || p.name || "", syllabus: p.description || "", resources: Array.isArray(p.resources) ? p.resources : [] });
+    setNewResource({ type: "link", title: "", url: "", file: null });
+    setShowCourseModal(true);
   };
-  const handleCourseFormChange = (e) => {
-    setCourseForm({ ...courseForm, [e.target.name]: e.target.value });
-  };
-  const handleResourceTypeChange = (e) => {
-    setNewResource({ ...newResource, type: e.target.value, url: '', file: null });
-  };
-  const handleResourceChange = (e) => {
-    setNewResource({ ...newResource, [e.target.name]: e.target.value });
-  };
-  const handleResourceFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setNewResource({ ...newResource, file: e.target.files[0], url: '' });
+  const addResource = () => {
+    if (newResource.type === "link" && newResource.title && newResource.url) {
+      setCourseForm((f) => ({ ...f, resources: [...f.resources, { type: "link", title: newResource.title, url: newResource.url }] }));
+      setNewResource({ type: "link", title: "", url: "", file: null });
+    } else if (newResource.type === "document" && newResource.title && newResource.file) {
+      setCourseForm((f) => ({ ...f, resources: [...f.resources, { type: "document", title: newResource.title, file: newResource.file }] }));
+      setNewResource({ type: "link", title: "", url: "", file: null });
     }
   };
-  const handleAddResource = () => {
-    if (newResource.type === 'link' && newResource.title && newResource.url) {
-      setCourseForm({
-        ...courseForm,
-        resources: [...courseForm.resources, { type: 'link', title: newResource.title, url: newResource.url }],
-      });
-      setNewResource({ type: 'link', title: '', url: '', file: null });
-    } else if (newResource.type === 'document' && newResource.title && newResource.file) {
-      setCourseForm({
-        ...courseForm,
-        resources: [...courseForm.resources, { type: 'document', title: newResource.title, file: newResource.file }],
-      });
-      setNewResource({ type: 'link', title: '', url: '', file: null });
-    }
-  };
-  const handleRemoveResource = (idx) => {
-    setCourseForm({
-      ...courseForm,
-      resources: courseForm.resources.filter((_, i) => i !== idx),
-    });
-  };
-  const handleSaveCourse = async () => {
-    const title = (courseForm.name || '').trim();
+  const saveCourse = async () => {
+    const title = courseForm.name.trim();
     if (!title) return;
     try {
       if (editingProgramId) {
-        const isPreFill = String(editingProgramId).startsWith('prefill-');
-        if (isPreFill) {
-          setPrograms((prev) =>
-            prev.map((p) =>
-              p.id === editingProgramId
-                ? { ...p, title, name: title, description: courseForm.syllabus || '' }
-                : p
-            )
-          );
+        if (String(editingProgramId).startsWith("prefill-")) {
+          setPrograms((p) => p.map((x) => x.id === editingProgramId ? { ...x, title, name: title, description: courseForm.syllabus } : x));
         } else {
-          await ProgramsService.update(editingProgramId, {
-            title,
-            description: courseForm.syllabus || '',
-          });
-          const data = await ProgramsService.getAll();
-          const programsArray = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : (Array.isArray(data.programs) ? data.programs : []));
-          setPrograms(programsArray.length > 0 ? programsArray : getPreFillPrograms());
+          await ProgramsService.update(editingProgramId, { title, description: courseForm.syllabus });
+          await loadPrograms();
         }
       } else {
-        await ProgramsService.create({
-          title,
-          description: courseForm.syllabus || '',
-        });
-        const data = await ProgramsService.getAll();
-        const programsArray = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : (Array.isArray(data.programs) ? data.programs : []));
-        setPrograms(programsArray.length > 0 ? programsArray : getPreFillPrograms());
+        await ProgramsService.create({ title, description: courseForm.syllabus });
+        await loadPrograms();
       }
-      setShowAddEditCourse(false);
-      setEditingProgramId(null);
-    } catch (e) {
-      setError('Failed to save program');
-    }
+      setShowCourseModal(false);
+      showToast(editingProgramId ? "Program updated!" : "Program created!");
+    } catch { setError("Failed to save program"); }
   };
-
-  const handleRemoveProgram = async (program, e) => {
+  const removeCourse = async (program, e) => {
     e?.stopPropagation();
-    const isPreFill = String(program.id).startsWith('prefill-');
-    if (isPreFill) {
-      setPrograms((prev) => {
-        const next = prev.filter((p) => p.id !== program.id);
-        if (selectedProgram?.id === program.id) setSelectedProgram(next[0] || null);
-        return next;
-      });
+    if (String(program.id).startsWith("prefill-")) {
+      setPrograms((p) => { const n = p.filter((x) => x.id !== program.id); if (selectedProgram?.id === program.id) setSelectedProgram(n[0] || null); return n; });
       return;
     }
     try {
       await ProgramsService.delete(program.id);
-      setPrograms((prev) => {
-        const next = prev.filter((p) => p.id !== program.id);
-        if (selectedProgram?.id === program.id) setSelectedProgram(next[0] || null);
-        return next.length > 0 ? next : getPreFillPrograms();
-      });
-    } catch (err) {
-      setError('Failed to delete program');
-    }
+      setPrograms((p) => { const n = p.filter((x) => x.id !== program.id); if (selectedProgram?.id === program.id) setSelectedProgram(n[0] || null); return n.length ? n : getPreFillPrograms(); });
+      showToast("Program removed.");
+    } catch { setError("Failed to delete program"); }
   };
 
-  const handleOpenAddUnit = () => {
-    setUnitForm({ name: '', resources: [] });
-    setNewUnitResource({ type: 'link', title: '', url: '', file: null });
-    setShowAddEditUnit(true);
+  // ── Unit handlers ──
+  const openAddUnit = () => {
+    setUnitForm({ name: "", resources: [] });
+    setNewUnitResource({ type: "link", title: "", url: "", file: null });
+    setShowUnitModal(true);
   };
-  const handleUnitFormChange = (e) => {
-    setUnitForm({ ...unitForm, [e.target.name]: e.target.value });
-  };
-  const handleUnitResourceTypeChange = (e, val) => {
-    if (val) setNewUnitResource({ ...newUnitResource, type: val, url: '', file: null });
-  };
-  const handleUnitResourceChange = (e) => {
-    setNewUnitResource({ ...newUnitResource, [e.target.name]: e.target.value });
-  };
-  const handleUnitResourceFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setNewUnitResource({ ...newUnitResource, file: e.target.files[0], url: '' });
+  const addUnitResource = () => {
+    if (newUnitResource.type === "link" && newUnitResource.title && newUnitResource.url) {
+      setUnitForm((f) => ({ ...f, resources: [...f.resources, { type: "link", title: newUnitResource.title, url: newUnitResource.url }] }));
+      setNewUnitResource({ type: "link", title: "", url: "", file: null });
+    } else if (newUnitResource.type === "document" && newUnitResource.title && newUnitResource.file) {
+      setUnitForm((f) => ({ ...f, resources: [...f.resources, { type: "document", title: newUnitResource.title, file: newUnitResource.file }] }));
+      setNewUnitResource({ type: "link", title: "", url: "", file: null });
     }
   };
-  const handleAddUnitResource = () => {
-    if (newUnitResource.type === 'link' && newUnitResource.title && newUnitResource.url) {
-      setUnitForm({
-        ...unitForm,
-        resources: [...unitForm.resources, { type: 'link', title: newUnitResource.title, url: newUnitResource.url }],
-      });
-      setNewUnitResource({ type: 'link', title: '', url: '', file: null });
-    } else if (newUnitResource.type === 'document' && newUnitResource.title && newUnitResource.file) {
-      setUnitForm({
-        ...unitForm,
-        resources: [...unitForm.resources, { type: 'document', title: newUnitResource.title, file: newUnitResource.file }],
-      });
-      setNewUnitResource({ type: 'link', title: '', url: '', file: null });
-    }
-  };
-  const handleRemoveUnitResource = (idx) => {
-    setUnitForm({
-      ...unitForm,
-      resources: unitForm.resources.filter((_, i) => i !== idx),
-    });
-  };
-  const handleSaveUnit = () => {
-    // Here you would add logic to save the unit (API call or update state)
-    setShowAddEditUnit(false);
-  };
+  const saveUnit = () => { setShowUnitModal(false); showToast("Unit saved!"); };
 
-  // ——— Cohorts: Add cohort first, then add clients to it ———
-  const handleOpenAddCohort = () => {
-    setCohortForm({ name: '', description: '', start_date: '', end_date: '' });
-    setShowAddCohortDialog(true);
+  // ── Cohort handlers ──
+  const openAddCohort = () => {
+    setCohortForm({ name: "", description: "", start_date: "", end_date: "" });
+    setShowCohortModal(true);
   };
-  const handleCohortFormChange = (e) => {
-    setCohortForm({ ...cohortForm, [e.target.name]: e.target.value });
-  };
-  const handleSaveCohort = async () => {
-    const name = (cohortForm.name || '').trim();
+  const saveCohort = async () => {
+    const name = cohortForm.name.trim();
     if (!name || !selectedProgram) return;
-    const isPreFill = String(selectedProgram.id).startsWith('prefill-');
-    let programId = selectedProgram.id;
-    const programTitle = selectedProgram.title || selectedProgram.name || '';
+    const isPre = String(selectedProgram.id).startsWith("prefill-");
+    let pid = selectedProgram.id;
     try {
-      if (isPreFill) {
-        await ProgramsService.create({
-          title: programTitle,
-          description: selectedProgram.description || '',
-        });
+      if (isPre) {
+        await ProgramsService.create({ title: selectedProgram.title || selectedProgram.name, description: selectedProgram.description || "" });
         const data = await ProgramsService.getAll();
-        const programsArray = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : (Array.isArray(data.programs) ? data.programs : []));
-        const createdProgram = programsArray.find(
-          (p) => (p.title || p.name || '').trim() === programTitle.trim()
-        );
-        programId = createdProgram?.id ?? data?.id;
-        if (programId == null) {
-          setError('Program was created but could not find its id. Please refresh and try adding the cohort again.');
-          return;
-        }
-        setPrograms(programsArray.length > 0 ? programsArray : getPreFillPrograms());
-        setSelectedProgram(createdProgram ?? { id: programId, title: programTitle, name: programTitle, description: selectedProgram.description });
+        const arr = Array.isArray(data) ? data : (data?.data || data?.programs || []);
+        const found = arr.find((p) => (p.title || p.name || "").trim() === (selectedProgram.title || selectedProgram.name || "").trim());
+        pid = found?.id ?? data?.id;
+        if (!pid) { setError("Program created but ID not found. Refresh and try again."); return; }
+        setPrograms(arr.length ? arr : getPreFillPrograms());
+        setSelectedProgram(found || { id: pid, title: selectedProgram.title, name: selectedProgram.name, description: selectedProgram.description });
       }
-      await cohortService.createCohort({
-        program_id: programId,
-        name,
-        description: cohortForm.description || '',
-        start_date: cohortForm.start_date || undefined,
-        end_date: cohortForm.end_date || undefined,
-      });
-      const data = await cohortService.getCohorts();
-      const cohortArray = Array.isArray(data) ? data : (Array.isArray(data.cohorts) ? data.cohorts : []);
-      setCohorts(cohortArray);
-      setShowAddCohortDialog(false);
-      setError(null);
-    } catch (e) {
-      setError(isPreFill ? 'Failed to create program or cohort' : 'Failed to create cohort');
-    }
+      await cohortService.createCohort({ program_id: pid, name, description: cohortForm.description, start_date: cohortForm.start_date || undefined, end_date: cohortForm.end_date || undefined });
+      await loadCohorts();
+      setShowCohortModal(false);
+      showToast("Cohort created!");
+    } catch { setError("Failed to create cohort"); }
   };
 
-  const handleOpenCohortDetails = (cohort) => {
-    setSelectedCohort(cohort);
-    setShowCohortDialog(true);
-  };
-  const fetchClients = async () => {
+  const openCohortDetail = (cohort) => { setSelectedCohort(cohort); setShowCohortDetail(true); };
+
+  const openAddClient = async () => {
+    setSelectedClientId("");
     try {
       const data = await clientsService.getClients();
       const list = data?.clients ?? (Array.isArray(data) ? data : []);
       setClients(Array.isArray(list) ? list : []);
-    } catch {
-      setClients([]);
-    }
+    } catch { setClients([]); }
+    setShowAddClientModal(true);
   };
-  const handleOpenAddClient = () => {
-    setSelectedClientIdToAdd('');
-    fetchClients();
-    setShowAddClientDialog(true);
-  };
-  const handleSaveAddClient = async () => {
-    if (!selectedCohort || !selectedClientIdToAdd) return;
-    const clientId = Number(selectedClientIdToAdd);
+  const saveAddClient = async () => {
+    if (!selectedCohort || !selectedClientId) return;
     try {
-      await cohortService.addCohortMember({
-        cohort_id: selectedCohort.id,
-        member_id: clientId,
-        role: 'client',
-      });
-      const addedClient = clients.find(
-        (c) => Number(c.id ?? c.user_id ?? c.user?.id) === clientId
-      );
-      const data = await cohortService.getCohorts();
-      const cohortArray = Array.isArray(data) ? data : (Array.isArray(data.cohorts) ? data.cohorts : []);
-      const cohortId = selectedCohort.id;
-      if (addedClient) {
-        const existingClients = Array.isArray(selectedCohort.clients) ? selectedCohort.clients : [];
-        const mergedClients = [...existingClients, addedClient];
-        const mergedCohort = { ...selectedCohort, clients: mergedClients };
-        setCohorts(
-          cohortArray.map((c) =>
-            c.id === cohortId ? { ...c, clients: mergedClients } : c
-          )
-        );
-        setSelectedCohort(mergedCohort);
-      } else {
-        setCohorts(cohortArray);
-        const updatedFromApi = cohortArray.find((c) => c.id === cohortId);
-        if (updatedFromApi) setSelectedCohort(updatedFromApi);
+      await cohortService.addCohortMember({ cohort_id: selectedCohort.id, member_id: Number(selectedClientId), role: "client" });
+      const added = clients.find((c) => Number(c.id ?? c.user_id ?? c.user?.id) === Number(selectedClientId));
+      await loadCohorts();
+      if (added) {
+        const existing = Array.isArray(selectedCohort.clients) ? selectedCohort.clients : [];
+        setSelectedCohort({ ...selectedCohort, clients: [...existing, added] });
       }
-      setShowAddClientDialog(false);
-    } catch (e) {
-      setError('Failed to add client to cohort');
-    }
+      setShowAddClientModal(false);
+      showToast("Client added to cohort!");
+    } catch { setError("Failed to add client"); }
   };
 
   const cohortClientIds = Array.isArray(selectedCohort?.clients)
-    ? selectedCohort.clients.map((c) => (typeof c === 'object' ? c.id ?? c.user_id : c))
+    ? selectedCohort.clients.map((c) => (typeof c === "object" ? c.id ?? c.user_id : c))
     : [];
-  const clientsNotInCohort = clients.filter(
-    (c) => !cohortClientIds.includes(c.id ?? c.user_id ?? c.user?.id)
-  );
+  const clientsNotInCohort = clients.filter((c) => !cohortClientIds.includes(c.id ?? c.user_id ?? c.user?.id));
   const clientOptions = clientsNotInCohort.length > 0 ? clientsNotInCohort : clients;
 
-  // Filter cohorts by selected program
-  const filteredCohorts = Array.isArray(cohorts) && selectedProgram
-    ? cohorts.filter(c => c.program_id === selectedProgram.id)
-    : [];
+  // ── Enrollment handlers ──
+  const openEnrollClient = async () => {
+    setEnrollClientId("");
+    try {
+      const data = await clientsService.getClients();
+      const list = data?.clients ?? (Array.isArray(data) ? data : []);
+      setEnrollClients(Array.isArray(list) ? list : []);
+    } catch { setEnrollClients([]); }
+    setShowEnrollModal(true);
+  };
+  const saveEnrollment = async () => {
+    if (!selectedProgram || !enrollClientId) return;
+    const isPre = String(selectedProgram.id).startsWith("prefill-");
+    if (isPre) { showToast("Save the program first before enrolling clients."); return; }
+    try {
+      await programEnrollmentsService.create({ client_id: Number(enrollClientId), program_id: selectedProgram.id });
+      await loadEnrollments();
+      setShowEnrollModal(false);
+      showToast("Client enrolled!");
+    } catch { setError("Failed to enroll client"); }
+  };
+  const removeEnrollment = async (enrollmentId) => {
+    try {
+      await programEnrollmentsService.delete(enrollmentId);
+      setEnrollments((prev) => prev.filter((e) => e.id !== enrollmentId));
+      showToast("Client unenrolled.");
+    } catch { setError("Failed to unenroll client"); }
+  };
+
+  // Clients already enrolled (to filter dropdown)
+  const enrolledClientIds = enrollments.map((e) => e.client_id);
+  const enrollableClients = enrollClients.filter((c) => {
+    const cid = Number(c.id ?? c.user_id ?? c.user?.id);
+    return !enrolledClientIds.includes(cid);
+  });
+
+  const TABS = [
+    { key: "programs", label: "Programs", icon: BookIcon, color: "text-blue-600" },
+    { key: "units", label: "Units / Modules", icon: LayersIcon, color: "text-green-600" },
+    { key: "cohorts", label: "Cohorts", icon: UsersIcon, color: "text-purple-600" },
+    { key: "enrollments", label: "Enrollments", icon: ClipboardListIcon, color: "text-amber-600" },
+  ];
 
   return (
-    <div className="h-screen flex bg-white font-body text-foreground" style={{ fontFamily: 'var(--font-body)' }}>
-      {/* Sidebar */}
+    <div className="h-screen flex bg-[#f5f5f5] font-body overflow-hidden">
       <CoachSidebar />
-      {/* Main Area */}
-      <div className="flex-1 flex flex-col h-full transition-all duration-300">
-        {/* Top Bar */}
+      <div className="flex-1 flex flex-col h-full min-w-0">
         <ClientTopbar user={user} />
-        {/* Main Content */}
-        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 sm:px-4 md:px-8 py-4 md:py-6 bg-muted">
-          <div className="max-w-5xl mx-auto space-y-10">
-            {/* Courses Overview */}
-            <section className="mb-8">
-              <div className="flex items-center gap-3 mb-2">
-            
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-heading">Programs Overview</h1>
-                <button className="ml-auto bg-blue-500 text-white px-3 py-1 rounded flex items-center gap-1 hover:bg-blue-600" onClick={handleOpenAddCourse}>
-                  <FaPlus /> Add Course
+
+        <main className="flex-1 h-0 overflow-y-auto px-4 md:px-6 py-5">
+          <div className="max-w-6xl mx-auto space-y-5">
+
+            {/* Toast */}
+            {toast && (
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm fixed top-4 right-4 z-50 shadow-lg">
+                <CheckIcon size={14} /> {toast}
+              </div>
+            )}
+
+            {/* ── Page Header ── */}
+            <div className="bg-gradient-to-br from-[#002147] via-[#003a7a] to-[#002147] rounded-2xl px-6 py-5 relative overflow-hidden shadow-sm">
+              <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_80%_20%,white,transparent)] pointer-events-none" />
+              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <p className="text-white/60 text-[10px] font-medium uppercase tracking-widest">Course Management</p>
+                  <h1 className="text-xl font-bold text-white">Programs & Courses</h1>
+                  <p className="text-white/70 text-xs mt-0.5">Create programs, organize units, and manage cohorts.</p>
+                </div>
+                <button onClick={openAddCourse}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-semibold transition-all border border-white/20 self-start sm:self-auto">
+                  <PlusIcon size={14} /> New Program
                 </button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {loading ? (
-                  <div className="text-gray-500">Loading programs...</div>
-                ) : (Array.isArray(programs) && programs.length > 0 ? (
-                  programs.map(program => (
-                    <div key={program.id} className={`bg-white border border-gray-100 rounded-xl p-4 shadow flex flex-col gap-2 ${selectedProgram && selectedProgram.id === program.id ? 'ring-2 ring-blue-400' : ''}`}
-                      onClick={() => setSelectedProgram(program)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-lg">{program.title || program.name}</span>
-                        <div className="ml-auto flex items-center gap-1">
-                          <button className="text-blue-500 hover:text-blue-700 p-1" onClick={e => { e.stopPropagation(); handleOpenEditCourse(program); }} title="Edit Program">
-                            <FaEdit />
-                          </button>
-                          <button className="text-red-500 hover:text-red-700 p-1" onClick={e => handleRemoveProgram(program, e)} title="Remove Program">
-                            <DeleteIcon fontSize="small" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="text-sm text-gray-600">{program.description || '—'}</div>
-                      <div className="flex gap-4 text-xs text-gray-500">
-                        <span>Units: {Array.isArray(programUnits) && selectedProgram && selectedProgram.id === program.id ? programUnits.length : 0}</span>
-                        <span>Cohorts: {Array.isArray(cohorts) ? cohorts.filter(c => c.program_id === program.id).length : 0}</span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-gray-500">No programs found.</div>
+            </div>
+
+            {error && (
+              <div className="flex items-center justify-between gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                <span>{error}</span>
+                <button onClick={() => setError("")} className="text-xs font-semibold underline">Dismiss</button>
+              </div>
+            )}
+
+            {/* ── Stats ── */}
+            <div className="grid grid-cols-4 gap-3">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-blue-50"><BookIcon size={16} className="text-blue-600" /></div>
+                <div>
+                  <p className="text-[11px] text-gray-500 font-medium">Programs</p>
+                  <p className="text-xl font-bold text-[#002147]">{loading ? "..." : programs.length}</p>
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-green-50"><LayersIcon size={16} className="text-green-600" /></div>
+                <div>
+                  <p className="text-[11px] text-gray-500 font-medium">Units</p>
+                  <p className="text-xl font-bold text-green-700">{programUnits.length}</p>
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-purple-50"><UsersIcon size={16} className="text-purple-600" /></div>
+                <div>
+                  <p className="text-[11px] text-gray-500 font-medium">Cohorts</p>
+                  <p className="text-xl font-bold text-purple-700">{cohorts.length}</p>
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-amber-50"><ClipboardListIcon size={16} className="text-amber-600" /></div>
+                <div>
+                  <p className="text-[11px] text-gray-500 font-medium">Enrolled</p>
+                  <p className="text-xl font-bold text-amber-700">{loadingEnrollments ? "..." : enrollments.length}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Tabs ── */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="flex border-b border-gray-100 px-2 pt-1 bg-gray-50/50">
+                {TABS.map((tab) => (
+                  <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                    className={`flex items-center gap-1.5 px-5 py-3 text-xs font-semibold transition-all rounded-t-xl border-b-2 ${
+                      activeTab === tab.key ? "text-[#002147] border-[#002147] bg-white" : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-100"
+                    }`}>
+                    <tab.icon size={14} className={activeTab === tab.key ? tab.color : ""} /> {tab.label}
+                  </button>
                 ))}
               </div>
-            </section>
 
-            {/* Units/Modules Management */}
-            <section className="mb-8">
-              <div className="flex items-center gap-3 mb-2">
-                <FaLayerGroup className="text-green-600" />
-                <h2 className="text-xl font-bold text-heading">Units/Modules</h2>
-                <button className="ml-auto bg-green-500 text-white px-3 py-1 rounded flex items-center gap-1 hover:bg-green-600" onClick={handleOpenAddUnit}>
-                  <FaPlus /> Add Unit
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(!selectedProgram || !Array.isArray(programUnits) || programUnits.length === 0) ? (
-                  <div className="col-span-full text-gray-500">No units for this program.</div>
-                ) : (
-                  programUnits.map(unit => (
-                    <div key={unit.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow flex flex-col gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-base">{unit.name}</span>
-                        <button className="ml-auto text-green-500 hover:text-green-700" onClick={() => setShowAddEditUnit(true)} title="Edit Unit">
-                          <FaEdit />
-                        </button>
-                      </div>
-                      <div className="text-xs text-gray-600">{unit.description || '—'}</div>
-                      <div className="flex gap-2 mt-1">
-                        <button className="text-blue-500 hover:underline text-xs">Attach Resource</button>
-                        <button className="text-blue-500 hover:underline text-xs">View Assignments</button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </section>
+              <div className="p-5">
 
-            {/* Cohorts: Add cohort first, then add clients to it */}
-            <section>
-              <div className="flex items-center gap-3 mb-2">
-                <FaUsers className="text-purple-600" />
-                <h2 className="text-xl font-bold text-heading">Cohorts</h2>
-                <button
-                  className="ml-auto bg-purple-500 text-white px-3 py-1 rounded flex items-center gap-1 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={handleOpenAddCohort}
-                  disabled={!selectedProgram}
-                  title={!selectedProgram ? 'Select a program first' : 'Add a new cohort'}
-                >
-                  <FaPlus /> Add Cohort
-                </button>
-              </div>
-              <div className="bg-white border border-gray-100 rounded-xl p-4 shadow">
-                <div className="mb-2 font-semibold text-gray-700">{selectedProgram ? `Cohorts for ${selectedProgram.title || selectedProgram.name}` : 'Select a program to view cohorts'}</div>
-                {!selectedProgram ? (
-                  <div className="text-gray-500">Select a program above to create and manage cohorts.</div>
-                ) : filteredCohorts.length === 0 ? (
-                  <div className="text-gray-500">No cohorts yet. Click &quot;Add Cohort&quot; to create one, then add clients to it.</div>
-                ) : (
-                  <ul className="mb-0">
-                    {filteredCohorts.map((cohort) => (
-                      <li
-                        key={cohort.id}
-                        className="flex items-center gap-2 text-sm py-2 border-b last:border-b-0 cursor-pointer hover:bg-gray-50 rounded px-1 -mx-1"
-                        onClick={() => handleOpenCohortDetails(cohort)}
-                      >
-                        <FaUser className="text-gray-400 flex-shrink-0" />
-                        <span className="font-medium">{cohort.name}</span>
-                        <span className="ml-2 text-xs text-gray-500 truncate">{cohort.description || '—'}</span>
-                        <span className="ml-auto text-xs text-gray-500 flex-shrink-0">
-                          {Array.isArray(cohort.clients) ? cohort.clients.length : 0} client(s)
-                        </span>
-                        <span className="text-xs text-gray-400 flex-shrink-0">
-                          {cohort.start_date ? new Date(cohort.start_date).toLocaleDateString() : '—'}
-                          {cohort.end_date ? ` – ${new Date(cohort.end_date).toLocaleDateString()}` : ''}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </section>
-            {/* Cohort Details Modal — view cohort and add clients */}
-            <Dialog open={showCohortDialog} onClose={() => setShowCohortDialog(false)} maxWidth="sm" fullWidth>
-              <DialogTitle>{selectedCohort?.name || 'Cohort Details'}</DialogTitle>
-              <DialogContent>
-                <div className="space-y-3">
-                  <div><span className="font-semibold">Description:</span> {selectedCohort?.description || '—'}</div>
-                  <div><span className="font-semibold">Program:</span> {selectedProgram?.title || selectedProgram?.name || '—'}</div>
+                {/* ──── PROGRAMS TAB ──── */}
+                {activeTab === "programs" && (
                   <div>
-                    <span className="font-semibold">Dates:</span>{' '}
-                    {selectedCohort?.start_date ? new Date(selectedCohort.start_date).toLocaleDateString() : '—'}
-                    {selectedCohort?.end_date ? ` – ${new Date(selectedCohort.end_date).toLocaleDateString()}` : ''}
-                  </div>
-                  <div><span className="font-semibold">Coaches:</span> {Array.isArray(selectedCohort?.coaches) ? selectedCohort.coaches.length : 0}</div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold">
-                        Clients ({Array.isArray(selectedCohort?.clients) ? selectedCohort.clients.length : 0})
-                      </span>
-                      <Button size="small" variant="outlined" color="primary" startIcon={<FaPlus />} onClick={handleOpenAddClient}>
-                        Add Client
-                      </Button>
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm font-bold text-[#002147]">All Programs</p>
+                      <button onClick={openAddCourse}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#002147] hover:bg-[#003875] transition-all">
+                        <PlusIcon size={12} /> Add Program
+                      </button>
                     </div>
-                    {(!selectedCohort?.clients || selectedCohort.clients.length === 0) ? (
-                      <p className="text-sm text-gray-500">No clients yet. Click &quot;Add Client&quot; to add clients to this cohort.</p>
+                    {loading ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[1, 2, 3, 4].map((i) => (
+                          <div key={i} className="bg-gray-50 rounded-xl p-5 animate-pulse space-y-2">
+                            <div className="h-5 bg-gray-200 rounded w-3/4" />
+                            <div className="h-3 bg-gray-100 rounded w-full" />
+                            <div className="h-3 bg-gray-100 rounded w-1/2" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : programs.length === 0 ? (
+                      <div className="text-center py-12 text-gray-400">
+                        <BookIcon size={32} className="mx-auto mb-2 opacity-40" />
+                        <p className="text-sm font-medium">No programs yet.</p>
+                      </div>
                     ) : (
-                      <ul className="list-disc list-inside text-sm space-y-1 mt-1">
-                        {selectedCohort.clients.map((client) => {
-                          const name = client?.user?.name ?? client?.name ?? client?.email ?? 'Unknown';
-                          const email = client?.user?.email ?? client?.email ?? '';
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {programs.map((p) => {
+                          const isSelected = selectedProgram?.id === p.id;
+                          const pCohorts = cohorts.filter((c) => c.program_id === p.id).length;
                           return (
-                            <li key={client?.id ?? client?.user_id ?? name} className="text-gray-800">
-                              {name}{email ? ` — ${email}` : ''}
-                            </li>
+                            <div key={p.id} onClick={() => setSelectedProgram(p)}
+                              className={`rounded-xl p-4 border-2 cursor-pointer transition-all hover:shadow-md group ${
+                                isSelected ? "border-[#002147] bg-[#002147]/[0.02] shadow-sm" : "border-gray-100 bg-white hover:border-gray-200"
+                              }`}>
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                                  <div className="p-2 rounded-lg shrink-0" style={{ backgroundColor: colorFor(p.title || p.name) + "18" }}>
+                                    <BookIcon size={16} style={{ color: colorFor(p.title || p.name) }} />
+                                  </div>
+                                  <h3 className="text-sm font-bold text-[#002147] truncate">{p.title || p.name}</h3>
+                                </div>
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                  <button onClick={(e) => { e.stopPropagation(); openEditCourse(p); }}
+                                    className="p-1.5 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors">
+                                    <PenIcon size={12} />
+                                  </button>
+                                  <button onClick={(e) => removeCourse(p, e)}
+                                    className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                                    <TrashIcon size={12} />
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-500 line-clamp-2 mb-3">{p.description || "No description"}</p>
+                              <div className="flex items-center gap-4 text-[10px] text-gray-400 font-medium">
+                                <span className="flex items-center gap-1"><LayersIcon size={10} /> {isSelected ? programUnits.length : 0} units</span>
+                                <span className="flex items-center gap-1"><UsersIcon size={10} /> {pCohorts} cohorts</span>
+                              </div>
+                              {isSelected && <div className="mt-2 text-[10px] font-semibold text-[#002147] bg-[#002147]/5 rounded-full px-2.5 py-0.5 inline-block">Selected</div>}
+                            </div>
                           );
                         })}
-                      </ul>
+                      </div>
                     )}
                   </div>
-                </div>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setShowCohortDialog(false)} color="secondary">Close</Button>
-              </DialogActions>
-            </Dialog>
-
-            {/* Add Cohort Modal */}
-            <Dialog open={showAddCohortDialog} onClose={() => setShowAddCohortDialog(false)} maxWidth="sm" fullWidth>
-              <DialogTitle>Add Cohort</DialogTitle>
-              <DialogContent>
-                <p className="text-sm text-gray-600 mb-2">
-                  Program: <strong>{selectedProgram?.title || selectedProgram?.name || '—'}</strong>
-                </p>
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  name="name"
-                  label="Cohort Name"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={cohortForm.name}
-                  onChange={handleCohortFormChange}
-                  required
-                  sx={{ mb: 2 }}
-                />
-                <TextField
-                  margin="dense"
-                  name="description"
-                  label="Description"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  multiline
-                  rows={2}
-                  value={cohortForm.description}
-                  onChange={handleCohortFormChange}
-                  sx={{ mb: 2 }}
-                />
-                <TextField
-                  margin="dense"
-                  name="start_date"
-                  label="Start Date"
-                  type="date"
-                  fullWidth
-                  variant="outlined"
-                  value={cohortForm.start_date}
-                  onChange={handleCohortFormChange}
-                  InputLabelProps={{ shrink: true }}
-                  sx={{ mb: 2 }}
-                />
-                <TextField
-                  margin="dense"
-                  name="end_date"
-                  label="End Date"
-                  type="date"
-                  fullWidth
-                  variant="outlined"
-                  value={cohortForm.end_date}
-                  onChange={handleCohortFormChange}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setShowAddCohortDialog(false)} color="secondary">Cancel</Button>
-                <Button onClick={handleSaveCohort} variant="contained" color="primary" disabled={!cohortForm.name?.trim()}>Create Cohort</Button>
-              </DialogActions>
-            </Dialog>
-
-            {/* Add Client to Cohort Modal */}
-            <Dialog open={showAddClientDialog} onClose={() => setShowAddClientDialog(false)} maxWidth="sm" fullWidth>
-              <DialogTitle>Add Client to {selectedCohort?.name}</DialogTitle>
-              <DialogContent>
-                <FormControl fullWidth variant="outlined" sx={{ mt: 1, minWidth: 200 }}>
-                  <InputLabel id="add-client-label">Client</InputLabel>
-                  <Select
-                    labelId="add-client-label"
-                    value={selectedClientIdToAdd}
-                    onChange={(e) => setSelectedClientIdToAdd(e.target.value)}
-                    label="Client"
-                  >
-                    <MenuItem value="">Select a client</MenuItem>
-                    {clientOptions.map((client) => {
-                      const id = client.id ?? client.user_id ?? client.user?.id;
-                      const name = client.user?.name ?? client.name ?? client.email ?? `Client ${id}`;
-                      const email = client.user?.email ?? client.email ?? '';
-                      return (
-                        <MenuItem key={id} value={id}>{name}{email ? ` (${email})` : ''}</MenuItem>
-                      );
-                    })}
-                  </Select>
-                </FormControl>
-                {clientOptions.length === 0 && clients.length > 0 && (
-                  <p className="text-sm text-amber-600 mt-2">All clients are already in this cohort.</p>
                 )}
-                {clients.length === 0 && (
-                  <p className="text-sm text-gray-500 mt-2">No clients available. Add clients in the platform first.</p>
-                )}
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setShowAddClientDialog(false)} color="secondary">Cancel</Button>
-                <Button onClick={handleSaveAddClient} variant="contained" color="primary" disabled={!selectedClientIdToAdd}>Add to Cohort</Button>
-              </DialogActions>
-            </Dialog>
 
-            {/* Add/Edit Course Modal (Material UI) */}
-            <Dialog open={showAddEditCourse} onClose={() => { setShowAddEditCourse(false); setEditingProgramId(null); }}>
-              <DialogTitle>{editingProgramId ? 'Edit Course' : 'Add Course'}</DialogTitle>
-              <DialogContent>
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  name="name"
-                  label="Course Name"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={courseForm.name}
-                  onChange={handleCourseFormChange}
-                  sx={{ mb: 2 }}
-                />
-                <TextField
-                  margin="dense"
-                  name="syllabus"
-                  label="Syllabus"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={courseForm.syllabus}
-                  onChange={handleCourseFormChange}
-                  sx={{ mb: 2 }}
-                />
-                {/* Resource Management */}
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontWeight: 500, marginBottom: 8 }}>Resources</div>
-                  <Stack spacing={1}>
-                    {courseForm.resources.map((resource, idx) => (
-                      <Stack direction="row" spacing={1} alignItems="center" key={idx}>
-                        <TextField
-                          value={resource.title}
-                          label="Title"
-                          size="small"
-                          InputProps={{ readOnly: true }}
-                          sx={{ flex: 1 }}
-                        />
-                        {resource.type === 'link' ? (
-                          <TextField
-                            value={resource.url}
-                            label="URL"
-                            size="small"
-                            InputProps={{ readOnly: true }}
-                            sx={{ flex: 2 }}
-                          />
-                        ) : (
-                          <Button
-                            variant="outlined"
-                            startIcon={<AttachFileIcon />}
-                            component="a"
-                            href={resource.file ? URL.createObjectURL(resource.file) : undefined}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            sx={{ flex: 2, textTransform: 'none', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}
-                          >
-                            {resource.file ? resource.file.name : 'Document'}
-                          </Button>
-                        )}
-                        <IconButton aria-label="delete" color="error" onClick={() => handleRemoveResource(idx)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Stack>
-                    ))}
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <TextField
-                        name="title"
-                        label="Title"
-                        size="small"
-                        value={newResource.title}
-                        onChange={handleResourceChange}
-                        sx={{ flex: 1 }}
-                      />
-                      <ToggleButtonGroup
-                        value={newResource.type}
-                        exclusive
-                        onChange={(e, val) => val && setNewResource({ ...newResource, type: val, url: '', file: null })}
-                        sx={{ flex: 1 }}
-                        size="small"
-                      >
-                        <ToggleButton value="link" aria-label="Link" sx={{ textTransform: 'none' }}>
-                          <LinkIcon fontSize="small" sx={{ mr: 0.5 }} /> Link
-                        </ToggleButton>
-                        <ToggleButton value="document" aria-label="Document" sx={{ textTransform: 'none' }}>
-                          <AttachFileIcon fontSize="small" sx={{ mr: 0.5 }} /> Document
-                        </ToggleButton>
-                      </ToggleButtonGroup>
-                      {newResource.type === 'link' ? (
-                        <TextField
-                          name="url"
-                          label="URL"
-                          size="small"
-                          value={newResource.url}
-                          onChange={handleResourceChange}
-                          sx={{ flex: 2 }}
-                        />
-                      ) : (
-                        <Button
-                          variant="outlined"
-                          component="label"
-                          startIcon={<AttachFileIcon />}
-                          sx={{ flex: 2, minWidth: 0 }}
-                        >
-                          {newResource.file ? newResource.file.name : 'Upload'}
-                          <input
-                            type="file"
-                            hidden
-                            onChange={handleResourceFileChange}
-                          />
-                        </Button>
-                      )}
-                      <Button onClick={handleAddResource} variant="outlined" color="primary" size="small" sx={{ height: 40 }}>
-                        Add
-                      </Button>
-                    </Stack>
-                  </Stack>
-                </div>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setShowAddEditCourse(false)} color="secondary">Cancel</Button>
-                <Button onClick={handleSaveCourse} variant="contained" color="primary">Save</Button>
-              </DialogActions>
-            </Dialog>
-            {/* Add/Edit Unit Modal (Material UI) */}
-            <Dialog open={showAddEditUnit} onClose={() => setShowAddEditUnit(false)}>
-              <DialogTitle>Add/Edit Unit</DialogTitle>
-              <DialogContent>
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  name="name"
-                  label="Unit Name"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={unitForm.name}
-                  onChange={handleUnitFormChange}
-                  sx={{ mb: 2 }}
-                />
-                {/* Unit Resource Management */}
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontWeight: 500, marginBottom: 8 }}>Resources</div>
-                  <Stack spacing={1}>
-                    {unitForm.resources.map((resource, idx) => (
-                      <Stack direction="row" spacing={1} alignItems="center" key={idx}>
-                        <TextField
-                          value={resource.title}
-                          label="Title"
-                          size="small"
-                          InputProps={{ readOnly: true }}
-                          sx={{ flex: 1 }}
-                        />
-                        {resource.type === 'link' ? (
-                          <TextField
-                            value={resource.url}
-                            label="URL"
-                            size="small"
-                            InputProps={{ readOnly: true }}
-                            sx={{ flex: 2 }}
-                          />
-                        ) : (
-                          <Button
-                            variant="outlined"
-                            startIcon={<AttachFileIcon />}
-                            component="a"
-                            href={resource.file ? URL.createObjectURL(resource.file) : undefined}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            sx={{ flex: 2, textTransform: 'none', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}
-                          >
-                            {resource.file ? resource.file.name : 'Document'}
-                          </Button>
-                        )}
-                        <IconButton aria-label="delete" color="error" onClick={() => handleRemoveUnitResource(idx)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Stack>
-                    ))}
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <TextField
-                        name="title"
-                        label="Title"
-                        size="small"
-                        value={newUnitResource.title}
-                        onChange={handleUnitResourceChange}
-                        sx={{ flex: 1 }}
-                      />
-                      <ToggleButtonGroup
-                        value={newUnitResource.type}
-                        exclusive
-                        onChange={handleUnitResourceTypeChange}
-                        sx={{ flex: 1 }}
-                        size="small"
-                      >
-                        <ToggleButton value="link" aria-label="Link" sx={{ textTransform: 'none' }}>
-                          <LinkIcon fontSize="small" sx={{ mr: 0.5 }} /> Link
-                        </ToggleButton>
-                        <ToggleButton value="document" aria-label="Document" sx={{ textTransform: 'none' }}>
-                          <AttachFileIcon fontSize="small" sx={{ mr: 0.5 }} /> Document
-                        </ToggleButton>
-                      </ToggleButtonGroup>
-                      {newUnitResource.type === 'link' ? (
-                        <TextField
-                          name="url"
-                          label="URL"
-                          size="small"
-                          value={newUnitResource.url}
-                          onChange={handleUnitResourceChange}
-                          sx={{ flex: 2 }}
-                        />
-                      ) : (
-                        <Button
-                          variant="outlined"
-                          component="label"
-                          startIcon={<AttachFileIcon />}
-                          sx={{ flex: 2, minWidth: 0 }}
-                        >
-                          {newUnitResource.file ? newUnitResource.file.name : 'Upload'}
-                          <input
-                            type="file"
-                            hidden
-                            onChange={handleUnitResourceFileChange}
-                          />
-                        </Button>
-                      )}
-                      <Button onClick={handleAddUnitResource} variant="outlined" color="primary" size="small" sx={{ height: 40 }}>
-                        Add
-                      </Button>
-                    </Stack>
-                  </Stack>
-                </div>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setShowAddEditUnit(false)} color="secondary">Cancel</Button>
-                <Button onClick={handleSaveUnit} variant="contained" color="primary">Save</Button>
-              </DialogActions>
-            </Dialog>
+                {/* ──── UNITS TAB ──── */}
+                {activeTab === "units" && (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="text-sm font-bold text-[#002147]">Units / Modules</p>
+                        {selectedProgram && <p className="text-xs text-gray-500 mt-0.5">For: {selectedProgram.title || selectedProgram.name}</p>}
+                      </div>
+                      <button onClick={openAddUnit} disabled={!selectedProgram}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-green-600 hover:bg-green-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                        <PlusIcon size={12} /> Add Unit
+                      </button>
+                    </div>
+                    {!selectedProgram ? (
+                      <div className="text-center py-12 text-gray-400">
+                        <LayersIcon size={32} className="mx-auto mb-2 opacity-40" />
+                        <p className="text-sm font-medium">Select a program first</p>
+                        <button onClick={() => setActiveTab("programs")} className="mt-2 text-xs text-[#002147] hover:text-orange-500 font-semibold underline">Go to Programs</button>
+                      </div>
+                    ) : programUnits.length === 0 ? (
+                      <div className="text-center py-12 text-gray-400">
+                        <LayersIcon size={32} className="mx-auto mb-2 opacity-40" />
+                        <p className="text-sm font-medium">No units for this program yet.</p>
+                        <button onClick={openAddUnit} className="mt-2 text-xs text-green-600 hover:text-green-700 font-semibold underline">Create the first unit</button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {programUnits.map((unit) => (
+                          <div key={unit.id} className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:shadow-sm transition-all group">
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2.5">
+                                <div className="p-2 rounded-lg bg-green-50"><LayersIcon size={14} className="text-green-600" /></div>
+                                <h3 className="text-sm font-bold text-gray-800">{unit.name}</h3>
+                              </div>
+                              <button onClick={() => setShowUnitModal(true)}
+                                className="p-1.5 rounded-lg hover:bg-green-50 text-gray-400 hover:text-green-600 transition-colors opacity-0 group-hover:opacity-100">
+                                <PenIcon size={12} />
+                              </button>
+                            </div>
+                            <p className="text-xs text-gray-500 mb-3">{unit.description || "No description"}</p>
+                            <div className="flex gap-2">
+                              <button className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg hover:bg-blue-100 transition-colors">Attach Resource</button>
+                              <button className="text-[10px] font-semibold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-lg hover:bg-purple-100 transition-colors">View Assignments</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ──── COHORTS TAB ──── */}
+                {/* ──── ENROLLMENTS TAB ──── */}
+                {activeTab === "enrollments" && (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="text-sm font-bold text-[#002147]">Enrollments</p>
+                        {selectedProgram && <p className="text-xs text-gray-500 mt-0.5">For: {selectedProgram.title || selectedProgram.name}</p>}
+                      </div>
+                      <button onClick={openEnrollClient} disabled={!selectedProgram || String(selectedProgram?.id).startsWith("prefill-")}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                        <UserPlusIcon size={12} /> Enroll Client
+                      </button>
+                    </div>
+                    {!selectedProgram ? (
+                      <div className="text-center py-12 text-gray-400">
+                        <ClipboardListIcon size={32} className="mx-auto mb-2 opacity-40" />
+                        <p className="text-sm font-medium">Select a program first</p>
+                        <button onClick={() => setActiveTab("programs")} className="mt-2 text-xs text-[#002147] hover:text-orange-500 font-semibold underline">Go to Programs</button>
+                      </div>
+                    ) : String(selectedProgram.id).startsWith("prefill-") ? (
+                      <div className="text-center py-12 text-gray-400">
+                        <ClipboardListIcon size={32} className="mx-auto mb-2 opacity-40" />
+                        <p className="text-sm font-medium">Save this program first to manage enrollments.</p>
+                        <p className="text-xs mt-1">Pre-filled programs need to be saved to the API before clients can be enrolled.</p>
+                      </div>
+                    ) : loadingEnrollments ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    ) : enrollments.length === 0 ? (
+                      <div className="text-center py-12 text-gray-400">
+                        <ClipboardListIcon size={32} className="mx-auto mb-2 opacity-40" />
+                        <p className="text-sm font-medium">No clients enrolled yet.</p>
+                        <button onClick={openEnrollClient} className="mt-2 text-xs text-amber-600 hover:text-amber-700 font-semibold underline">Enroll the first client</button>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="bg-amber-50 rounded-xl p-3 mb-4 border border-amber-100 flex items-center gap-2">
+                          <ClipboardListIcon size={14} className="text-amber-600 shrink-0" />
+                          <p className="text-xs text-amber-700"><span className="font-bold">{enrollments.length}</span> client{enrollments.length !== 1 ? "s" : ""} enrolled in this program</p>
+                        </div>
+                        <div className="space-y-2">
+                          {enrollments.map((enrollment) => {
+                            const client = enrollment.client;
+                            const name = client?.user?.name ?? client?.name ?? client?.email ?? `Client #${enrollment.client_id}`;
+                            const email = client?.user?.email ?? client?.email ?? "";
+                            const enrolledDate = enrollment.enrolled_at ? new Date(enrollment.enrolled_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
+                            const status = enrollment.status || "active";
+                            const statusStyle = status.toLowerCase() === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-50 text-gray-600 border-gray-200";
+                            return (
+                              <div key={enrollment.id} className="flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 border border-gray-100 hover:shadow-sm transition-all group">
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ background: colorFor(name) }}>
+                                  {getInitials(name)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-semibold text-gray-800 truncate">{name}</p>
+                                  {email && <p className="text-xs text-gray-500 truncate">{email}</p>}
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0">
+                                  <div className="text-right hidden sm:block">
+                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${statusStyle}`}>{status}</span>
+                                    <p className="text-[10px] text-gray-400 mt-0.5">Enrolled {enrolledDate}</p>
+                                  </div>
+                                  <button onClick={() => removeEnrollment(enrollment.id)}
+                                    className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                    title="Unenroll client">
+                                    <UserMinusIcon size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "cohorts" && (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="text-sm font-bold text-[#002147]">Cohorts</p>
+                        {selectedProgram && <p className="text-xs text-gray-500 mt-0.5">For: {selectedProgram.title || selectedProgram.name}</p>}
+                      </div>
+                      <button onClick={openAddCohort} disabled={!selectedProgram}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                        <PlusIcon size={12} /> Add Cohort
+                      </button>
+                    </div>
+                    {!selectedProgram ? (
+                      <div className="text-center py-12 text-gray-400">
+                        <UsersIcon size={32} className="mx-auto mb-2 opacity-40" />
+                        <p className="text-sm font-medium">Select a program first</p>
+                        <button onClick={() => setActiveTab("programs")} className="mt-2 text-xs text-[#002147] hover:text-orange-500 font-semibold underline">Go to Programs</button>
+                      </div>
+                    ) : filteredCohorts.length === 0 ? (
+                      <div className="text-center py-12 text-gray-400">
+                        <UsersIcon size={32} className="mx-auto mb-2 opacity-40" />
+                        <p className="text-sm font-medium">No cohorts yet for this program.</p>
+                        <button onClick={openAddCohort} className="mt-2 text-xs text-purple-600 hover:text-purple-700 font-semibold underline">Create the first cohort</button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {filteredCohorts.map((cohort) => (
+                          <button key={cohort.id} onClick={() => openCohortDetail(cohort)}
+                            className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:shadow-sm hover:border-gray-200 transition-all text-left group">
+                            <div className="p-2.5 rounded-xl bg-purple-50 shrink-0">
+                              <UsersIcon size={18} className="text-purple-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-gray-800">{cohort.name}</p>
+                              <p className="text-xs text-gray-500 truncate">{cohort.description || "No description"}</p>
+                            </div>
+                            <div className="flex items-center gap-4 shrink-0 text-xs text-gray-400">
+                              <span className="flex items-center gap-1">
+                                <UsersIcon size={11} /> {Array.isArray(cohort.clients) ? cohort.clients.length : 0}
+                              </span>
+                              {cohort.start_date && (
+                                <span className="flex items-center gap-1 hidden sm:flex">
+                                  <CalendarIcon size={11} /> {new Date(cohort.start_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                  {cohort.end_date && ` – ${new Date(cohort.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+                                </span>
+                              )}
+                              <ChevronRightIcon size={14} className="text-gray-300 group-hover:text-[#002147] transition-colors" />
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </main>
       </div>
+
+      {/* ──── MODALS ──── */}
+
+      {/* Add/Edit Program */}
+      <Modal open={showCourseModal} onClose={() => { setShowCourseModal(false); setEditingProgramId(null); }}
+        title={editingProgramId ? "Edit Program" : "New Program"}
+        footer={
+          <>
+            <button onClick={() => { setShowCourseModal(false); setEditingProgramId(null); }}
+              className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-all">Cancel</button>
+            <button onClick={saveCourse} disabled={!courseForm.name.trim()}
+              className="px-5 py-2 rounded-xl text-sm font-bold text-white bg-[#002147] hover:bg-[#003875] transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+              {editingProgramId ? "Save Changes" : "Create Program"}
+            </button>
+          </>
+        }>
+        <div className="space-y-4">
+          <Input label="Program Name *" value={courseForm.name} onChange={(e) => setCourseForm({ ...courseForm, name: e.target.value })} placeholder="e.g. Peak Performance Coaching" />
+          <Textarea label="Description / Syllabus" value={courseForm.syllabus} onChange={(e) => setCourseForm({ ...courseForm, syllabus: e.target.value })} rows={3} placeholder="Brief description of the program..." />
+          <div>
+            <p className="text-xs font-semibold text-gray-600 mb-2">Resources</p>
+            {courseForm.resources.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {courseForm.resources.map((r, i) => (
+                  <div key={i} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+                    {r.type === "link" ? <LinkIcon size={12} className="text-blue-500 shrink-0" /> : <UploadIcon size={12} className="text-green-500 shrink-0" />}
+                    <span className="text-xs font-medium text-gray-700 flex-1 truncate">{r.title}</span>
+                    <button onClick={() => setCourseForm((f) => ({ ...f, resources: f.resources.filter((_, j) => j !== i) }))}
+                      className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500"><TrashIcon size={11} /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2 mb-2">
+              <button onClick={() => setNewResource({ ...newResource, type: "link" })}
+                className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition-all ${newResource.type === "link" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
+                <LinkIcon size={10} className="inline mr-1" /> Link
+              </button>
+              <button onClick={() => setNewResource({ ...newResource, type: "document" })}
+                className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition-all ${newResource.type === "document" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                <UploadIcon size={10} className="inline mr-1" /> File
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <input value={newResource.title} onChange={(e) => setNewResource({ ...newResource, title: e.target.value })}
+                placeholder="Title" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#002147]/10" />
+              {newResource.type === "link" ? (
+                <input value={newResource.url} onChange={(e) => setNewResource({ ...newResource, url: e.target.value })}
+                  placeholder="URL" className="flex-[2] border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#002147]/10" />
+              ) : (
+                <label className="flex-[2] flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500 cursor-pointer hover:border-[#002147] transition-colors">
+                  <UploadIcon size={12} /> {newResource.file ? newResource.file.name.slice(0, 20) : "Choose file"}
+                  <input ref={fileRef} type="file" className="hidden" onChange={(e) => setNewResource({ ...newResource, file: e.target.files?.[0] || null })} />
+                </label>
+              )}
+              <button onClick={addResource}
+                className="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-[#002147] hover:bg-[#003875] transition-all">Add</button>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Add Unit */}
+      <Modal open={showUnitModal} onClose={() => setShowUnitModal(false)} title="Add Unit / Module"
+        footer={
+          <>
+            <button onClick={() => setShowUnitModal(false)} className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50">Cancel</button>
+            <button onClick={saveUnit} disabled={!unitForm.name.trim()}
+              className="px-5 py-2 rounded-xl text-sm font-bold text-white bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed">Create Unit</button>
+          </>
+        }>
+        <div className="space-y-4">
+          <Input label="Unit Name *" value={unitForm.name} onChange={(e) => setUnitForm({ ...unitForm, name: e.target.value })} placeholder="e.g. Module 1: Introduction" />
+          <div>
+            <p className="text-xs font-semibold text-gray-600 mb-2">Resources</p>
+            {unitForm.resources.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {unitForm.resources.map((r, i) => (
+                  <div key={i} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+                    {r.type === "link" ? <LinkIcon size={12} className="text-blue-500" /> : <UploadIcon size={12} className="text-green-500" />}
+                    <span className="text-xs font-medium text-gray-700 flex-1 truncate">{r.title}</span>
+                    <button onClick={() => setUnitForm((f) => ({ ...f, resources: f.resources.filter((_, j) => j !== i) }))}
+                      className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500"><TrashIcon size={11} /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2 mb-2">
+              <button onClick={() => setNewUnitResource((r) => ({ ...r, type: "link" }))}
+                className={`text-xs px-3 py-1.5 rounded-lg font-semibold ${newUnitResource.type === "link" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>Link</button>
+              <button onClick={() => setNewUnitResource((r) => ({ ...r, type: "document" }))}
+                className={`text-xs px-3 py-1.5 rounded-lg font-semibold ${newUnitResource.type === "document" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>File</button>
+            </div>
+            <div className="flex gap-2">
+              <input value={newUnitResource.title} onChange={(e) => setNewUnitResource({ ...newUnitResource, title: e.target.value })}
+                placeholder="Title" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#002147]/10" />
+              {newUnitResource.type === "link" ? (
+                <input value={newUnitResource.url} onChange={(e) => setNewUnitResource({ ...newUnitResource, url: e.target.value })}
+                  placeholder="URL" className="flex-[2] border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#002147]/10" />
+              ) : (
+                <label className="flex-[2] flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500 cursor-pointer hover:border-[#002147]">
+                  <UploadIcon size={12} /> {newUnitResource.file ? newUnitResource.file.name.slice(0, 20) : "Choose file"}
+                  <input ref={unitFileRef} type="file" className="hidden" onChange={(e) => setNewUnitResource({ ...newUnitResource, file: e.target.files?.[0] || null })} />
+                </label>
+              )}
+              <button onClick={addUnitResource} className="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-green-600 hover:bg-green-700">Add</button>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Add Cohort */}
+      <Modal open={showCohortModal} onClose={() => setShowCohortModal(false)} title="New Cohort"
+        footer={
+          <>
+            <button onClick={() => setShowCohortModal(false)} className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50">Cancel</button>
+            <button onClick={saveCohort} disabled={!cohortForm.name.trim()}
+              className="px-5 py-2 rounded-xl text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed">Create Cohort</button>
+          </>
+        }>
+        <div className="space-y-4">
+          <div className="bg-blue-50 rounded-xl p-3 text-xs text-blue-700">
+            <span className="font-semibold">Program:</span> {selectedProgram?.title || selectedProgram?.name || "—"}
+          </div>
+          <Input label="Cohort Name *" value={cohortForm.name} onChange={(e) => setCohortForm({ ...cohortForm, name: e.target.value })} placeholder="e.g. Cohort 2026 - Spring" />
+          <Textarea label="Description" value={cohortForm.description} onChange={(e) => setCohortForm({ ...cohortForm, description: e.target.value })} rows={2} placeholder="Brief description..." />
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="Start Date" type="date" value={cohortForm.start_date} onChange={(e) => setCohortForm({ ...cohortForm, start_date: e.target.value })} />
+            <Input label="End Date" type="date" value={cohortForm.end_date} onChange={(e) => setCohortForm({ ...cohortForm, end_date: e.target.value })} />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Cohort Detail */}
+      <Modal open={showCohortDetail} onClose={() => setShowCohortDetail(false)} title={selectedCohort?.name || "Cohort Details"} wide
+        footer={
+          <button onClick={() => setShowCohortDetail(false)} className="px-5 py-2 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50">Close</button>
+        }>
+        {selectedCohort && (
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                <p className="text-[10px] text-gray-400 font-medium uppercase">Program</p>
+                <p className="text-sm text-gray-800 font-medium">{selectedProgram?.title || selectedProgram?.name || "—"}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                <p className="text-[10px] text-gray-400 font-medium uppercase">Dates</p>
+                <p className="text-sm text-gray-800 font-medium">
+                  {selectedCohort.start_date ? new Date(selectedCohort.start_date).toLocaleDateString() : "—"}
+                  {selectedCohort.end_date ? ` – ${new Date(selectedCohort.end_date).toLocaleDateString()}` : ""}
+                </p>
+              </div>
+            </div>
+            {selectedCohort.description && (
+              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                <p className="text-[10px] text-gray-400 font-medium uppercase mb-1">Description</p>
+                <p className="text-sm text-gray-700">{selectedCohort.description}</p>
+              </div>
+            )}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  Members ({Array.isArray(selectedCohort.clients) ? selectedCohort.clients.length : 0})
+                </p>
+                <button onClick={openAddClient}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all">
+                  <UserPlusIcon size={12} /> Add Client
+                </button>
+              </div>
+              {(!selectedCohort.clients || selectedCohort.clients.length === 0) ? (
+                <div className="text-center py-6 text-gray-400">
+                  <UsersIcon size={24} className="mx-auto mb-1.5 opacity-40" />
+                  <p className="text-xs">No clients in this cohort yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {selectedCohort.clients.map((client) => {
+                    const name = client?.user?.name ?? client?.name ?? client?.email ?? "Unknown";
+                    const email = client?.user?.email ?? client?.email ?? "";
+                    return (
+                      <div key={client?.id ?? client?.user_id ?? name} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ background: colorFor(name) }}>
+                          {getInitials(name)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">{name}</p>
+                          {email && <p className="text-xs text-gray-500 truncate">{email}</p>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Add Client to Cohort */}
+      <Modal open={showAddClientModal} onClose={() => setShowAddClientModal(false)} title={`Add Client to ${selectedCohort?.name || "Cohort"}`}
+        footer={
+          <>
+            <button onClick={() => setShowAddClientModal(false)} className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50">Cancel</button>
+            <button onClick={saveAddClient} disabled={!selectedClientId}
+              className="px-5 py-2 rounded-xl text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed">Add to Cohort</button>
+          </>
+        }>
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Select Client</label>
+            <select value={selectedClientId} onChange={(e) => setSelectedClientId(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#002147]/10 focus:border-[#002147]">
+              <option value="">Choose a client...</option>
+              {clientOptions.map((c) => {
+                const id = c.id ?? c.user_id ?? c.user?.id;
+                const name = c.user?.name ?? c.name ?? c.email ?? `Client ${id}`;
+                const email = c.user?.email ?? c.email ?? "";
+                return <option key={id} value={id}>{name}{email ? ` (${email})` : ""}</option>;
+              })}
+            </select>
+          </div>
+          {clientOptions.length === 0 && clients.length > 0 && (
+            <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2.5">All clients are already in this cohort.</p>
+          )}
+          {clients.length === 0 && (
+            <p className="text-xs text-gray-500 bg-gray-50 rounded-lg p-2.5">No clients available. Add clients in the platform first.</p>
+          )}
+        </div>
+      </Modal>
+
+      {/* Enroll Client in Program */}
+      <Modal open={showEnrollModal} onClose={() => setShowEnrollModal(false)} title={`Enroll Client in ${selectedProgram?.title || selectedProgram?.name || "Program"}`}
+        footer={
+          <>
+            <button onClick={() => setShowEnrollModal(false)} className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50">Cancel</button>
+            <button onClick={saveEnrollment} disabled={!enrollClientId}
+              className="px-5 py-2 rounded-xl text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed">Enroll</button>
+          </>
+        }>
+        <div className="space-y-3">
+          <div className="bg-blue-50 rounded-xl p-3 text-xs text-blue-700">
+            <span className="font-semibold">Program:</span> {selectedProgram?.title || selectedProgram?.name || "—"}
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Select Client</label>
+            <select value={enrollClientId} onChange={(e) => setEnrollClientId(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#002147]/10 focus:border-[#002147]">
+              <option value="">Choose a client...</option>
+              {enrollableClients.map((c) => {
+                const id = c.id ?? c.user_id ?? c.user?.id;
+                const name = c.user?.name ?? c.name ?? c.email ?? `Client ${id}`;
+                const email = c.user?.email ?? c.email ?? "";
+                return <option key={id} value={id}>{name}{email ? ` (${email})` : ""}</option>;
+              })}
+            </select>
+          </div>
+          {enrollableClients.length === 0 && enrollClients.length > 0 && (
+            <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2.5">All available clients are already enrolled in this program.</p>
+          )}
+          {enrollClients.length === 0 && (
+            <p className="text-xs text-gray-500 bg-gray-50 rounded-lg p-2.5">No clients available. Add clients to the platform first.</p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

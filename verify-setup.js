@@ -17,7 +17,7 @@ if (!fs.existsSync(envPath)) {
   console.log('❌ .env.local file not found!');
   console.log('📝 Please create .env.local in project root with:');
   console.log('   NEXT_PUBLIC_API_URL=https://wanac-api.kuzasports.com');
-  console.log('   NEXT_PUBLIC_OPENAI_API_KEY=sk-proj-your-key');
+  console.log('   GROQ_API_KEY=gsk_your-key');
   console.log('   NEXT_PUBLIC_LIVEKIT_URL=wss://your-livekit-host\n');
   process.exit(1);
 }
@@ -35,11 +35,11 @@ const checks = [
     expected: 'https://wanac-api.kuzasports.com',
   },
   {
-    name: 'OpenAI API Key',
-    key: 'NEXT_PUBLIC_OPENAI_API_KEY',
-    pattern: /NEXT_PUBLIC_OPENAI_API_KEY=(.+)/,
-    validator: (val) => val && (val.startsWith('sk-proj-') || val.startsWith('sk-')),
-    errorMsg: 'Should start with sk-proj- or sk-',
+    name: 'Groq API Key',
+    key: 'GROQ_API_KEY',
+    pattern: /GROQ_API_KEY=(.+)/,
+    validator: (val) => val && val.startsWith('gsk_'),
+    errorMsg: 'Should start with gsk_',
   },
   {
     name: 'LiveKit URL',
@@ -95,7 +95,7 @@ console.log('📁 Checking required files...\n');
 
 const requiredFiles = [
   'src/services/api/meeting.service.ts',
-  'src/services/api/openai.service.ts',
+  'src/services/api/groq.service.ts',
   'src/services/api/fireteam.service.ts',
   'src/services/api/config.ts',
   'src/app/client/fireteam/experience/hooks/useRecording.js',

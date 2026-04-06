@@ -4,7 +4,7 @@
  * AI Evaluation Pipeline — Bloom's Taxonomy scoring
  *
  * Receives a recording transcript (split by participant) and an array of
- * rubrics, then calls OpenAI to score each participant on each rubric using
+ * rubrics, then calls Groq to score each participant on each rubric using
  * Bloom's Taxonomy (0-6 scale). Returns structured rubric_result objects
  * matching the blueprint's schema.
  *
@@ -91,21 +91,25 @@ Respond ONLY with valid JSON in this exact format:
 }`;
 }
 
-// ─── Call OpenAI ──────────────────────────────────────────────────────────────
-async function evaluateWithOpenAI({ participant, rubric, sessionContext }) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error('OPENAI_API_KEY is not set');
+// ─── Call Groq ────────────────────────────────────────────────────────────────
+async function evaluateWithGroq({ participant, rubric, sessionContext }) {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error('GROQ_API_KEY is not set');
+
+  const baseUrl = process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1';
+  const model =
+    process.env.GROQ_MODEL_EVALUATION || 'llama-3.3-70b-versatile';
 
   const prompt = buildEvaluationPrompt({ participant, rubric, sessionContext });
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',   // Cost-efficient; swap to gpt-4o for higher accuracy
+      model,
       messages: [
         {
           role: 'system',
@@ -114,7 +118,7 @@ async function evaluateWithOpenAI({ participant, rubric, sessionContext }) {
         },
         { role: 'user', content: prompt },
       ],
-      temperature: 0.3,       // Low temp for consistent, reproducible scoring
+      temperature: 0.3,
       max_tokens: 600,
       response_format: { type: 'json_object' },
     }),
@@ -122,7 +126,7 @@ async function evaluateWithOpenAI({ participant, rubric, sessionContext }) {
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `OpenAI API error: ${response.status}`);
+    throw new Error(err?.error?.message || `Groq API error: ${response.status}`);
   }
 
   const data = await response.json();
@@ -132,7 +136,7 @@ async function evaluateWithOpenAI({ participant, rubric, sessionContext }) {
   try {
     parsed = JSON.parse(content);
   } catch {
-    throw new Error('OpenAI returned invalid JSON');
+    throw new Error('Groq returned invalid JSON');
   }
 
   return {
@@ -236,7 +240,7 @@ export async function POST(request) {
       for (const rubric of rubrics) {
         let evalResult;
         try {
-          evalResult = await evaluateWithOpenAI({ participant, rubric, sessionContext });
+          evalResult = await evaluateWithGroq({ participant, rubric, sessionContext });
         } catch (err) {
           console.error(`[evaluate] Failed for ${participant.name} / ${rubric.rubric}:`, err.message);
           // Fallback: score 0 with an error note

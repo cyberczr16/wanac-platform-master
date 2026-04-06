@@ -16,6 +16,10 @@ import {
   FaUserEdit,
   FaGraduationCap,
   FaCompass,
+  FaHistory,
+  FaFileExport,
+  FaUserLock,
+  FaHeartbeat,
 } from 'react-icons/fa';
 import { Menu, X, LogOut } from 'lucide-react';
 import PushPinIcon from '@mui/icons-material/PushPin';
@@ -39,6 +43,10 @@ const adminNavItems = [
   { name: 'Feedback', href: '/admin/feedback', icon: <FaClipboardCheck size={18} /> },
   { name: 'Resources', href: '/admin/resources', icon: <FaBook size={18} /> },
   { name: 'Announcements', href: '/admin/announcements', icon: <FaEnvelope size={18} /> },
+  { name: 'Audit Log', href: '/admin/auditlog', icon: <FaHistory size={18} /> },
+  { name: 'Reports & Exports', href: '/admin/reports', icon: <FaFileExport size={18} /> },
+  { name: 'Roles & Permissions', href: '/admin/roles', icon: <FaUserLock size={18} /> },
+  { name: 'Platform Health', href: '/admin/health', icon: <FaHeartbeat size={18} /> },
   { name: 'Settings', href: '/admin/settings', icon: <FaCogs size={18} /> },
 ];
 

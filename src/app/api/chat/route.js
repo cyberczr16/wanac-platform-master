@@ -5,24 +5,27 @@ export async function POST(req) {
       return new Response(JSON.stringify({ error: 'No message provided' }), { status: 400 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
+    const baseUrl = process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1';
+    const model = process.env.GROQ_MODEL_CHAT || 'llama3-8b-8192';
+
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), { status: 500 });
+      return new Response(JSON.stringify({ error: 'GROQ_API_KEY not configured' }), { status: 500 });
     }
 
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+    const groqRes = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model,
         messages: [{ role: 'user', content: message }],
       }),
     });
 
-    const data = await openaiRes.json();
+    const data = await groqRes.json();
     if (data.error) {
       return new Response(JSON.stringify({ error: data.error.message }), { status: 500 });
     }

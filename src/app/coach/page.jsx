@@ -103,6 +103,18 @@ const PlusIcon = ({ size = 16, className = "" }) => (
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
+function normalizeClient(raw) {
+  const id = raw?.id ?? raw?.user_id;
+  const u = raw?.user;
+  return {
+    id,
+    name: u?.name ?? raw?.name ?? '—',
+    email: u?.email ?? raw?.email ?? '—',
+    phone: u?.phone ?? raw?.phone ?? '—',
+    status: raw?.status ?? 'Active',
+  };
+}
+
 function getInitials(name = "") {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase() || "??";
 }
@@ -649,7 +661,7 @@ export default function CoachDashboard() {
           .sort((a, b) => new Date(a.date || a.scheduled_at || 0) - new Date(b.date || b.scheduled_at || 0))
           .slice(0, 6)
       );
-      setClients(rawClients);
+      setClients((rawClients || []).map(normalizeClient));
     } catch {
       setError("Failed to load data. Please refresh.");
     } finally {
@@ -692,19 +704,19 @@ export default function CoachDashboard() {
       <div className="flex-1 flex flex-col h-full min-w-0">
         <ClientTopbar user={coachUser} />
 
-        <main className="flex-1 h-0 overflow-y-auto px-4 md:px-6 py-5">
-          <div className="max-w-7xl mx-auto space-y-4">
+        <main className="flex-1 flex flex-col h-0 px-4 md:px-6 py-3 gap-3">
+          <div className="max-w-7xl mx-auto w-full shrink-0">
 
             {/* ── Hero ── */}
-            <div className="bg-gradient-to-br from-[#002147] via-[#003a7a] to-[#002147] rounded-2xl p-5 relative overflow-hidden shadow-sm">
+            <div className="bg-gradient-to-br from-[#002147] via-[#003a7a] to-[#002147] rounded-2xl px-5 py-3 relative overflow-hidden shadow-sm">
               <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_80%_20%,white,transparent)] pointer-events-none" />
-              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
-                  <p className="text-white/60 text-xs font-medium uppercase tracking-widest mb-1">Coach Dashboard</p>
-                  <h1 className="text-2xl font-bold text-white">
+                  <p className="text-white/60 text-[10px] font-medium uppercase tracking-widest">Coach Dashboard</p>
+                  <h1 className="text-xl font-bold text-white">
                     Welcome back{coachUser?.name ? `, ${coachUser.name.split(" ")[0]}` : ""}
                   </h1>
-                  <p className="text-white/70 text-sm mt-1">Manage sessions, track client progress, and share resources.</p>
+                  <p className="text-white/70 text-xs">Manage sessions, track client progress, and share resources.</p>
                 </div>
                 <button
                   onClick={() => setShowScheduleModal(true)}
@@ -723,30 +735,31 @@ export default function CoachDashboard() {
             )}
 
             {/* ── Stats ── */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
               {[
                 { label: "Total Clients", value: loading ? "…" : clients.length, icon: UsersIcon, color: "bg-purple-100 text-purple-600" },
                 { label: "Upcoming Sessions", value: loading ? "…" : sessions.length, icon: CalendarIcon, color: "bg-blue-100 text-blue-600" },
                 { label: "Completed", value: loading ? "…" : completedCount, icon: CheckIcon, color: "bg-green-100 text-green-600" },
                 { label: "Fireteams", value: "—", icon: FireIcon, color: "bg-orange-100 text-orange-600" },
               ].map(stat => (
-                <div key={stat.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`p-2 rounded-xl ${stat.color}`}>
-                      <stat.icon size={14} />
+                <div key={stat.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-2.5 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className={`p-1.5 rounded-lg ${stat.color}`}>
+                      <stat.icon size={12} />
                     </div>
-                    <span className="text-xs text-gray-500 font-medium">{stat.label}</span>
+                    <span className="text-[11px] text-gray-500 font-medium">{stat.label}</span>
                   </div>
-                  <p className="text-2xl font-bold text-[#002147]">{stat.value}</p>
+                  <p className="text-xl font-bold text-[#002147]">{stat.value}</p>
                 </div>
               ))}
             </div>
+          </div>
 
             {/* ── Main 3-column grid ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 max-w-7xl mx-auto w-full flex-1 min-h-0">
 
               {/* LEFT: Upcoming Sessions + Client List */}
-              <div className="lg:col-span-2 space-y-4">
+              <div className="lg:col-span-2 space-y-3 overflow-y-auto">
 
                 {/* Upcoming Sessions */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
@@ -834,7 +847,7 @@ export default function CoachDashboard() {
                       <p className="text-xs text-gray-500">{search ? "No clients match your search." : "No clients yet."}</p>
                     </div>
                   ) : (
-                    <div className="space-y-1" style={{ maxHeight: "320px", overflowY: "auto" }}>
+                    <div className="space-y-1" style={{ maxHeight: "200px", overflowY: "auto" }}>
                       {filteredClients.map(c => (
                         <button
                           key={c.id}
@@ -863,7 +876,7 @@ export default function CoachDashboard() {
               </div>
 
               {/* RIGHT: Client Detail Panel */}
-              <div className="lg:col-span-3">
+              <div className="lg:col-span-3 overflow-y-auto">
                 {!selectedClient ? (
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 h-full flex flex-col items-center justify-center text-center min-h-[400px]">
                     <div className="p-4 rounded-2xl bg-gray-50 mb-4">
@@ -887,7 +900,7 @@ export default function CoachDashboard() {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-full">
                     {/* Client header */}
                     <div className="bg-gradient-to-r from-[#002147] to-[#003875] p-4">
                       <div className="flex items-center justify-between">
@@ -932,7 +945,7 @@ export default function CoachDashboard() {
                     </div>
 
                     {/* Tab content */}
-                    <div className="p-5 overflow-y-auto" style={{ maxHeight: "calc(100vh - 360px)" }}>
+                    <div className="p-5 overflow-y-auto flex-1 min-h-0">
                       {loadingClientSessions ? (
                         <div className="flex items-center justify-center py-12">
                           <div className="w-6 h-6 border-2 border-[#002147] border-t-transparent rounded-full animate-spin" />
@@ -951,28 +964,6 @@ export default function CoachDashboard() {
 
             </div>
 
-            {/* ── Quick Actions footer row ── */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { label: "Session Notes", desc: "Open notes editor", icon: ClipboardIcon, color: "bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100", action: () => { if (clients[0]) { setSelectedClient(clients[0]); setActiveTab("notes"); } else alert("No clients yet."); } },
-                { label: "Share Resources", desc: "Send to a client", icon: PaperclipIcon, color: "bg-purple-50 text-purple-700 border-purple-100 hover:bg-purple-100", action: () => { if (clients[0]) { setSelectedClient(clients[0]); setActiveTab("resources"); } else alert("No clients yet."); } },
-                { label: "Fireteams", desc: "Manage fireteams", icon: FireIcon, color: "bg-orange-50 text-orange-700 border-orange-100 hover:bg-orange-100", action: () => window.location.href = "/coach/fireteammanagement" },
-                { label: "Schedule Session", desc: "Book a new session", icon: CalendarIcon, color: "bg-green-50 text-green-700 border-green-100 hover:bg-green-100", action: () => setShowScheduleModal(true) },
-              ].map(item => (
-                <button key={item.label} onClick={item.action}
-                  className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all shadow-sm text-left ${item.color}`}>
-                  <div className="p-2 rounded-xl bg-white/60">
-                    <item.icon size={15} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold">{item.label}</p>
-                    <p className="text-[10px] opacity-70">{item.desc}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-          </div>
         </main>
       </div>
 

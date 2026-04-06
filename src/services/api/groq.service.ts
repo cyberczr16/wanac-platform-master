@@ -1,12 +1,11 @@
 /**
  * groq.service.ts
  *
- * Drop-in replacement for openai.service.ts using Groq's free tier.
- * Groq is OpenAI API-compatible — same request/response shape, different base URL.
+ * Fireteam AI (Groq). OpenAI-compatible API — same request/response shape, different base URL.
  *
  * Features:
  *   - transcribeAudio()          → Groq Whisper (whisper-large-v3)
- *   - generateMeetingSummaries() → llama-3.3-70b-versatile (matches openai.service interface)
+ *   - generateMeetingSummaries() → llama-3.3-70b-versatile
  *   - evaluateBloomsLevel()       → Bloom's Taxonomy scoring per participant
  *   - generateQuickSummary()      → llama3-8b-8192 (fast + cheap)
  *   - generateQuizExplanation()   → llama3-8b-8192
@@ -24,8 +23,47 @@
 import axios from 'axios';
 
 // ──────────────────────────────────────────────────────────────────────────────
-//  Types (extends existing openai.service interfaces)
+//  Types
 // ──────────────────────────────────────────────────────────────────────────────
+
+/** Full meeting summary shape returned by /api/groq/summarize (type: full). */
+export interface MeetingSummary {
+  participantSummary: {
+    userId: string;
+    userName: string;
+    engagementLevel: 'high' | 'medium' | 'low';
+    keyContributions: string[];
+    actionItems: string[];
+    overallSummary: string;
+    speakingTime?: string;
+    questionsAsked?: number;
+  };
+  coachSummary: {
+    overallEngagement: string;
+    participantInsights: Array<{
+      userId: string;
+      userName: string;
+      engagementLevel: 'high' | 'medium' | 'low';
+      notes: string;
+    }>;
+    sessionObjectivesMet: boolean;
+    areasOfConcern: string[];
+    recommendations: string[];
+    keyTakeaways: string[];
+  };
+  adminSummary: {
+    sessionMetrics: {
+      totalParticipants: number;
+      averageEngagement: string;
+      completionRate: string;
+      technicalIssues: string[];
+    };
+    facilitatorPerformance: string;
+    contentEffectiveness: string;
+    systemRecommendations: string[];
+    nextSteps: string[];
+  };
+}
 
 export interface TranscriptionResult {
   text: string;
@@ -56,9 +94,6 @@ export interface InsightTag {
   label: string;
   relevanceScore: number;  // 0.0–1.0
 }
-
-// Re-export to stay compatible with components using openai.service types
-export type { MeetingSummary } from './openai.service';
 
 // ──────────────────────────────────────────────────────────────────────────────
 //  Bloom's Taxonomy reference
@@ -94,7 +129,7 @@ export const groqService = {
   /**
    * Transcribe audio using Groq Whisper API (via server-side API route).
    *
-   * Drop-in replacement for openaiService.transcribeAudio().
+   * Server-side Groq Whisper via /api/groq/transcribe.
    * Handles 30-second discussion slide chunks during live Fireteam sessions.
    */
   async transcribeAudio(audioFile: File | Blob): Promise<TranscriptionResult> {
@@ -147,8 +182,7 @@ export const groqService = {
   /**
    * Generate meeting summaries (participant, coach, admin views).
    *
-   * Drop-in replacement for openaiService.generateMeetingSummaries().
-   * Uses llama-3.3-70b-versatile instead of GPT-4o.
+   * Uses llama-3.3-70b-versatile.
    */
   async generateMeetingSummaries(
     transcript: string,

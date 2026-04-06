@@ -5,7 +5,7 @@ import { mockEvaluationData } from '../../../../../../../types/evaluation';
 /**
  * Custom hook to fetch and manage evaluation data
  */
-export function useEvaluationData(recordingId, fireteamId, hasAI, userRole = 'client') {
+export function useEvaluationData(recordingId, _fireteamId, hasAI, userRole = 'client') {
   const [evaluationData, setEvaluationData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,12 +19,22 @@ export function useEvaluationData(recordingId, fireteamId, hasAI, userRole = 'cl
         if (hasAI && recordingId) {
           // Fetch AI-generated evaluation data from API
           console.log('Fetching AI evaluation data for recording:', recordingId);
-          
+
+          // Client summary endpoint is GET .../summary/client/{recordingId}/{clientId}
+          const clientId =
+            typeof window !== 'undefined' ? localStorage.getItem('user_id') : null;
+
+          if (userRole === 'client' && !clientId) {
+            console.warn('No user_id in localStorage; cannot load client recording summary from API');
+            setEvaluationData(mockEvaluationData);
+            return;
+          }
+
           try {
             const apiData = await meetingService.getRecordingSummaryByRole(
               recordingId,
               userRole,
-              fireteamId
+              userRole === 'client' ? clientId : undefined
             );
             
             // Transform API data to our evaluation format
@@ -51,7 +61,7 @@ export function useEvaluationData(recordingId, fireteamId, hasAI, userRole = 'cl
     }
 
     loadEvaluationData();
-  }, [recordingId, fireteamId, hasAI, userRole]);
+  }, [recordingId, hasAI, userRole]);
 
   return {
     evaluationData,
@@ -61,15 +71,25 @@ export function useEvaluationData(recordingId, fireteamId, hasAI, userRole = 'cl
 }
 
 /**
- * Transform API data (from /api/fireteam/evaluate or the recording service)
+ * Transform API data (from /api/fireteam/evaluate — Groq — or meeting summaries API)
  * into the EvaluationData shape expected by the display components.
  *
  * Handles both:
- *   A) Results from our /api/fireteam/evaluate endpoint
- *   B) Results from the legacy meetingService.getRecordingSummaryByRole
+ *   A) Results from POST /api/fireteam/evaluate (Groq Bloom's scoring)
+ *   B) Results from meetingService.getRecordingSummaryByRole
  */
 function transformApiDataToEvaluationFormat(apiData) {
   if (!apiData) return mockEvaluationData;
+
+  // Recording API may return { summaries: { participantSummary, coachSummary, adminSummary } }
+  if (
+    apiData.summaries &&
+    typeof apiData.summaries === 'object' &&
+    apiData.summaries.participantSummary &&
+    !apiData.participantSummary
+  ) {
+    return transformApiDataToEvaluationFormat(apiData.summaries);
+  }
 
   // ── Format A: direct response from /api/fireteam/evaluate ───────────────────
   if (Array.isArray(apiData.results)) {

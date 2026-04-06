@@ -258,6 +258,7 @@ export default function Signup() {
           password: form.password,
           password_confirmation: form.password_confirmation,
           role: userType.toUpperCase(),
+          social: false,
           phone: form.phone ? (form.phone.startsWith('+') ? form.phone : `+${form.phone}`)?.trim() : undefined,
           timezone: form.timezone === 'Eastern Time (ET)' ? 'America/New_York' : form.timezone,
           bio: form.bio?.trim() || undefined,
