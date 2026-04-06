@@ -6,12 +6,17 @@ import { FaFacebook } from "react-icons/fa";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/api/auth.service";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { handleValidationErrors } from "@/lib/error";
+import { extractAuthToken, extractAuthUser } from "@/lib/authResponse.utils";
 import { jwtDecode } from "jwt-decode";
+import { BASE_URL } from "@/services/api/config";
 
-const AUTH_API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.wanac.org";
+const AUTH_API_BASE = BASE_URL;
+
+/** How long the success toast stays visible; redirect matches this delay. */
+const SUCCESS_FEEDBACK_MS = 2000;
 
 export default function Signup() {
   const router = useRouter();
@@ -172,23 +177,53 @@ export default function Signup() {
           handleValidationErrors(data.errors);
         } else if (data?.error) {
           toast.error(data.error);
+        } else if (data?.message) {
+          toast.error(data.message);
         } else {
           toast.error("Google sign up failed.");
         }
         return;
       }
 
-      const role = data.user?.role ?? userType;
-      localStorage.setItem("wanacUser", JSON.stringify({ ...data.user, userType: role }));
-      localStorage.setItem("auth_token", data.token);
-      toast.success(data.message ?? "Successfully signed up with Google!");
+      const token = extractAuthToken(data);
+      if (!token) {
+        toast.success(
+          data.message ??
+            "You have registered successfully. Please sign in.",
+          { duration: SUCCESS_FEEDBACK_MS }
+        );
+        setTimeout(() => router.push("/login"), SUCCESS_FEEDBACK_MS);
+        return;
+      }
+
+      const apiUser = extractAuthUser(data) ?? data.user;
+      const role = String(apiUser?.role ?? userType).toLowerCase();
+      if (apiUser) {
+        localStorage.setItem(
+          "wanacUser",
+          JSON.stringify({ ...apiUser, userType: role })
+        );
+      } else {
+        localStorage.setItem(
+          "wanacUser",
+          JSON.stringify({
+            name: googleUser.name ?? googleUser.email?.split("@")[0],
+            email: googleUser.email,
+            userType: role,
+          })
+        );
+      }
+      localStorage.setItem("auth_token", token);
+      toast.success(data.message ?? "Successfully signed up with Google!", {
+        duration: SUCCESS_FEEDBACK_MS,
+      });
       const dashboardPaths = {
         client: "/client/dashboard",
         coach: "/coach",
         admin: "/admin",
       };
       const dashboardPath = dashboardPaths[role] || "/";
-      router.push(dashboardPath);
+      setTimeout(() => router.push(dashboardPath), SUCCESS_FEEDBACK_MS);
     } catch (error) {
       console.error("Google sign up error:", error);
       toast.error("Failed to sign up with Google. Please try again.");
@@ -257,7 +292,7 @@ export default function Signup() {
           email: form.email.trim().toLowerCase(),
           password: form.password,
           password_confirmation: form.password_confirmation,
-          role: userType.toUpperCase(),
+          role: userType.toLowerCase(),
           social: false,
           phone: form.phone ? (form.phone.startsWith('+') ? form.phone : `+${form.phone}`)?.trim() : undefined,
           timezone: form.timezone === 'Eastern Time (ET)' ? 'America/New_York' : form.timezone,
@@ -270,30 +305,71 @@ export default function Signup() {
 
         // Call the registration API
         const response = await authService.register(registrationData);
-        
-        // Store the token and user preferences
-        if (response.token) {
-          localStorage.setItem('auth_token', response.token);
+        const token = extractAuthToken(response);
+
+        if (token) {
+          localStorage.setItem("auth_token", token);
           if (form.rememberMe) {
-            localStorage.setItem('remember_me', 'true');
+            localStorage.setItem("remember_me", "true");
           }
-          
-          // Show success message
-          toast.success('Registration successful! Welcome aboard!');
-          
-          // Redirect based on user type
-          router.push(userType === "client" ? "/client" : "/coach");
+
+          const apiUser = extractAuthUser(response);
+          const role = String(apiUser?.role ?? userType).toLowerCase();
+          if (apiUser) {
+            localStorage.setItem(
+              "wanacUser",
+              JSON.stringify({ ...apiUser, userType: role })
+            );
+          } else {
+            localStorage.setItem(
+              "wanacUser",
+              JSON.stringify({
+                name: form.name.trim(),
+                email: form.email.trim().toLowerCase(),
+                userType: role,
+              })
+            );
+          }
+
+          toast.success(
+            response.message ?? "Registration successful! Welcome aboard!",
+            { duration: SUCCESS_FEEDBACK_MS }
+          );
+          setTimeout(
+            () =>
+              router.push(
+                role === "client" ? "/client/dashboard" : "/coach"
+              ),
+            SUCCESS_FEEDBACK_MS
+          );
+        } else {
+          toast.success(
+            response.message ??
+              "You have registered successfully. Please sign in.",
+            { duration: SUCCESS_FEEDBACK_MS }
+          );
+          setTimeout(() => router.push("/login"), SUCCESS_FEEDBACK_MS);
         }
       } catch (error) {
-        if (error.response && error.response.data) {
-          if (error.response?.data?.errors) {
-            handleValidationErrors(error.response.data.errors);
+        const data = error?.response?.data;
+        if (data) {
+          if (data.errors) {
+            handleValidationErrors(data.errors);
           }
-          if (error.response?.data?.error) {
-            toast.error(error.response.data.error);
+          if (data.error) {
+            toast.error(data.error);
+          } else if (
+            typeof data.message === "string" &&
+            data.message &&
+            !data.errors
+          ) {
+            toast.error(data.message);
+          } else if (!data.errors && !data.error) {
+            toast.error("Registration failed. Please try again.");
           }
         } else {
-          console.log(error);
+          console.error(error);
+          toast.error("Registration failed. Please try again.");
         }
       } finally {
         setIsLoading(false);

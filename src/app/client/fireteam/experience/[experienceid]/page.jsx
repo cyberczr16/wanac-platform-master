@@ -798,6 +798,12 @@ export default function FireteamExperienceMeeting() {
           {/* ── RIGHT SIDEBAR ── */}
           <aside className="w-72 flex-shrink-0 bg-white border-l border-gray-100 flex flex-col overflow-hidden">
 
+            {/* Recording / transcript expectations */}
+            <div className="flex-shrink-0 px-3 py-2 text-[11px] leading-snug text-amber-900 bg-amber-50 border-b border-amber-100">
+              Session recording captures one mixed audio (and optional screen) track. The AI transcript does not
+              separate speakers; Session Results explain scores in that context.
+            </div>
+
             {/* Tab switcher */}
             <div className="flex-shrink-0 flex border-b border-gray-100">
               <button

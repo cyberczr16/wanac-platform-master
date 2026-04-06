@@ -31,12 +31,20 @@ export interface ForgotPasswordRequest {
 }
 
 export interface AuthResponse {
-  token: string;
-  user: {
+  /** Present for most successful auth responses; API may use access_token instead. */
+  token?: string;
+  access_token?: string;
+  message?: string;
+  user?: {
     id: string;
     name: string;
     email: string;
     role: string;
+  };
+  data?: {
+    token?: string;
+    access_token?: string;
+    user?: AuthResponse["user"];
   };
 }
 

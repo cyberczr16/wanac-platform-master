@@ -19,6 +19,17 @@ export const clientsService = {
     }
   },
 
+  /**
+   * Admin/coach update of a client profile. Backend: PUT /api/v1/clients/:id
+   */
+  async updateClient(
+    clientId: string | number,
+    data: Partial<{ name: string; email: string; phone: string; status: string }>
+  ) {
+    const response = await apiClient.put(`/api/v1/clients/${clientId}`, data);
+    return response.data;
+  },
+
   async searchClients(query: string) {
     const all = await this.getClients();
     if (!Array.isArray(all)) return [];

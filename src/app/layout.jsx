@@ -30,24 +30,30 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/WANAC N 8 Old Glory.svg" type="image/svg+xml" />
       </head>
       <body className="min-h-screen flex flex-col">
-        <Toaster position="top-center" toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#333',
-            color: '#fff',
-          },
-          success: {
-            style: {
-              background: 'green',
-            },
-          },
-          error: {
-            style: {
-              background: 'red',
-            },
-          },
-        }} />
         <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
+        <Toaster
+          position="top-center"
+          containerStyle={{ zIndex: 100000 }}
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#333',
+              color: '#fff',
+            },
+            success: {
+              style: {
+                background: '#15803d',
+                color: '#fff',
+              },
+            },
+            error: {
+              style: {
+                background: '#b91c1c',
+                color: '#fff',
+              },
+            },
+          }}
+        />
       </body>
     </html>
   );

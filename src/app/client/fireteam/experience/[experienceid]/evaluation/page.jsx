@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useParams } from 'next/navigation';
 import { useEvaluationData } from './hooks/useEvaluationData';
 import ConversationMap from './components/ConversationMap';
 import GroupBalanceScore from './components/GroupBalanceScore';
@@ -12,7 +12,9 @@ import AdminSidebar from '../../../../../../../components/dashboardcomponents/ad
 
 export default function EvaluationPage() {
   const searchParams = useSearchParams();
-  const experienceId = searchParams?.get('experienceId');
+  const routeParams = useParams();
+  const experienceIdFromRoute = routeParams?.experienceid != null ? String(routeParams.experienceid) : null;
+  const experienceId = searchParams?.get('experienceId') || experienceIdFromRoute;
   const fireteamId = searchParams?.get('fireteamId');
   const recordingId = searchParams?.get('recordingId');
   const hasAI = searchParams?.get('hasAI') === 'true';
@@ -24,6 +26,7 @@ export default function EvaluationPage() {
   const { evaluationData, loading, error } = useEvaluationData(
     recordingId,
     fireteamId,
+    experienceId,
     hasAI,
     userRole
   );
@@ -163,6 +166,16 @@ export default function EvaluationPage() {
                       : 'basic participation metrics'}
                     . The analysis uses Bloom&rsquo;s Taxonomy to assess cognitive engagement levels across different learning objectives.
                   </p>
+                  {hasAI && (
+                    <p className="text-blue-700/90 leading-relaxed mt-3 border-t border-blue-100 pt-3">
+                      <span className="font-medium text-blue-900">Transcript note: </span>
+                      The recording is a single mixed audio track from this session. We do not run speaker
+                      diarization, so the transcript does not label who spoke each sentence. Bloom scores for each
+                      participant use that same full discussion text and attribute evidence when wording can be tied
+                      to a person; they are best read as facilitation-style feedback, not as a forensic split of
+                      speaking time.
+                    </p>
+                  )}
                 </div>
               </div>
 

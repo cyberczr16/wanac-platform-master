@@ -10,8 +10,10 @@ import toast from "react-hot-toast";
 import { handleValidationErrors } from "@/lib/error";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from "jwt-decode";
+import { BASE_URL } from "@/services/api/config";
+import { extractAuthToken, extractAuthUser } from "@/lib/authResponse.utils";
 
-const AUTH_API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.wanac.org";
+const AUTH_API_BASE = BASE_URL;
 
 export default function Login() {
   const router = useRouter();
@@ -82,7 +84,13 @@ export default function Login() {
           }
         );
 
-        const data = await response.json();
+        let data;
+        try {
+          data = await response.json();
+        } catch {
+          toast.error("Login failed: invalid response from server.");
+          return;
+        }
 
         if (!response.ok) {
           // Display API error message
@@ -96,16 +104,23 @@ export default function Login() {
           return;
         }
 
-        // Store user data in localStorage
+        const token = extractAuthToken(data);
+        if (!token) {
+          toast.error("Login succeeded but no token was returned. Please try again.");
+          return;
+        }
+
+        const apiUser = extractAuthUser(data);
+        const role = String(apiUser?.role ?? userType).toLowerCase();
         localStorage.setItem(
           "wanacUser",
           JSON.stringify({
-            ...data.user,
-            userType: userType,
+            ...(apiUser ?? {}),
+            userType: role,
           })
         );
-        localStorage.setItem("auth_token", data.token);
-        toast.success(data.message);
+        localStorage.setItem("auth_token", token);
+        toast.success(data.message ?? "Signed in successfully.");
 
         const dashboardPaths = {
           client: '/client/dashboard',
@@ -113,7 +128,7 @@ export default function Login() {
           admin: '/admin'
         };
 
-        const dashboardPath = dashboardPaths[userType];
+        const dashboardPath = dashboardPaths[role];
         if (!dashboardPath) {
           throw new Error("Invalid user type");
         }
@@ -157,7 +172,13 @@ export default function Login() {
           }),
         }
       );
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        toast.error('Google login failed: invalid response from server.');
+        return;
+      }
 
       if (!response.ok) {
         if (data?.errors) {
@@ -170,9 +191,16 @@ export default function Login() {
         return;
       }
 
-      const role = data.user?.role ?? userType;
-      localStorage.setItem('wanacUser', JSON.stringify({ ...data.user, userType: role }));
-      localStorage.setItem('auth_token', data.token);
+      const token = extractAuthToken(data);
+      if (!token) {
+        toast.error('Sign-in succeeded but no token was returned. Please try again.');
+        return;
+      }
+
+      const apiUser = extractAuthUser(data);
+      const role = String(apiUser?.role ?? userType).toLowerCase();
+      localStorage.setItem('wanacUser', JSON.stringify({ ...(apiUser ?? {}), userType: role }));
+      localStorage.setItem('auth_token', token);
       toast.success('Successfully signed in with Google!');
       const dashboardPaths = {
         client: '/client/dashboard',

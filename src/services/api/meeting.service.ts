@@ -232,7 +232,7 @@ export const meetingService = {
   /**
    * Get recording by ID
    */
-  async getRecording(recordingId: number): Promise<MeetingRecording | null> {
+  async getRecording(recordingId: number | string): Promise<MeetingRecording | null> {
     try {
       const response = await apiClient.get(
         `/api/v1/fireteams/recordings/${recordingId}`
