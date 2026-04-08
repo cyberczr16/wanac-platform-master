@@ -1,34 +1,28 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
-import AdminSidebar from '../../../../components/dashboardcomponents/adminsidebar';
-import { FaUserPlus, FaUserEdit, FaUserTimes, FaSearch } from "react-icons/fa";
-import { X, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import AdminSidebar from "../../../../components/dashboardcomponents/adminsidebar";
+import {
+  FaUserPlus,
+  FaUserEdit,
+  FaUserTimes,
+  FaSearch,
+  FaChevronLeft,
+  FaChevronRight,
+  FaSortUp,
+  FaSortDown,
+} from "react-icons/fa";
+import { X, Loader2, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
-import { clientsService } from '../../../services/api/clients.service';
-
-/** Align with GET /api/v1/clients shapes: nested `user` or flat fields. */
-function normalizeClient(raw) {
-  const id = raw?.id ?? raw?.user_id ?? raw?.user?.id;
-  const u = raw?.user;
-  return {
-    id,
-    name: u?.name ?? raw?.name ?? "—",
-    email: u?.email ?? raw?.email ?? "—",
-    phone: u?.phone ?? raw?.phone ?? "—",
-    status: raw?.status ?? "Active",
-  };
-}
-
-function extractClientList(data) {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.clients)) return data.clients;
-  if (Array.isArray(data?.data)) return data.data;
-  return [];
-}
+import { clientsService } from "../../../services/api/clients.service";
 
 const STATUS_OPTIONS = ["Active", "Inactive", "Suspended"];
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
-function EditClientProfileModal({ client, onClose, onSaveSuccess }) {
+/* ------------------------------------------------------------------ */
+/*  Add / Edit Client Modal                                           */
+/* ------------------------------------------------------------------ */
+function ClientFormModal({ client, onClose, onSuccess }) {
+  const isEditing = Boolean(client);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -40,56 +34,53 @@ function EditClientProfileModal({ client, onClose, onSaveSuccess }) {
     setName(client.name === "—" ? "" : client.name);
     setEmail(client.email === "—" ? "" : client.email);
     setPhone(client.phone === "—" ? "" : client.phone);
-    setStatus(
-      STATUS_OPTIONS.includes(client.status) ? client.status : "Active"
-    );
+    setStatus(STATUS_OPTIONS.includes(client.status) ? client.status : "Active");
   }, [client]);
 
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") onClose();
-    };
+    const onKey = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!client?.id) {
-      toast.error("Cannot update this client (missing id).");
+    const trimmed = {
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      status,
+    };
+    if (!trimmed.name || !trimmed.email) {
+      toast.error("Name and email are required.");
       return;
     }
     setSaving(true);
     try {
-      await clientsService.updateClient(client.id, {
-        name: name.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        status,
-      });
-      onSaveSuccess(client.id, {
-        name: name.trim() || "—",
-        email: email.trim() || "—",
-        phone: phone.trim() || "—",
-        status,
-      });
-      toast.success("Client profile updated.");
+      if (isEditing) {
+        await clientsService.updateClient(client.id, trimmed);
+        toast.success("Client updated successfully.");
+      } else {
+        await clientsService.createClient(trimmed);
+        toast.success("Client added successfully.");
+      }
+      onSuccess();
       onClose();
-    } catch {
-      toast.error("Could not save changes. Please try again.");
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        (isEditing ? "Failed to update client." : "Failed to add client.");
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
   };
-
-  if (!client) return null;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="edit-client-title"
       onClick={onClose}
     >
       <div
@@ -97,11 +88,8 @@ function EditClientProfileModal({ client, onClose, onSaveSuccess }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/80">
-          <h2
-            id="edit-client-title"
-            className="text-lg font-bold text-[#002147]"
-          >
-            Edit client profile
+          <h2 className="text-lg font-bold text-[#002147]">
+            {isEditing ? "Edit Client" : "Add New Client"}
           </h2>
           <button
             type="button"
@@ -113,74 +101,51 @@ function EditClientProfileModal({ client, onClose, onSaveSuccess }) {
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          <div>
-            <label
-              htmlFor="edit-client-name"
-              className="block text-xs font-semibold text-gray-600 mb-1.5"
-            >
-              Name
-            </label>
+          <FormField label="Name" id="client-name" required>
             <input
-              id="edit-client-name"
+              id="client-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="field-input"
               autoComplete="name"
+              placeholder="Full name"
             />
-          </div>
-          <div>
-            <label
-              htmlFor="edit-client-email"
-              className="block text-xs font-semibold text-gray-600 mb-1.5"
-            >
-              Email
-            </label>
+          </FormField>
+          <FormField label="Email" id="client-email" required>
             <input
-              id="edit-client-email"
+              id="client-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="field-input"
               autoComplete="email"
+              placeholder="email@example.com"
             />
-          </div>
-          <div>
-            <label
-              htmlFor="edit-client-phone"
-              className="block text-xs font-semibold text-gray-600 mb-1.5"
-            >
-              Phone
-            </label>
+          </FormField>
+          <FormField label="Phone" id="client-phone">
             <input
-              id="edit-client-phone"
+              id="client-phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="field-input"
               autoComplete="tel"
+              placeholder="+1 (555) 000-0000"
             />
-          </div>
-          <div>
-            <label
-              htmlFor="edit-client-status"
-              className="block text-xs font-semibold text-gray-600 mb-1.5"
-            >
-              Status
-            </label>
+          </FormField>
+          <FormField label="Status" id="client-status">
             <select
-              id="edit-client-status"
+              id="client-status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="field-input bg-white"
             >
               {STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
-          </div>
+          </FormField>
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
@@ -195,7 +160,7 @@ function EditClientProfileModal({ client, onClose, onSaveSuccess }) {
               className="px-4 py-2 text-sm rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition font-medium disabled:opacity-60 flex items-center gap-2"
             >
               {saving && <Loader2 size={16} className="animate-spin" />}
-              Save changes
+              {isEditing ? "Save Changes" : "Add Client"}
             </button>
           </div>
         </form>
@@ -204,139 +169,429 @@ function EditClientProfileModal({ client, onClose, onSaveSuccess }) {
   );
 }
 
-export default function ManageClients() {
-  const [clients, setClients] = useState([]);
-  const [search, setSearch] = useState("");
-  const [filteredClients, setFilteredClients] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [editingClient, setEditingClient] = useState(null);
-
+/* ------------------------------------------------------------------ */
+/*  Confirm Delete Modal                                              */
+/* ------------------------------------------------------------------ */
+function ConfirmDeleteModal({ client, onClose, onConfirm, deleting }) {
   useEffect(() => {
-    setLoading(true);
-    clientsService.getClients()
-      .then((data) => {
-        const clientList = extractClientList(data).map(normalizeClient);
-        setClients(clientList);
-        setFilteredClients(clientList);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to fetch clients.");
-        setLoading(false);
-      });
-  }, []);
+    const onKey = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
-  useEffect(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) {
-      setFilteredClients(clients);
-      return;
-    }
-    setFilteredClients(
-      clients.filter(
-        (client) =>
-          String(client.name).toLowerCase().includes(q) ||
-          String(client.email).toLowerCase().includes(q)
-      )
-    );
-  }, [search, clients]);
-
-  const handleSaveSuccess = useCallback((clientId, updated) => {
-    setClients((prev) =>
-      prev.map((c) =>
-        String(c.id) === String(clientId) ? { ...c, ...updated } : c
-      )
-    );
-  }, []);
+  if (!client) return null;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <AdminSidebar />
-      <main className="flex-1 p-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-[#002147] mb-2">Manage Clients</h1>
-            <p className="text-gray-600">View, search, and manage all WANAC clients.</p>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-gray-100 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+            <AlertTriangle size={24} className="text-red-600" />
           </div>
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold mt-4 md:mt-0">
-            <FaUserPlus /> Add Client
-          </button>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center mb-4">
-            <div className="relative w-full md:w-1/3">
-              <input
-                type="text"
-                placeholder="Search clients..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <FaSearch className="absolute left-3 top-2.5 text-gray-400" size={18} />
-            </div>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">Remove Client</h3>
+          <p className="text-sm text-gray-600 mb-6">
+            Are you sure you want to remove <strong>{client.name}</strong>? This
+            action cannot be undone.
+          </p>
+          <div className="flex justify-center gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={onConfirm}
+              className="px-4 py-2 text-sm rounded-xl bg-red-600 text-white hover:bg-red-700 transition font-medium disabled:opacity-60 flex items-center gap-2"
+            >
+              {deleting && <Loader2 size={16} className="animate-spin" />}
+              Remove
+            </button>
           </div>
-          {loading ? (
-            <div className="text-center py-8 text-gray-500">Loading clients...</div>
-          ) : error ? (
-            <div className="text-center py-8 text-red-500">{error}</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-100 text-[#002147]">
-                    <th className="py-2 px-4 text-left">Name</th>
-                    <th className="py-2 px-4 text-left">Email</th>
-                    <th className="py-2 px-4 text-left">Phone</th>
-                    <th className="py-2 px-4 text-left">Status</th>
-                    <th className="py-2 px-4 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredClients.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="text-center py-6 text-gray-500">
-                        No clients found.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredClients.map((client) => (
-                      <tr key={client.id ?? client.email} className="border-b hover:bg-gray-50">
-                        <td className="py-2 px-4">{client.name}</td>
-                        <td className="py-2 px-4">{client.email}</td>
-                        <td className="py-2 px-4">{client.phone}</td>
-                        <td className="py-2 px-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${client.status === "Active" ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}`}>{client.status}</span>
-                        </td>
-                        <td className="py-2 px-4 flex gap-2">
-                          <button
-                            type="button"
-                            className="p-2 rounded hover:bg-blue-100 text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed"
-                            title={client.id ? "Edit client" : "Cannot edit — missing client id"}
-                            disabled={!client.id}
-                            onClick={() => setEditingClient(client)}
-                          >
-                            <FaUserEdit />
-                          </button>
-                          <button className="p-2 rounded hover:bg-red-100 text-red-600" title="Remove Client">
-                            <FaUserTimes />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
         </div>
-      </main>
+      </div>
+    </div>
+  );
+}
 
-      {editingClient && (
-        <EditClientProfileModal
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                           */
+/* ------------------------------------------------------------------ */
+function FormField({ label, id, required, children }) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-xs font-semibold text-gray-600 mb-1.5">
+        {label}
+        {required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+      {children}
+      <style jsx global>{`
+        .field-input {
+          width: 100%;
+          border: 1px solid #d1d5db;
+          border-radius: 0.5rem;
+          padding: 0.5rem 0.75rem;
+          font-size: 0.875rem;
+          outline: none;
+          transition: box-shadow 0.15s, border-color 0.15s;
+        }
+        .field-input:focus {
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function StatusBadge({ status }) {
+  const colors = {
+    Active: "bg-green-100 text-green-700",
+    Inactive: "bg-gray-200 text-gray-600",
+    Suspended: "bg-red-100 text-red-700",
+  };
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+        colors[status] || "bg-gray-200 text-gray-600"
+      }`}
+    >
+      {status || "—"}
+    </span>
+  );
+}
+
+/* ================================================================== */
+/*  MAIN PAGE                                                         */
+/* ================================================================== */
+export default function ManageClients() {
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Search & filter
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  // Sort
+  const [sortField, setSortField] = useState("name");
+  const [sortDir, setSortDir] = useState("asc");
+
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Modals
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+  const [deletingClient, setDeletingClient] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  /* ---- Fetch ---- */
+  const fetchClients = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await clientsService.getClients();
+      setClients(data);
+    } catch {
+      setError("Failed to load clients. Please try again.");
+      setClients([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
+
+  /* ---- Filter + Sort + Paginate ---- */
+  const filtered = useMemo(() => {
+    let list = [...clients];
+    if (statusFilter !== "All") {
+      list = list.filter((c) => c.status === statusFilter);
+    }
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (c) =>
+          String(c.name).toLowerCase().includes(q) ||
+          String(c.email).toLowerCase().includes(q) ||
+          String(c.phone).toLowerCase().includes(q)
+      );
+    }
+    list.sort((a, b) => {
+      const aVal = String(a[sortField] || "").toLowerCase();
+      const bVal = String(b[sortField] || "").toLowerCase();
+      return sortDir === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    });
+    return list;
+  }, [clients, search, statusFilter, sortField, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter, pageSize]);
+
+  /* ---- Sort toggle ---- */
+  const toggleSort = (field) => {
+    if (sortField === field) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+  };
+
+  const SortIcon = ({ field }) => {
+    if (sortField !== field) return null;
+    return sortDir === "asc" ? (
+      <FaSortUp className="inline ml-1 -mb-0.5" size={12} />
+    ) : (
+      <FaSortDown className="inline ml-1 -mt-0.5" size={12} />
+    );
+  };
+
+  /* ---- Delete handler ---- */
+  const handleDelete = async () => {
+    if (!deletingClient) return;
+    setDeleteLoading(true);
+    try {
+      await clientsService.deleteClient(deletingClient.id);
+      toast.success("Client removed successfully.");
+      setClients((prev) => prev.filter((c) => String(c.id) !== String(deletingClient.id)));
+      setDeletingClient(null);
+    } catch {
+      toast.error("Failed to remove client.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  return (
+    <div className="h-screen flex bg-gray-50 font-sans">
+      <AdminSidebar />
+      <div className="flex-1 flex flex-col h-full transition-all duration-300">
+        <main className="flex-1 h-0 overflow-y-auto px-4 md:px-10 py-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-[#002147] tracking-tight">
+                  Client Services
+                </h1>
+                <p className="text-gray-500 text-sm mt-1">
+                  View, search, and manage all WANAC clients.{" "}
+                  {filtered.length} client{filtered.length !== 1 && "s"} found.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setEditingClient(null);
+                  setFormOpen(true);
+                }}
+                className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition font-medium text-sm shadow-sm"
+              >
+                <FaUserPlus size={14} /> Add Client
+              </button>
+            </div>
+
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-5">
+              <div className="relative flex-1 max-w-md">
+                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                <input
+                  type="text"
+                  placeholder="Search by name, email, or phone..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="All">All Statuses</option>
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Table */}
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 size={28} className="animate-spin text-blue-600" />
+                <span className="ml-3 text-gray-500">Loading clients...</span>
+              </div>
+            ) : error ? (
+              <div className="text-center py-16">
+                <p className="text-red-500 mb-3">{error}</p>
+                <button
+                  onClick={fetchClients}
+                  className="text-blue-600 hover:underline text-sm font-medium"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          {[
+                            { key: "name", label: "Name" },
+                            { key: "email", label: "Email" },
+                            { key: "phone", label: "Phone" },
+                            { key: "status", label: "Status" },
+                          ].map((col) => (
+                            <th
+                              key={col.key}
+                              onClick={() => toggleSort(col.key)}
+                              className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:text-gray-900 select-none"
+                            >
+                              {col.label}
+                              <SortIcon field={col.key} />
+                            </th>
+                          ))}
+                          <th className="px-5 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {paged.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="px-5 py-10 text-center text-gray-500">
+                              No clients match your search.
+                            </td>
+                          </tr>
+                        ) : (
+                          paged.map((client) => (
+                            <tr key={client.id ?? client.email} className="hover:bg-gray-50/60 transition">
+                              <td className="px-5 py-3.5 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {client.name}
+                              </td>
+                              <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600">
+                                {client.email}
+                              </td>
+                              <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600">
+                                {client.phone || "—"}
+                              </td>
+                              <td className="px-5 py-3.5 whitespace-nowrap">
+                                <StatusBadge status={client.status} />
+                              </td>
+                              <td className="px-5 py-3.5 whitespace-nowrap text-right">
+                                <div className="flex gap-1 justify-end">
+                                  <button
+                                    onClick={() => {
+                                      setEditingClient(client);
+                                      setFormOpen(true);
+                                    }}
+                                    disabled={!client.id}
+                                    className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                                    title={client.id ? "Edit Client" : "Cannot edit — missing client id"}
+                                  >
+                                    <FaUserEdit size={15} />
+                                  </button>
+                                  <button
+                                    onClick={() => setDeletingClient(client)}
+                                    disabled={!client.id}
+                                    className="p-2 rounded-lg hover:bg-red-50 text-red-600 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                                    title="Remove Client"
+                                  >
+                                    <FaUserTimes size={15} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Pagination */}
+                {filtered.length > 0 && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-3 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <span>Rows per page:</span>
+                      <select
+                        value={pageSize}
+                        onChange={(e) => setPageSize(Number(e.target.value))}
+                        className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {PAGE_SIZE_OPTIONS.map((n) => (
+                          <option key={n} value={n}>{n}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>
+                        {(safePage - 1) * pageSize + 1}–
+                        {Math.min(safePage * pageSize, filtered.length)} of{" "}
+                        {filtered.length}
+                      </span>
+                      <button
+                        disabled={safePage <= 1}
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        className="p-1.5 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      >
+                        <FaChevronLeft size={12} />
+                      </button>
+                      <button
+                        disabled={safePage >= totalPages}
+                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                        className="p-1.5 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      >
+                        <FaChevronRight size={12} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </main>
+      </div>
+
+      {/* Modals */}
+      {formOpen && (
+        <ClientFormModal
           client={editingClient}
-          onClose={() => setEditingClient(null)}
-          onSaveSuccess={handleSaveSuccess}
+          onClose={() => {
+            setFormOpen(false);
+            setEditingClient(null);
+          }}
+          onSuccess={fetchClients}
+        />
+      )}
+      {deletingClient && (
+        <ConfirmDeleteModal
+          client={deletingClient}
+          onClose={() => setDeletingClient(null)}
+          onConfirm={handleDelete}
+          deleting={deleteLoading}
         />
       )}
     </div>

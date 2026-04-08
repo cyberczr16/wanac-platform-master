@@ -4,6 +4,7 @@ import Sidebar from '../../../../components/dashboardcomponents/sidebar';
 import HomePage from "./components/HomePage";
 import { fireteamService } from '../../../services/api/fireteam.service';
 import { experienceService } from '../../../services/api/experience.service';
+import { filterFireteamsByMembership } from '../../../lib/fireteamAccess';
 
 function transformExperience(exp, fireteam) {
   return {
@@ -43,7 +44,9 @@ export default function FireteamPage() {
     try {
       setLoading(true);
       setError("");
-      const fireteams = await fireteamService.getFireteams();
+      const allFireteams = await fireteamService.getFireteams();
+      // Only show fireteams the current client is a member of
+      const fireteams = await filterFireteamsByMembership(allFireteams ?? []);
       const allAssignments = [];
 
       if (fireteams?.length > 0) {

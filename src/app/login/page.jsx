@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebook } from "react-icons/fa";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -274,7 +273,7 @@ export default function Login() {
             {/* User Type Selection */}
             <div className="mb-5">
               <label className="block text-sm font-medium text-brand-navy mb-2">
-                Select User Type
+                Sign in as
               </label>
               <div className="flex border bg-[#002147] rounded-md overflow-hidden">
                 <button
@@ -300,18 +299,6 @@ export default function Login() {
                   aria-pressed={userType === "coach"}
                 >
                   Coach
-                </button>
-                <button
-                  type="button"
-                  className={`flex-1 py-2 text-center text-sm font-medium transition-colors ${
-                    userType === "admin"
-                      ? "bg-orange-500 text-white"
-                      : "bg-transparent text-white hover:bg-orange-500"
-                  }`}
-                  onClick={() => setUserType("admin")}
-                  aria-pressed={userType === "admin"}
-                >
-                  Admin
                 </button>
               </div>
             </div>
@@ -461,7 +448,7 @@ export default function Login() {
                     Signing in...
                   </>
                 ) : (
-                  "Proceed"
+                  "Sign In"
                 )}
               </button>
             </form>
@@ -478,37 +465,29 @@ export default function Login() {
                   </span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className={socialLoading.google ? "opacity-50" : ""}>
-                  {hasGoogleAuth ? (
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={handleGoogleError}
-                      useOneTap
-                      theme="outline"
-                      shape="rectangular"
-                      locale="en"
-                      text="signin_with"
-                      disabled={socialLoading.google}
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => toast.error("Add NEXT_PUBLIC_GOOGLE_CLIENT_ID to your .env to enable Google sign-in.")}
-                      className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                    >
-                      <FcGoogle className="h-5 w-5 mr-2" />
-                      Sign in with Google
-                    </button>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  <FaFacebook className="h-5 w-5 mr-2 text-blue-600" />
-                  Facebook
-                </button>
+              <div className={socialLoading.google ? "opacity-50" : ""}>
+                {hasGoogleAuth ? (
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    useOneTap
+                    theme="outline"
+                    shape="rectangular"
+                    locale="en"
+                    text="signin_with"
+                    disabled={socialLoading.google}
+                    width="100%"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => toast.error("Add NEXT_PUBLIC_GOOGLE_CLIENT_ID to your .env to enable Google sign-in.")}
+                    className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    <FcGoogle className="h-5 w-5 mr-2" />
+                    Sign in with Google
+                  </button>
+                )}
               </div>
             </div>
 

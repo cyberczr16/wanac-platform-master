@@ -12,6 +12,7 @@ export interface RegisterRequest {
   referralCode?: string;
   preferredContact?: string;
   profilePic?: string | null;
+  newsletter?: boolean;
 }
 
 export interface LoginRequest {
