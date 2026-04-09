@@ -11,6 +11,7 @@ import { useRecording } from "../hooks/useRecording";
 import { useMeetingData } from "../hooks/useMeetingData";
 import { useToast } from "../hooks/useToast";
 import { useRoomState } from "../hooks/useRoomState";
+import { extractRoomNameFromUrl } from "../../../../../lib/livekit.utils";
 
 // UI Components
 import LivekitVideoContainer from "../components/LivekitVideoContainer";
@@ -385,14 +386,15 @@ export default function FireteamExperienceMeeting() {
           meetingLink = `wanac-ft-default-${Date.now()}`;
         }
 
-        const urlObj = new URL(meetingLink);
-        const domain = urlObj.hostname;
-        const parts = urlObj.pathname.split("/").filter(Boolean);
-        const roomName = parts[parts.length - 1] || "";
+        // Support both plain stored room names and legacy URL-style links.
+        const roomName = extractRoomNameFromUrl(meetingLink);
+        if (!roomName) {
+          throw new Error("Invalid meeting link format");
+        }
 
         setShowSlide(false);
         await new Promise((resolve) => setTimeout(resolve, 300));
-        await initializeMeeting(domain, roomName);
+        await initializeMeeting("", roomName);
       } catch (err) {
         console.error("❌ Meeting initialization error:", err);
       }
@@ -523,7 +525,6 @@ export default function FireteamExperienceMeeting() {
         }
         await new Promise((resolve) => setTimeout(resolve, 500));
         if ((wasRecording || recordingBlob) && !cancelled) {
-          toast.info("Generating AI summary… This may take a moment.");
           const result = await handleProcessRecording();
           if (result && !cancelled) toast.success("AI summary generated successfully!");
         } else if (!cancelled) {
@@ -612,18 +613,6 @@ export default function FireteamExperienceMeeting() {
             onConfirm={handleConfirmProcessRecording}
             onCancel={handleCancelProcessRecording}
           />
-        )}
-
-        {processingSession && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center gap-4">
-              <svg className="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              <span className="text-base font-semibold text-gray-700">Processing session, please wait…</span>
-            </div>
-          </div>
         )}
 
         {/* ── Progress bar (top of canvas) ── */}
@@ -917,7 +906,7 @@ export default function FireteamExperienceMeeting() {
                               </p>
                               {step.duration && (
                                 <span className="text-[10px] text-gray-300 flex-shrink-0 font-medium tabular-nums">
-                                  {step.duration} min
+                                  {step.duration}
                                 </span>
                               )}
                             </div>

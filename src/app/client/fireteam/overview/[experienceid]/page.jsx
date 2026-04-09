@@ -67,6 +67,7 @@ export default function ExperienceOverviewPage() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const resolvedMeetingLink = meetingLink || experience?.link || null;
 
   useEffect(() => {
     if (!experienceId || !fireteamId) return;
@@ -95,7 +96,7 @@ export default function ExperienceOverviewPage() {
   /* ── Navigate to live session ── */
   const goToSession = () => {
     let url = `/client/fireteam/experience/${experienceId}?id=${experienceId}&fireteamId=${fireteamId}`;
-    if (meetingLink) url += `&link=${encodeURIComponent(meetingLink)}`;
+    if (resolvedMeetingLink) url += `&link=${encodeURIComponent(resolvedMeetingLink)}`;
     router.push(url);
   };
 

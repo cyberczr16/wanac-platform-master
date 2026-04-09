@@ -38,19 +38,24 @@ export function buildBreakoutAgenda({ breakoutData, deckId }) {
   }
 
   // 3) Convert to agenda steps
-  return slides.map((s) => ({
-    title: s.slideName || s.slideDescription || 'Untitled',
-    subtitle: s.slideDescription || s.slideName || '',
-    duration: secondsToDurationLabel(s.slideDuration),
-    breakout: {
-      deckId,
-      slideId: s.slideId,
-      slideOrder: s.slideOrder ?? 0,
-      slideDurationSec: Number(s.slideDuration || 0) || null,
-      slideImageURL: s.slideImageURL || null,
-      slideImageAltText: s.slideImageAltText || '',
-      captions: captionsBySlideId[s.slideId] || [],
-    },
-  }));
+  return slides.map((s) => {
+    const title = s.slideName || s.slideDescription || 'Untitled';
+    const isSessionProcessing = title.toLowerCase().includes('session processing');
+
+    return {
+      title,
+      subtitle: s.slideDescription || s.slideName || '',
+      duration: isSessionProcessing ? null : secondsToDurationLabel(s.slideDuration),
+      breakout: {
+        deckId,
+        slideId: s.slideId,
+        slideOrder: s.slideOrder ?? 0,
+        slideDurationSec: Number(s.slideDuration || 0) || null,
+        slideImageURL: s.slideImageURL || null,
+        slideImageAltText: s.slideImageAltText || '',
+        captions: captionsBySlideId[s.slideId] || [],
+      },
+    };
+  });
 }
 

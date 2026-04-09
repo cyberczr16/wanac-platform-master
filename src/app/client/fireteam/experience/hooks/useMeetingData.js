@@ -80,7 +80,7 @@ export function useMeetingData(searchParams) {
           {
             title: 'Session Processing',
             subtitle: 'Processing session data and generating insights',
-            duration: '3 mins',
+            duration: null,
             isProcessing: true,
           },
           {
@@ -188,7 +188,7 @@ export function useMeetingData(searchParams) {
           finalAgenda.push({
             title: 'Session Processing',
             subtitle: 'Processing session data and generating insights',
-            duration: '3 mins',
+            duration: null,
             isProcessing: true,
           });
 

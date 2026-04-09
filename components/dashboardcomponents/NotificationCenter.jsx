@@ -43,6 +43,21 @@ function timeAgo(dateStr) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function normalizeNotification(notification) {
+  const id = notification?.id ?? notification?.notification_id ?? notification?.uuid;
+  const read = Boolean(
+    notification?.read ??
+    notification?.is_read ??
+    notification?.read_at
+  );
+
+  return {
+    ...notification,
+    id,
+    read,
+  };
+}
+
 export default function NotificationCenter() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -54,7 +69,7 @@ export default function NotificationCenter() {
     try {
       const data = await notificationService.getNotifications();
       const list = Array.isArray(data) ? data : (data?.notifications || data?.data || []);
-      setNotifications(list);
+      setNotifications(list.map(normalizeNotification).filter((n) => n.id !== undefined && n.id !== null));
     } catch { setNotifications([]); }
     finally { setLoading(false); }
   }, []);
@@ -68,7 +83,7 @@ export default function NotificationCenter() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const unreadCount = notifications.filter((n) => !n.read && !n.read_at).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const markRead = async (id) => {
     try {
@@ -78,9 +93,10 @@ export default function NotificationCenter() {
   };
 
   const markAllRead = async () => {
-    const unread = notifications.filter((n) => !n.read && !n.read_at);
-    await Promise.allSettled(unread.map((n) => notificationService.markAsRead(n.id)));
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true, read_at: n.read_at || new Date().toISOString() })));
+    try {
+      await notificationService.markAllAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true, read_at: n.read_at || new Date().toISOString() })));
+    } catch {}
   };
 
   return (
@@ -123,7 +139,7 @@ export default function NotificationCenter() {
               </div>
             ) : (
               notifications.slice(0, 20).map((n) => {
-                const isRead = n.read || n.read_at;
+                const isRead = n.read;
                 return (
                   <button
                     key={n.id}
