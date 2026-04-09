@@ -33,6 +33,7 @@ import { habitsService } from '../../../services/api/habits.service';
 import { fireteamService } from '../../../services/api/fireteam.service';
 import { experienceService } from '../../../services/api/experience.service';
 import { notificationService } from '../../../services/api/notification.service';
+import { cohortService } from '../../../services/api/cohort.service';
 import journalPrompts from '../../../data/journalPrompts.json';
 
 // Day of year (1–365) for aligning with 365 Growth Journal prompts
@@ -91,15 +92,9 @@ export default function ClientDashboard() {
   const [loading, setLoading] = useState(true);
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
+  const [availableForCoaching, setAvailableForCoaching] = useState([]);
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState(() => new Date());
-
-  // Mock data for right sidebar (replace with real API later)
-  const availableForCoaching = [
-    { id: 1, name: 'Mike Tyson', role: 'iOS Developer', initial: 'M', color: 'bg-blue-100 text-blue-700' },
-    { id: 2, name: 'Samuel John', role: 'Android Developer', initial: 'S', color: 'bg-purple-100 text-purple-700' },
-    { id: 3, name: 'Jiya George', role: 'UX/UI Designer', initial: 'J', color: 'bg-amber-100 text-amber-700' },
-  ];
 
   const router = useRouter();
 
@@ -201,7 +196,56 @@ export default function ClientDashboard() {
     }
   }, []);
 
+  useEffect(() => {
+    const fetchCoaches = async () => {
+      try {
+        const response = await cohortService.getCoaches();
+        const coachesArray = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.coaches?.data)
+          ? response.coaches.data
+          : Array.isArray(response?.coaches)
+          ? response.coaches
+          : Array.isArray(response?.data)
+          ? response.data
+          : [];
+
+        const normalized = coachesArray
+          .map((coach, index) => {
+            const displayName =
+              coach?.name ||
+              coach?.full_name ||
+              coach?.user?.name ||
+              [coach?.first_name, coach?.last_name].filter(Boolean).join(' ').trim() ||
+              'Coach';
+            const initials = displayName
+              .split(' ')
+              .map((n) => n[0])
+              .join('')
+              .slice(0, 2)
+              .toUpperCase();
+            const role = coach?.title || coach?.speciality || coach?.specialty || coach?.expertise || 'Coach';
+            return {
+              id: coach?.id ?? `coach-${index}`,
+              name: displayName,
+              role,
+              initial: initials || 'C',
+              profile_image: coach?.profile_image || coach?.avatar || coach?.user?.profile_image || null,
+            };
+          })
+          .slice(0, 8);
+
+        setAvailableForCoaching(normalized);
+      } catch {
+        setAvailableForCoaching([]);
+      }
+    };
+
+    fetchCoaches();
+  }, []);
+
   const unreadCount = notifications.filter(n => !n.read && !n.read_at).length;
+  const profileImage = user?.profile_image || user?.profilePic || null;
 
   return (
     <div
@@ -230,7 +274,7 @@ export default function ClientDashboard() {
                   {/* Left image */}
                   <div className="relative w-28 sm:w-36 flex-shrink-0 flex items-end justify-center overflow-hidden">
                     <img
-                      src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=320&q=80"
+                      src={profileImage || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=320&q=80"}
                       alt=""
                       className="h-full w-full object-cover object-bottom scale-110"
                     />
@@ -595,11 +639,15 @@ export default function ClientDashboard() {
                   </button>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-0.5">
-                  {availableForCoaching.map((p) => (
+                  {availableForCoaching.length === 0 ? (
+                    <p className="text-[11px] text-gray-400 py-1">No coaches available right now.</p>
+                  ) : availableForCoaching.map((p) => (
                     <div key={p.id}
                       className="flex-shrink-0 w-24 rounded-xl bg-gray-50 border border-gray-100 p-2 flex flex-col items-center text-center">
-                      <div className={`w-8 h-8 rounded-full ${p.color} flex items-center justify-center font-bold text-xs mb-1.5`}>
-                        {p.initial}
+                      <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs mb-1.5 overflow-hidden">
+                        {p.profile_image ? (
+                          <img src={p.profile_image} alt="" className="w-full h-full object-cover" />
+                        ) : p.initial}
                       </div>
                       <p className="font-semibold text-gray-900 text-[10px] truncate w-full">{p.name}</p>
                       <p className="text-[9px] text-gray-400 truncate w-full mb-1.5">{p.role}</p>
