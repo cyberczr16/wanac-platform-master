@@ -6,7 +6,7 @@ import CareerCompassModal from '../../../../components/dashboardcomponents/Caree
 import {
   ClipboardList, HelpCircle, Building2, Users, CheckCircle,
   Calendar, FileText, TrendingUp, Target, Zap, ChevronRight,
-  BarChart2, Award, BookOpen, Search
+  BarChart2, Award, BookOpen, Search, Megaphone, Briefcase, CalendarDays
 } from 'lucide-react';
 import {
   FaBriefcase, FaBuilding, FaUserTie, FaChartLine, FaCheckCircle,
@@ -150,7 +150,7 @@ function CareerCompassOverview({ onNavigate }) {
 
   return (
     <div className="space-y-5">
-      {/* Stats Row */}
+      {/* Top KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {stats.map((s) => (
           <div key={s.label} className={`rounded-2xl border p-4 ${s.bg}`}>
@@ -161,9 +161,134 @@ function CareerCompassOverview({ onNavigate }) {
         ))}
       </div>
 
-      {/* Readiness + Pipeline */}
+      {/* 12twenty-like dashboard tiles */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm lg:col-span-2">
+          <div className="flex items-center gap-2 mb-3">
+            <Megaphone className="text-[#006198]" size={16} />
+            <h3 className="font-semibold text-[#006198] text-sm">Announcements</h3>
+          </div>
+          <div className="rounded-xl border border-[#006198]/15 bg-[#006198]/5 p-3">
+            <p className="text-sm font-medium text-gray-800">
+              Welcome to My Career Compass. Keep your profile, applications, and interview readiness current for better outcomes.
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Updated today
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <CalendarDays className="text-[#006198]" size={16} />
+            <h3 className="font-semibold text-[#006198] text-sm">Upcoming</h3>
+          </div>
+          <div className="space-y-2">
+            {[
+              { title: "Resume Clinic", date: "Tue, Apr 14 • 2:00 PM" },
+              { title: "Mock Interview", date: "Thu, Apr 16 • 11:00 AM" },
+              { title: "Networking Workshop", date: "Fri, Apr 17 • 1:30 PM" },
+            ].map((item) => (
+              <div key={item.title} className="rounded-xl border border-gray-100 bg-gray-50 p-2.5">
+                <p className="text-xs font-semibold text-gray-800">{item.title}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{item.date}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Briefcase className="text-[#006198]" size={16} />
+            <h3 className="font-semibold text-[#006198] text-sm">Recommended Job Postings</h3>
+          </div>
+          <div className="space-y-2.5">
+            {[
+              "Software Engineer Intern - Tech Corp",
+              "Data Analyst - Insight Labs",
+              "Product Associate - Venture Studio",
+            ].map((title) => (
+              <button
+                key={title}
+                type="button"
+                onClick={() => onNavigate('afiandjobposting')}
+                className="w-full text-left rounded-xl border border-gray-100 bg-gray-50 p-2.5 hover:bg-gray-100 transition-colors"
+              >
+                <p className="text-xs font-semibold text-gray-800 line-clamp-2">{title}</p>
+                <p className="text-[11px] text-[#C4992F] mt-1">View posting</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Calendar className="text-[#006198]" size={16} />
+            <h3 className="font-semibold text-[#006198] text-sm">Recommended Events</h3>
+          </div>
+          <div className="space-y-2.5">
+            {[
+              { title: "Employer Coffee Chat", time: "Apr 18 • 10:00 AM" },
+              { title: "Case Interview Prep", time: "Apr 19 • 3:30 PM" },
+              { title: "Alumni Panel: Consulting", time: "Apr 20 • 5:00 PM" },
+            ].map((evt) => (
+              <button
+                key={evt.title}
+                type="button"
+                onClick={() => onNavigate('appointments')}
+                className="w-full text-left rounded-xl border border-gray-100 bg-gray-50 p-2.5 hover:bg-gray-100 transition-colors"
+              >
+                <p className="text-xs font-semibold text-gray-800">{evt.title}</p>
+                <p className="text-[11px] text-gray-500 mt-1">{evt.time}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="text-[#006198]" size={16} />
+            <h3 className="font-semibold text-[#006198] text-sm">Outcomes & Progress</h3>
+          </div>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="relative shrink-0">
+              <ScoreRing score={clampedScore} size={84} />
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-lg font-bold text-gray-800">{clampedScore}</span>
+                <span className="text-[10px] text-gray-500">/100</span>
+              </div>
+            </div>
+            <div className="flex-1 space-y-2">
+              <div>
+                <div className="flex justify-between text-[11px] text-gray-500 mb-1">
+                  <span>Applications</span>
+                  <span>{careerData.applications.total}/20</span>
+                </div>
+                <ProgressBar value={careerData.applications.total} max={20} color="bg-[#006198]" />
+              </div>
+              <div>
+                <div className="flex justify-between text-[11px] text-gray-500 mb-1">
+                  <span>Interviews</span>
+                  <span>{careerData.interviews.scheduled}/5</span>
+                </div>
+                <ProgressBar value={careerData.interviews.scheduled} max={5} color="bg-[#C4992F]" />
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigate('researchtools')}
+            className="w-full rounded-xl border border-[#006198]/20 text-[#006198] hover:bg-[#006198]/5 text-xs font-semibold py-2 transition-colors"
+          >
+            Open Research Tools
+          </button>
+        </div>
+      </div>
+
+      {/* Readiness + pipeline detail */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* Career Readiness Score */}
         <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Award className="text-[#002147]" size={18} />
@@ -209,8 +334,6 @@ function CareerCompassOverview({ onNavigate }) {
             </div>
           </div>
         </div>
-
-        {/* Application Funnel */}
         <div className="lg:col-span-3 bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <BarChart2 className="text-[#002147]" size={18} />
@@ -237,7 +360,6 @@ function CareerCompassOverview({ onNavigate }) {
             ))}
           </div>
 
-          {/* Materials checklist */}
           <div className="mt-4 pt-4 border-t border-gray-100">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Application Materials</p>
             <div className="grid grid-cols-2 gap-2">
