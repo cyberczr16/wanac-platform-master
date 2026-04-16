@@ -1,11 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 
 const WanacPLCA = () => {
-  const router = useRouter();
   const [openFaq, setOpenFaq] = useState(null);
 
   const toggleFaq = (index) => {
@@ -221,7 +218,7 @@ const WanacPLCA = () => {
       <section className="bg-gradient-to-b from-[#faf9f7] to-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-block bg-[#ff5e1a] bg-opacity-10 text-white px-4 py-2 rounded-full text-sm font-semibold mb-6">
+            <div className="inline-block bg-[#ff5e1a] bg-opacity-10 text-[#ff5e1a] px-4 py-2 rounded-full text-sm font-semibold mb-6">
               Career Accelerator • UCLA Anderson-Inspired
             </div>
             <h1 className="text-5xl lg:text-6xl font-bold text-[#002147] mb-6 leading-tight">
