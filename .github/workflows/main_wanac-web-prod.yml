@@ -32,7 +32,8 @@ jobs:
           NEXT_PUBLIC_JITSI_DOMAIN: ${{ secrets.NEXT_PUBLIC_JITSI_DOMAIN }}         
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
           NEXT_PUBLIC_OPENAI_URL: ${{ secrets.NEXT_PUBLIC_OPENAI_URL }}
-
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          NEXT_PUBLIC_GROQ_BASE_URL: ${{ secrets.NEXT_PUBLIC_GROQ_BASE_URL }}
 
 
       - name: Create deployment package
