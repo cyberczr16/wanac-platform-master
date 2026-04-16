@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Room, RoomEvent, setLogLevel, LogLevel } from 'livekit-client';
+import {
+  buildLiveKitIdentityForToken,
+  canonicalParticipantIdFromIdentity,
+} from '@/lib/livekitIdentity.utils';
 
 // LiveKit meeting hook — manages room connection, participants, and chat.
 
@@ -24,8 +28,9 @@ export function useLivekitMeeting() {
     if (local) list.unshift(local);
 
     const mapped = list.map((p) => ({
-      id: p.identity,
-      name: p.name || p.identity || 'Participant',
+      id: canonicalParticipantIdFromIdentity(p.identity),
+      livekitIdentity: p.identity,
+      name: p.name || canonicalParticipantIdFromIdentity(p.identity) || 'Participant',
       avatarUrl: null,
       speaking: p.isSpeaking,
     }));
@@ -36,10 +41,13 @@ export function useLivekitMeeting() {
     setLoading(true);
     setError('');
     try {
-      const resp = await fetch(
-        `/api/livekit/token?roomName=${encodeURIComponent(roomName)}`,
-        { cache: 'no-store' },
-      );
+      const { identity, displayName } = buildLiveKitIdentityForToken();
+      const tokenQs = new URLSearchParams({
+        roomName,
+        userId: identity,
+        userName: displayName,
+      });
+      const resp = await fetch(`/api/livekit/token?${tokenQs.toString()}`, { cache: 'no-store' });
       if (!resp.ok) {
         const body = await resp.json().catch(() => ({}));
         throw new Error(body?.error || `Failed to fetch LiveKit token (${resp.status})`);
@@ -54,13 +62,31 @@ export function useLivekitMeeting() {
       roomRef.current = room;
 
       room
-        .on(RoomEvent.ParticipantConnected, () => {
+        .on(RoomEvent.ParticipantConnected, (participant) => {
           updateParticipantsFromRoom(room);
-          setAttendanceLog((prev) => [...prev, { type: 'join', at: new Date().toISOString() }]);
+          setAttendanceLog((prev) => [
+            ...prev,
+            {
+              type: 'join',
+              at: new Date().toISOString(),
+              identity: participant?.identity,
+              userId: canonicalParticipantIdFromIdentity(participant?.identity),
+              name: participant?.name || participant?.identity || 'Participant',
+            },
+          ]);
         })
-        .on(RoomEvent.ParticipantDisconnected, () => {
+        .on(RoomEvent.ParticipantDisconnected, (participant) => {
           updateParticipantsFromRoom(room);
-          setAttendanceLog((prev) => [...prev, { type: 'leave', at: new Date().toISOString() }]);
+          setAttendanceLog((prev) => [
+            ...prev,
+            {
+              type: 'leave',
+              at: new Date().toISOString(),
+              identity: participant?.identity,
+              userId: canonicalParticipantIdFromIdentity(participant?.identity),
+              name: participant?.name || participant?.identity || 'Participant',
+            },
+          ]);
         })
         .on(RoomEvent.ActiveSpeakersChanged, () => {
           updateParticipantsFromRoom(room);

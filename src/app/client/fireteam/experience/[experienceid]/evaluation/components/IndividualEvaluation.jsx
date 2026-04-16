@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { bloomTaxonomyColors } from '../../../../../../../types/evaluation';
+import { evaluationParticipantMatchesCurrentUser } from '@/lib/livekitIdentity.utils';
 
 export default function IndividualEvaluation({ individualEvaluations, userRole = 'client' }) {
   const [expandedEvaluation, setExpandedEvaluation] = useState(null);
@@ -9,9 +10,9 @@ export default function IndividualEvaluation({ individualEvaluations, userRole =
   // Filter evaluations based on user role
   const filteredEvaluations = individualEvaluations.filter(evaluation => {
     if (userRole === 'client') {
-      // Show only the current user's evaluation
-      const currentUserId = localStorage.getItem('user_id') || 'clarence';
-      return evaluation.participantId === currentUserId;
+      const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('user_id') : null;
+      if (!currentUserId) return false;
+      return evaluationParticipantMatchesCurrentUser(evaluation.participantId, currentUserId);
     }
     return true; // Show all for coach/admin
   });

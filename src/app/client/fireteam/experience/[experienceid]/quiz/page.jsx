@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Sidebar from "../../../../../../../components/dashboardcomponents/sidebar";
 import { experienceService } from "../../../../../../services/api/experience.service";
+import { isCurrentUserMemberOf, isClientRole } from "../../../../../../lib/fireteamAccess";
 
 const PASS_THRESHOLD = 0.70; // 70% to pass
 
@@ -161,6 +162,21 @@ export default function PreWorkQuizPage() {
 
   const [collapsed, setCollapsed] = useState(true);
 
+  // ── Access control ──
+  const [accessDenied, setAccessDenied] = useState(false);
+  const [accessChecked, setAccessChecked] = useState(false);
+
+  useEffect(() => {
+    if (!fireteamId || !isClientRole()) { setAccessChecked(true); return; }
+    let cancelled = false;
+    isCurrentUserMemberOf(fireteamId).then((ok) => {
+      if (cancelled) return;
+      if (!ok) setAccessDenied(true);
+      setAccessChecked(true);
+    });
+    return () => { cancelled = true; };
+  }, [fireteamId]);
+
   // Quiz state
   const [questions, setQuestions]   = useState([]);
   const [answers, setAnswers]       = useState({});     // { questionIndex: answerIndex }
@@ -240,6 +256,35 @@ export default function PreWorkQuizPage() {
     : 0;
 
   // ── Render ───────────────────────────────────────────────────────────────────
+
+  if (!accessChecked) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[#f5f5f5]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400" />
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="h-screen flex bg-[#f5f5f5] overflow-hidden">
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+        <main className="flex-1 min-w-0 flex items-center justify-center">
+          <div className="text-center px-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h2>
+            <p className="text-sm text-gray-500 mb-6">You are not a member of this fireteam.</p>
+            <button
+              onClick={() => router.push("/client/fireteam")}
+              className="px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors"
+            >
+              Back to FireTeam
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex bg-[#f5f5f5] overflow-hidden">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />

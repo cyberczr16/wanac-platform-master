@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useParams, useRouter } from 'next/navigation';
 import { useEvaluationData } from './hooks/useEvaluationData';
 import ConversationMap from './components/ConversationMap';
 import GroupBalanceScore from './components/GroupBalanceScore';
@@ -9,14 +9,33 @@ import IndividualEvaluation from './components/IndividualEvaluation';
 import RoleTabView from './components/RoleTabView';
 import Sidebar from '../../../../../../../components/dashboardcomponents/sidebar';
 import AdminSidebar from '../../../../../../../components/dashboardcomponents/adminsidebar';
+import { isCurrentUserMemberOf, isClientRole } from '../../../../../../lib/fireteamAccess';
 
 export default function EvaluationPage() {
   const searchParams = useSearchParams();
-  const experienceId = searchParams?.get('experienceId');
+  const routeParams = useParams();
+  const router = useRouter();
+  const experienceIdFromRoute = routeParams?.experienceid != null ? String(routeParams.experienceid) : null;
+  const experienceId = searchParams?.get('experienceId') || experienceIdFromRoute;
   const fireteamId = searchParams?.get('fireteamId');
   const recordingId = searchParams?.get('recordingId');
   const hasAI = searchParams?.get('hasAI') === 'true';
   const isAdmin = searchParams?.get('admin') === 'true';
+
+  // ── Access control ──
+  const [accessDenied, setAccessDenied] = useState(false);
+  const [accessChecked, setAccessChecked] = useState(false);
+
+  useEffect(() => {
+    if (!fireteamId || !isClientRole()) { setAccessChecked(true); return; }
+    let cancelled = false;
+    isCurrentUserMemberOf(fireteamId).then((ok) => {
+      if (cancelled) return;
+      if (!ok) setAccessDenied(true);
+      setAccessChecked(true);
+    });
+    return () => { cancelled = true; };
+  }, [fireteamId]);
 
   // Determine user role
   const userRole = isAdmin ? 'admin' : 'client';
@@ -24,6 +43,7 @@ export default function EvaluationPage() {
   const { evaluationData, loading, error } = useEvaluationData(
     recordingId,
     fireteamId,
+    experienceId,
     hasAI,
     userRole
   );
@@ -42,6 +62,34 @@ export default function EvaluationPage() {
       </div>
     </div>
   );
+
+  // Access check
+  if (!accessChecked) {
+    return (
+      <Shell>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400" />
+        </div>
+      </Shell>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <Shell>
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-6">
+          <h2 className="text-lg font-semibold text-gray-800">Access Denied</h2>
+          <p className="text-gray-500 text-sm">You are not a member of this fireteam.</p>
+          <button
+            onClick={() => router.push("/client/fireteam")}
+            className="mt-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
+          >
+            Back to FireTeam
+          </button>
+        </div>
+      </Shell>
+    );
+  }
 
   // Loading state
   if (loading) {
@@ -163,6 +211,16 @@ export default function EvaluationPage() {
                       : 'basic participation metrics'}
                     . The analysis uses Bloom&rsquo;s Taxonomy to assess cognitive engagement levels across different learning objectives.
                   </p>
+                  {hasAI && (
+                    <p className="text-blue-700/90 leading-relaxed mt-3 border-t border-blue-100 pt-3">
+                      <span className="font-medium text-blue-900">Transcript note: </span>
+                      The recording is a single mixed audio track from this session. We do not run speaker
+                      diarization, so the transcript does not label who spoke each sentence. Bloom scores for each
+                      participant use that same full discussion text and attribute evidence when wording can be tied
+                      to a person; they are best read as facilitation-style feedback, not as a forensic split of
+                      speaking time.
+                    </p>
+                  )}
                 </div>
               </div>
 

@@ -2,23 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebook } from "react-icons/fa";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/api/auth.service";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { handleValidationErrors } from "@/lib/error";
+import { extractAuthToken, extractAuthUser } from "@/lib/authResponse.utils";
 import { jwtDecode } from "jwt-decode";
+import { BASE_URL } from "@/services/api/config";
 
-const AUTH_API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.wanac.org";
+const AUTH_API_BASE = BASE_URL;
+
+/** How long the success toast stays visible; redirect matches this delay. */
+const SUCCESS_FEEDBACK_MS = 2000;
 
 export default function Signup() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState({
-    google: false,
-    facebook: false
+    google: false
   });
   const [userType, setUserType] = useState("client");
   const [passwordStrength, setPasswordStrength] = useState(0);
@@ -38,8 +41,7 @@ export default function Signup() {
     acceptTerms: false,
     newsletter: false,
     referralCode: "",
-    preferredContact: "email",
-    rememberMe: false
+    preferredContact: "email"
   });
   
   const [errors, setErrors] = useState({});
@@ -88,10 +90,10 @@ export default function Signup() {
   };
 
   const handleChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
+    const { name, value, type, checked } = e.target;
     setForm(prev => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : type === "file" ? files[0] : value
+      [name]: type === "checkbox" ? checked : value
     }));
   };
 
@@ -128,20 +130,41 @@ export default function Signup() {
     }
   };
 
-  const handleSocialLogin = async (provider) => {
-    setSocialLoading(prev => ({ ...prev, [provider]: true }));
-    try {
-      if (provider === 'google') {
-        // Google login is handled by the GoogleLogin component
-        return;
-      }
-      toast.error(`${provider} login is not yet implemented`);
-    } catch (error) {
-      console.error(`${provider} login error:`, error);
-      toast.error(`${provider} login failed. Please try again.`);
-    } finally {
-      setSocialLoading(prev => ({ ...prev, [provider]: false }));
+  /**
+   * Shared auth success handler — stores token/user in localStorage and
+   * redirects to the appropriate dashboard.
+   */
+  const handleAuthSuccess = (data, fallbackUser) => {
+    const token = extractAuthToken(data);
+
+    if (!token) {
+      toast.success(
+        data.message ?? "You have registered successfully. Please sign in.",
+        { duration: SUCCESS_FEEDBACK_MS }
+      );
+      setTimeout(() => router.push("/login"), SUCCESS_FEEDBACK_MS);
+      return;
     }
+
+    localStorage.setItem("auth_token", token);
+
+    const apiUser = extractAuthUser(data) ?? data.user;
+    const role = String(apiUser?.role ?? userType).toLowerCase();
+    localStorage.setItem(
+      "wanacUser",
+      JSON.stringify(
+        apiUser
+          ? { ...apiUser, userType: role }
+          : { ...fallbackUser, userType: role }
+      )
+    );
+
+    toast.success(data.message ?? "Registration successful! Welcome aboard!", {
+      duration: SUCCESS_FEEDBACK_MS,
+    });
+
+    const dashboardPaths = { client: "/client/dashboard", coach: "/coach", admin: "/admin" };
+    setTimeout(() => router.push(dashboardPaths[role] || "/"), SUCCESS_FEEDBACK_MS);
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -152,9 +175,7 @@ export default function Signup() {
         `${AUTH_API_BASE}/api/v1/auth/register`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: googleUser.name ?? googleUser.email?.split("@")[0],
             email: googleUser.email,
@@ -172,23 +193,18 @@ export default function Signup() {
           handleValidationErrors(data.errors);
         } else if (data?.error) {
           toast.error(data.error);
+        } else if (data?.message) {
+          toast.error(data.message);
         } else {
           toast.error("Google sign up failed.");
         }
         return;
       }
 
-      const role = data.user?.role ?? userType;
-      localStorage.setItem("wanacUser", JSON.stringify({ ...data.user, userType: role }));
-      localStorage.setItem("auth_token", data.token);
-      toast.success(data.message ?? "Successfully signed up with Google!");
-      const dashboardPaths = {
-        client: "/client/dashboard",
-        coach: "/coach",
-        admin: "/admin",
-      };
-      const dashboardPath = dashboardPaths[role] || "/";
-      router.push(dashboardPath);
+      handleAuthSuccess(data, {
+        name: googleUser.name ?? googleUser.email?.split("@")[0],
+        email: googleUser.email,
+      });
     } catch (error) {
       console.error("Google sign up error:", error);
       toast.error("Failed to sign up with Google. Please try again.");
@@ -218,6 +234,8 @@ export default function Signup() {
       newErrors.password = "Password is required.";
     } else if (form.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters.";
+    } else if (passwordStrength < 3) {
+      newErrors.password = "Password is too weak. Include uppercase, lowercase, numbers, and special characters.";
     }
     
     if (!form.password_confirmation) {
@@ -257,7 +275,7 @@ export default function Signup() {
           email: form.email.trim().toLowerCase(),
           password: form.password,
           password_confirmation: form.password_confirmation,
-          role: userType.toUpperCase(),
+          role: userType.toLowerCase(),
           social: false,
           phone: form.phone ? (form.phone.startsWith('+') ? form.phone : `+${form.phone}`)?.trim() : undefined,
           timezone: form.timezone === 'Eastern Time (ET)' ? 'America/New_York' : form.timezone,
@@ -265,35 +283,36 @@ export default function Signup() {
           specialty: userType === "coach" ? form.specialty?.trim() : undefined,
           referralCode: form.referralCode?.trim() || undefined,
           preferredContact: form.preferredContact,
-          profilePic: form.profilePic || undefined
+          profilePic: form.profilePic || undefined,
+          newsletter: form.newsletter
         };
 
         // Call the registration API
         const response = await authService.register(registrationData);
-        
-        // Store the token and user preferences
-        if (response.token) {
-          localStorage.setItem('auth_token', response.token);
-          if (form.rememberMe) {
-            localStorage.setItem('remember_me', 'true');
-          }
-          
-          // Show success message
-          toast.success('Registration successful! Welcome aboard!');
-          
-          // Redirect based on user type
-          router.push(userType === "client" ? "/client" : "/coach");
-        }
+        handleAuthSuccess(response, {
+          name: form.name.trim(),
+          email: form.email.trim().toLowerCase(),
+        });
       } catch (error) {
-        if (error.response && error.response.data) {
-          if (error.response?.data?.errors) {
-            handleValidationErrors(error.response.data.errors);
+        const data = error?.response?.data;
+        if (data) {
+          if (data.errors) {
+            handleValidationErrors(data.errors);
           }
-          if (error.response?.data?.error) {
-            toast.error(error.response.data.error);
+          if (data.error) {
+            toast.error(data.error);
+          } else if (
+            typeof data.message === "string" &&
+            data.message &&
+            !data.errors
+          ) {
+            toast.error(data.message);
+          } else if (!data.errors && !data.error) {
+            toast.error("Registration failed. Please try again.");
           }
         } else {
-          console.log(error);
+          console.error(error);
+          toast.error("Registration failed. Please try again.");
         }
       } finally {
         setIsLoading(false);
@@ -534,46 +553,6 @@ export default function Signup() {
                     {errors.password_confirmation && <p className="text-red-500 text-xs mt-0.5" role="alert">{errors.password_confirmation}</p>}
                   </div>
 
-                  {/* Terms and Privacy Policy */}
-                  <div className="flex items-start">
-                    <div className="flex items-center h-4">
-                      <input
-                        id="acceptTerms"
-                        name="acceptTerms"
-                        type="checkbox"
-                        checked={form.acceptTerms}
-                        onChange={handleChange}
-                        className="focus:ring-brand-orange h-3.5 w-3.5 text-brand-orange border-gray-300 rounded"
-                      />
-                    </div>
-                    <div className="ml-1.5 text-xs">
-                      <label htmlFor="acceptTerms" className="text-gray-700">
-                        I accept the <a href="/terms" className="text-brand-orange hover:underline font-medium">Terms</a> and{" "}
-                        <a href="/privacy" className="text-brand-orange hover:underline font-medium">Privacy Policy</a>
-                      </label>
-                      {errors.acceptTerms && <p className="text-red-500 text-xs mt-0.5" role="alert">{errors.acceptTerms}</p>}
-                    </div>
-                  </div>
-
-                  {/* Newsletter Opt-in */}
-                  <div className="flex items-start">
-                    <div className="flex items-center h-4">
-                      <input
-                        id="newsletter"
-                        name="newsletter"
-                        type="checkbox"
-                        checked={form.newsletter}
-                        onChange={handleChange}
-                        className="focus:ring-brand-orange h-3.5 w-3.5 text-brand-orange border-gray-300 rounded"
-                      />
-                    </div>
-                    <div className="ml-1.5 text-xs">
-                      <label htmlFor="newsletter" className="text-gray-700">
-                        Subscribe to newsletter for updates
-                      </label>
-                    </div>
-                  </div>
-
                   {/* Two-column layout for compact fields */}
                   <div className="grid grid-cols-2 gap-2.5">
                     <div>
@@ -608,6 +587,14 @@ export default function Signup() {
                         className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-orange focus:border-brand-orange"
                       >
                         <option value="">Select...</option>
+                        {/* Show auto-detected timezone first if not in the common list */}
+                        {form.timezone && ![
+                          "America/New_York", "America/Chicago", "America/Denver",
+                          "America/Los_Angeles", "Europe/London", "Europe/Paris",
+                          "Asia/Tokyo", "Australia/Sydney"
+                        ].includes(form.timezone) && (
+                          <option value={form.timezone}>{form.timezone.replace(/_/g, " ")} (detected)</option>
+                        )}
                         <option value="America/New_York">Eastern (ET)</option>
                         <option value="America/Chicago">Central (CT)</option>
                         <option value="America/Denver">Mountain (MT)</option>
@@ -731,21 +718,42 @@ export default function Signup() {
                     </div>
                   </div>
 
-                  {/* Remember Me */}
+                  {/* Terms and Privacy Policy */}
                   <div className="flex items-start">
                     <div className="flex items-center h-4">
                       <input
-                        id="rememberMe"
-                        name="rememberMe"
+                        id="acceptTerms"
+                        name="acceptTerms"
                         type="checkbox"
-                        checked={form.rememberMe}
+                        checked={form.acceptTerms}
                         onChange={handleChange}
                         className="focus:ring-brand-orange h-3.5 w-3.5 text-brand-orange border-gray-300 rounded"
                       />
                     </div>
                     <div className="ml-1.5 text-xs">
-                      <label htmlFor="rememberMe" className="text-gray-700">
-                        Remember me on this device
+                      <label htmlFor="acceptTerms" className="text-gray-700">
+                        I accept the <a href="/terms" className="text-brand-orange hover:underline font-medium">Terms</a> and{" "}
+                        <a href="/privacy" className="text-brand-orange hover:underline font-medium">Privacy Policy</a>
+                      </label>
+                      {errors.acceptTerms && <p className="text-red-500 text-xs mt-0.5" role="alert">{errors.acceptTerms}</p>}
+                    </div>
+                  </div>
+
+                  {/* Newsletter Opt-in */}
+                  <div className="flex items-start">
+                    <div className="flex items-center h-4">
+                      <input
+                        id="newsletter"
+                        name="newsletter"
+                        type="checkbox"
+                        checked={form.newsletter}
+                        onChange={handleChange}
+                        className="focus:ring-brand-orange h-3.5 w-3.5 text-brand-orange border-gray-300 rounded"
+                      />
+                    </div>
+                    <div className="ml-1.5 text-xs">
+                      <label htmlFor="newsletter" className="text-gray-700">
+                        Subscribe to newsletter for updates
                       </label>
                     </div>
                   </div>
@@ -782,40 +790,30 @@ export default function Signup() {
                   </span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className={socialLoading.google ? "opacity-50" : ""}>
-                  {hasGoogleAuth ? (
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={handleGoogleError}
-                      useOneTap={false}
-                      theme="outline"
-                      shape="rectangular"
-                      locale="en"
-                      text="signup_with"
-                      disabled={socialLoading.google}
-                      size="medium"
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => toast.error("Add NEXT_PUBLIC_GOOGLE_CLIENT_ID to your .env to enable Google sign-up.")}
-                      className="flex items-center justify-center w-full px-2 py-1.5 border border-gray-300 rounded-md shadow-sm text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
-                    >
-                      <FcGoogle className="h-4 w-4 mr-1" />
-                      Sign up with Google
-                    </button>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  disabled={socialLoading.facebook}
-                  onClick={() => handleSocialLogin('facebook')}
-                  className="flex items-center justify-center w-full px-2 py-1.5 border border-gray-300 rounded-md shadow-sm text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <FaFacebook className="h-4 w-4 mr-1 text-blue-600" />
-                  {socialLoading.facebook ? 'Connecting...' : 'Facebook'}
-                </button>
+              <div className={socialLoading.google ? "opacity-50" : ""}>
+                {hasGoogleAuth ? (
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    useOneTap={false}
+                    theme="outline"
+                    shape="rectangular"
+                    locale="en"
+                    text="signup_with"
+                    disabled={socialLoading.google}
+                    size="medium"
+                    width="100%"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => toast.error("Add NEXT_PUBLIC_GOOGLE_CLIENT_ID to your .env to enable Google sign-up.")}
+                    className="flex items-center justify-center w-full px-2 py-1.5 border border-gray-300 rounded-md shadow-sm text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    <FcGoogle className="h-4 w-4 mr-1" />
+                    Sign up with Google
+                  </button>
+                )}
               </div>
             </div>
 

@@ -1,3 +1,4 @@
+import { extractAuthToken } from '@/lib/authResponse.utils';
 import { apiClient } from './config';
 import {
   RegisterRequest,
@@ -15,8 +16,9 @@ export const authService = {
 
   async login(data: LoginRequest): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/api/v1/auth/login', data);
-    if (response.data.token) {
-      localStorage.setItem('auth_token', response.data.token);
+    const token = extractAuthToken(response.data);
+    if (token) {
+      localStorage.setItem('auth_token', token);
     }
     return response.data;
   },

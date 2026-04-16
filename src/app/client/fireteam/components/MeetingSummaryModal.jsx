@@ -3,6 +3,14 @@ import React from 'react';
 export default function MeetingSummaryModal({ summaries, onClose, userRole = 'participant' }) {
   if (!summaries) return null;
 
+  const transcriptDisclaimer = (
+    <p className="text-xs text-gray-500 border-t border-gray-100 pt-3 mt-4 leading-relaxed">
+      <span className="font-medium text-gray-600">Note: </span>
+      The session was transcribed from one mixed recording. We do not separate speakers by voice in the transcript;
+      summaries and key points reflect the whole discussion.
+    </p>
+  );
+
   const renderParticipantSummary = () => {
     const summary = summaries.participantSummary;
     return (
@@ -62,6 +70,7 @@ export default function MeetingSummaryModal({ summaries, onClose, userRole = 'pa
             </div>
           )}
         </div>
+        {transcriptDisclaimer}
       </div>
     );
   };
@@ -128,6 +137,7 @@ export default function MeetingSummaryModal({ summaries, onClose, userRole = 'pa
             </ul>
           </div>
         )}
+        {transcriptDisclaimer}
       </div>
     );
   };
@@ -188,6 +198,7 @@ export default function MeetingSummaryModal({ summaries, onClose, userRole = 'pa
             </ul>
           </div>
         )}
+        {transcriptDisclaimer}
       </div>
     );
   };

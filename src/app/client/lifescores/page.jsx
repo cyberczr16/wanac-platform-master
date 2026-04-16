@@ -10,6 +10,7 @@ import { Button, LinearProgress, Box, Typography, Dialog, DialogTitle, DialogCon
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts';
 import { habitsService } from '../../../services/api/habits.service';
 import { handleValidationErrors } from "@/lib/error";
+import { normalizeDailyHabitsForChart, normalizeWholeLifeForChart } from "@/lib/habitsChart";
 import toast from "react-hot-toast";
 
 export default function LifeScoresPage() {
@@ -33,15 +34,23 @@ export default function LifeScoresPage() {
         setUser(parsedUser);
         setLoading(true);
         
-        // Fetch both daily habits and whole life history
         Promise.all([
-          habitsService.getDailyHabitsHistory().catch(() => []),
-          habitsService.getWholeLifeHistory().catch(() => [])
-        ]).then(([dailyData, wholeLifeData]) => {
-          setDailyHabitsData(Array.isArray(dailyData) ? dailyData : []);
-          setWholeLifeHistory(Array.isArray(wholeLifeData) ? wholeLifeData : []);
+          habitsService.getDailyHabitsHistory().catch((err) => {
+            console.error('getDailyHabitsHistory', err);
+            toast.error('Could not load daily habits history.');
+            return null;
+          }),
+          habitsService.getWholeLifeHistory().catch((err) => {
+            console.error('getWholeLifeHistory', err);
+            toast.error('Could not load whole life scores.');
+            return null;
+          }),
+        ]).then(([dailyRaw, wholeRaw]) => {
+          setDailyHabitsData(normalizeDailyHabitsForChart(dailyRaw ?? []));
+          setWholeLifeHistory(normalizeWholeLifeForChart(wholeRaw ?? []));
           setLoading(false);
-        }).catch(() => {
+        }).catch((err) => {
+          console.error('LifeScores load', err);
           setDailyHabitsData([]);
           setWholeLifeHistory([]);
           setLoading(false);
@@ -66,7 +75,6 @@ export default function LifeScoresPage() {
   const getFilteredDailyData = () => {
     if (!dailyHabitsData || dailyHabitsData.length === 0) return [];
 
-    const now = new Date();
     let filteredData = [...dailyHabitsData];
 
     switch (dailyTimeRange) {
@@ -116,9 +124,12 @@ export default function LifeScoresPage() {
       setOpenAssessment(null);
       setDailyForm({ sleep: '', exercise: '', nutrition: '', mood: '', productivity: '' });
       
-      // Refresh daily habits data
-      const dailyData = await habitsService.getDailyHabitsHistory().catch(() => []);
-      setDailyHabitsData(Array.isArray(dailyData) ? dailyData : []);
+      const dailyRaw = await habitsService.getDailyHabitsHistory().catch((err) => {
+        console.error('getDailyHabitsHistory', err);
+        toast.error('Could not refresh daily habits.');
+        return null;
+      });
+      setDailyHabitsData(normalizeDailyHabitsForChart(dailyRaw ?? []));
     } catch (error) {
       if (error.response && error.response.data) {
         if (error.response?.data?.errors) {
@@ -146,9 +157,12 @@ export default function LifeScoresPage() {
       setOpenAssessment(null);
       setWholeLifeForm({ health: '', relationship: '', career: '', finances: '', personal_growth: '', recreation: '', spirituality: '', community: '' });
       
-      // Refresh whole life history data
-      const wholeLifeData = await habitsService.getWholeLifeHistory().catch(() => []);
-      setWholeLifeHistory(Array.isArray(wholeLifeData) ? wholeLifeData : []);
+      const wholeRaw = await habitsService.getWholeLifeHistory().catch((err) => {
+        console.error('getWholeLifeHistory', err);
+        toast.error('Could not refresh whole life scores.');
+        return null;
+      });
+      setWholeLifeHistory(normalizeWholeLifeForChart(wholeRaw ?? []));
     } catch (error) {
       if (error.response && error.response.data) {
         if (error.response?.data?.errors) {
