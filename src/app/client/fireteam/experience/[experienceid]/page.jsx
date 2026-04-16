@@ -392,9 +392,25 @@ export default function FireteamExperienceMeeting() {
           throw new Error("Invalid meeting link format");
         }
 
+        // Build a unique identity for this participant so LiveKit can
+        // distinguish every user in the room (fixes duplicate-identity bug).
+        let userId = 'anonymous';
+        let userName = 'Participant';
+        try {
+          const raw = localStorage.getItem('wanacUser');
+          if (raw) {
+            const u = JSON.parse(raw);
+            userId  = String(u.id ?? u.user?.id ?? u.client?.user?.id ?? `anon-${Date.now()}`);
+            userName = u.name ?? u.user?.name ?? u.client?.user?.name ?? 'Participant';
+          } else {
+            // No stored user — generate a random id so each tab is unique
+            userId = `anon-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+          }
+        } catch { /* keep defaults */ }
+
         setShowSlide(false);
         await new Promise((resolve) => setTimeout(resolve, 300));
-        await initializeMeeting("", roomName);
+        await initializeMeeting("", roomName, { userId, userName });
       } catch (err) {
         console.error("❌ Meeting initialization error:", err);
       }
