@@ -25,7 +25,7 @@ return [
     | Model Selection
     |
     | Use llama-3.3-70b-versatile for complex reasoning (Bloom's evaluation).
-    | Use llama3-8b-8192 for simpler tasks (summaries, explanations, tags).
+    | Use llama-3.1-8b-instant for simpler tasks (summaries, explanations, tags).
     | Use whisper-large-v3 for speech-to-text.
     |
     | Switch models here without touching service code.
@@ -33,7 +33,7 @@ return [
     */
     'models' => [
         'evaluation' => env('GROQ_MODEL_EVALUATION', 'llama-3.3-70b-versatile'),
-        'summary'    => env('GROQ_MODEL_SUMMARY',    'llama3-8b-8192'),
+        'summary'    => env('GROQ_MODEL_SUMMARY',    'llama-3.1-8b-instant'),
         'whisper'    => env('GROQ_MODEL_WHISPER',    'whisper-large-v3'),
     ],
 

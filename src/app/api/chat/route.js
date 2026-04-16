@@ -7,7 +7,7 @@ export async function POST(req) {
 
     const apiKey = process.env.GROQ_API_KEY;
     const baseUrl = process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1';
-    const model = process.env.GROQ_MODEL_CHAT || 'llama3-8b-8192';
+    const model = process.env.GROQ_MODEL_CHAT || 'llama-3.1-8b-instant';
 
     if (!apiKey) {
       return new Response(JSON.stringify({ error: 'GROQ_API_KEY not configured' }), { status: 500 });

@@ -1,7 +1,7 @@
 /**
  * POST /api/groq/summarize
  *
- * Session summary generation using Groq LLM (llama3-8b-8192).
+ * Session summary generation using Groq LLM (llama-3.1-8b-instant).
  * Supports two modes:
  *   type: 'quick'  — 3-4 sentence summary (fast)
  *   type: 'full'   — Participant + Coach + Admin summaries (MeetingSummary shape)
@@ -16,7 +16,7 @@
 export async function POST(req) {
   const apiKey  = process.env.GROQ_API_KEY;
   const baseUrl = process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1';
-  const model   = process.env.GROQ_MODEL_SUMMARY || 'llama3-8b-8192';
+  const model   = process.env.GROQ_MODEL_SUMMARY || 'llama-3.1-8b-instant';
 
   if (!apiKey) {
     return Response.json({ error: 'GROQ_API_KEY not configured' }, { status: 500 });
