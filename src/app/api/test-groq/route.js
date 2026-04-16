@@ -44,7 +44,7 @@ export async function GET() {
         'Content-Type':  'application/json',
       },
       body: JSON.stringify({
-        model:      process.env.GROQ_MODEL_SUMMARY || 'llama3-8b-8192',
+        model:      process.env.GROQ_MODEL_SUMMARY || 'llama-3.1-8b-instant',
         messages:   [{ role: 'user', content: 'Reply with exactly: "Groq connected."' }],
         max_tokens: 10,
         temperature: 0,

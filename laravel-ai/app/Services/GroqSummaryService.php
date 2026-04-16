@@ -9,13 +9,13 @@ use App\Exceptions\GroqApiException;
 /**
  * GroqSummaryService
  *
- * Handles all "lighter" Groq LLM tasks using the faster llama3-8b-8192 model:
+ * Handles all "lighter" Groq LLM tasks using the faster llama-3.1-8b-instant model:
  *
  *   Feature C: Session Summary — markdown overview for instructors
  *   Feature D: Quiz Explanation — auto-generate explanation for wrong quiz answers
  *   Feature F: Conversation Insight Tags — extract themes and missed concepts
  *
- * Uses llama3-8b-8192 (not 70b) because these tasks don't need deep reasoning,
+ * Uses llama-3.1-8b-instant (not 70b) because these tasks don't need deep reasoning,
  * and 8b has a higher daily request quota on the free tier.
  */
 class GroqSummaryService
@@ -29,7 +29,7 @@ class GroqSummaryService
     {
         $this->apiKey        = config('groq.api_key');
         $this->baseUrl       = config('groq.base_url');
-        $this->summaryModel  = config('groq.models.summary', 'llama3-8b-8192');
+        $this->summaryModel  = config('groq.models.summary', 'llama-3.1-8b-instant');
         $this->timeout       = config('groq.timeouts.summary', 60);
     }
 

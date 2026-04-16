@@ -7,9 +7,9 @@
  *   - transcribeAudio()          → Groq Whisper (whisper-large-v3)
  *   - generateMeetingSummaries() → llama-3.3-70b-versatile
  *   - evaluateBloomsLevel()       → Bloom's Taxonomy scoring per participant
- *   - generateQuickSummary()      → llama3-8b-8192 (fast + cheap)
- *   - generateQuizExplanation()   → llama3-8b-8192
- *   - generateInsightTags()       → llama3-8b-8192
+ *   - generateQuickSummary()      → llama-3.1-8b-instant (fast + cheap)
+ *   - generateQuizExplanation()   → llama-3.1-8b-instant
+ *   - generateInsightTags()       → llama-3.1-8b-instant
  *
  * Setup:
  *   Add to .env.local:
@@ -212,7 +212,7 @@ export const groqService = {
 
   /**
    * Quick 3–4 sentence summary. Cheaper than full analysis.
-   * Uses llama3-8b-8192 for speed.
+   * Uses llama-3.1-8b-instant for speed.
    */
   async generateQuickSummary(transcript: string, meetingTitle: string): Promise<string> {
     const response = await fetch('/api/groq/summarize', {
