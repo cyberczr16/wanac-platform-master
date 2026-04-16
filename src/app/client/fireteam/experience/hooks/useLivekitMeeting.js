@@ -130,6 +130,16 @@ export function useLivekitMeeting() {
     }
   }, []);
 
+  // Periodic participant refresh — catches missed ParticipantConnected events
+  // that can occur during WebRTC reconnection / TURN fallback.
+  useEffect(() => {
+    if (!livekitReady) return;
+    const interval = setInterval(() => {
+      if (roomRef.current) updateParticipantsFromRoom(roomRef.current);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [livekitReady, updateParticipantsFromRoom]);
+
   useEffect(() => {
     return () => {
       if (roomRef.current) {

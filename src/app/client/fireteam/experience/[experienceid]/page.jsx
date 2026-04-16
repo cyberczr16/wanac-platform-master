@@ -367,6 +367,11 @@ export default function FireteamExperienceMeeting() {
   // ============================================================================
 
   useEffect(() => {
+    // Wait for experience data so we can use the stored meeting link.
+    // This prevents users from ending up in different LiveKit rooms when
+    // the ?link= query parameter is missing from their URL.
+    if (dataLoading) return;
+
     const expId = searchParams?.get("id");
     const ftId = searchParams?.get("fireteamId");
     const linkParam = searchParams?.get("link");
@@ -375,9 +380,13 @@ export default function FireteamExperienceMeeting() {
       try {
         setShowSummaryModal(false);
 
+        // Resolve the room name — prefer the URL param, then the DB-stored
+        // link on the experience, then a deterministic fallback.
         let meetingLink = null;
         if (linkParam) {
           meetingLink = decodeURIComponent(linkParam);
+        } else if (experience?.link) {
+          meetingLink = experience.link;
         } else if (expId) {
           meetingLink = `wanac-ft-exp-${expId}`;
         } else if (ftId) {
@@ -419,7 +428,7 @@ export default function FireteamExperienceMeeting() {
     init();
     return () => { leaveMeeting(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams?.get("id"), searchParams?.get("fireteamId"), searchParams?.get("link")]);
+  }, [dataLoading, experience?.link, searchParams?.get("id"), searchParams?.get("fireteamId"), searchParams?.get("link")]);
 
   // ============================================================================
   // EVENT HANDLERS
