@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
+import { FaFacebook } from "react-icons/fa";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -9,10 +10,8 @@ import toast from "react-hot-toast";
 import { handleValidationErrors } from "@/lib/error";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from "jwt-decode";
-import { BASE_URL } from "@/services/api/config";
-import { extractAuthToken, extractAuthUser } from "@/lib/authResponse.utils";
 
-const AUTH_API_BASE = BASE_URL;
+const AUTH_API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.wanac.org";
 
 export default function Login() {
   const router = useRouter();
@@ -83,13 +82,7 @@ export default function Login() {
           }
         );
 
-        let data;
-        try {
-          data = await response.json();
-        } catch {
-          toast.error("Login failed: invalid response from server.");
-          return;
-        }
+        const data = await response.json();
 
         if (!response.ok) {
           // Display API error message
@@ -103,23 +96,16 @@ export default function Login() {
           return;
         }
 
-        const token = extractAuthToken(data);
-        if (!token) {
-          toast.error("Login succeeded but no token was returned. Please try again.");
-          return;
-        }
-
-        const apiUser = extractAuthUser(data);
-        const role = String(apiUser?.role ?? userType).toLowerCase();
+        // Store user data in localStorage
         localStorage.setItem(
           "wanacUser",
           JSON.stringify({
-            ...(apiUser ?? {}),
-            userType: role,
+            ...data.user,
+            userType: userType,
           })
         );
-        localStorage.setItem("auth_token", token);
-        toast.success(data.message ?? "Signed in successfully.");
+        localStorage.setItem("auth_token", data.token);
+        toast.success(data.message);
 
         const dashboardPaths = {
           client: '/client/dashboard',
@@ -127,7 +113,7 @@ export default function Login() {
           admin: '/admin'
         };
 
-        const dashboardPath = dashboardPaths[role];
+        const dashboardPath = dashboardPaths[userType];
         if (!dashboardPath) {
           throw new Error("Invalid user type");
         }
@@ -171,13 +157,7 @@ export default function Login() {
           }),
         }
       );
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        toast.error('Google login failed: invalid response from server.');
-        return;
-      }
+      const data = await response.json();
 
       if (!response.ok) {
         if (data?.errors) {
@@ -190,16 +170,9 @@ export default function Login() {
         return;
       }
 
-      const token = extractAuthToken(data);
-      if (!token) {
-        toast.error('Sign-in succeeded but no token was returned. Please try again.');
-        return;
-      }
-
-      const apiUser = extractAuthUser(data);
-      const role = String(apiUser?.role ?? userType).toLowerCase();
-      localStorage.setItem('wanacUser', JSON.stringify({ ...(apiUser ?? {}), userType: role }));
-      localStorage.setItem('auth_token', token);
+      const role = data.user?.role ?? userType;
+      localStorage.setItem('wanacUser', JSON.stringify({ ...data.user, userType: role }));
+      localStorage.setItem('auth_token', data.token);
       toast.success('Successfully signed in with Google!');
       const dashboardPaths = {
         client: '/client/dashboard',
@@ -273,7 +246,7 @@ export default function Login() {
             {/* User Type Selection */}
             <div className="mb-5">
               <label className="block text-sm font-medium text-brand-navy mb-2">
-                Sign in as
+                Select User Type
               </label>
               <div className="flex border bg-[#002147] rounded-md overflow-hidden">
                 <button
@@ -299,6 +272,18 @@ export default function Login() {
                   aria-pressed={userType === "coach"}
                 >
                   Coach
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 py-2 text-center text-sm font-medium transition-colors ${
+                    userType === "admin"
+                      ? "bg-orange-500 text-white"
+                      : "bg-transparent text-white hover:bg-orange-500"
+                  }`}
+                  onClick={() => setUserType("admin")}
+                  aria-pressed={userType === "admin"}
+                >
+                  Admin
                 </button>
               </div>
             </div>
@@ -448,7 +433,7 @@ export default function Login() {
                     Signing in...
                   </>
                 ) : (
-                  "Sign In"
+                  "Proceed"
                 )}
               </button>
             </form>
@@ -465,29 +450,37 @@ export default function Login() {
                   </span>
                 </div>
               </div>
-              <div className={socialLoading.google ? "opacity-50" : ""}>
-                {hasGoogleAuth ? (
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={handleGoogleError}
-                    useOneTap
-                    theme="outline"
-                    shape="rectangular"
-                    locale="en"
-                    text="signin_with"
-                    disabled={socialLoading.google}
-                    width="100%"
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => toast.error("Add NEXT_PUBLIC_GOOGLE_CLIENT_ID to your .env to enable Google sign-in.")}
-                    className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                  >
-                    <FcGoogle className="h-5 w-5 mr-2" />
-                    Sign in with Google
-                  </button>
-                )}
+              <div className="grid grid-cols-2 gap-3">
+                <div className={socialLoading.google ? "opacity-50" : ""}>
+                  {hasGoogleAuth ? (
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={handleGoogleError}
+                      useOneTap
+                      theme="outline"
+                      shape="rectangular"
+                      locale="en"
+                      text="signin_with"
+                      disabled={socialLoading.google}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => toast.error("Add NEXT_PUBLIC_GOOGLE_CLIENT_ID to your .env to enable Google sign-in.")}
+                      className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                      <FcGoogle className="h-5 w-5 mr-2" />
+                      Sign in with Google
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <FaFacebook className="h-5 w-5 mr-2 text-blue-600" />
+                  Facebook
+                </button>
               </div>
             </div>
 

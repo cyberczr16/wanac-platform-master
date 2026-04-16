@@ -32,15 +32,8 @@ export interface GroupBalanceScore {
 }
 
 export interface BloomTaxonomyLevel {
-  level:
-    | 'Did Not Discuss'
-    | 'Remembering'
-    | 'Understanding'
-    | 'Applying'
-    | 'Analyzing'
-    | 'Evaluating'
-    | 'Creating';
-  score: number; // 0–6 (0 = did not discuss)
+  level: 'Remembering' | 'Understanding' | 'Applying' | 'Analyzing' | 'Evaluating' | 'Creating';
+  score: number; // 1-6 scale
   color: string;
 }
 
@@ -216,7 +209,6 @@ export const mockEvaluationData: EvaluationData = {
 };
 
 export const bloomTaxonomyColors = {
-  'Did Not Discuss': '#efefef',
   'Creating': '#10B981', // emerald
   'Evaluating': '#F59E0B', // amber
   'Analyzing': '#FCD34D', // yellow

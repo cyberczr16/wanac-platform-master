@@ -13,9 +13,6 @@ import { useToast } from "../hooks/useToast";
 import { useRoomState } from "../hooks/useRoomState";
 import { extractRoomNameFromUrl } from "../../../../../lib/livekit.utils";
 
-// Access control
-import { isCurrentUserMemberOf, isClientRole } from "../../../../../lib/fireteamAccess";
-
 // UI Components
 import LivekitVideoContainer from "../components/LivekitVideoContainer";
 import { ToastContainer } from "../components/Toast";
@@ -253,25 +250,6 @@ export default function FireteamExperienceMeeting() {
   const router = useRouter();
   const isAdmin = searchParams?.get("admin") === "true";
   const [wanacUser, setWanacUser] = useState(null);
-
-  // Access control — block non-members from viewing this fireteam session
-  const [accessDenied, setAccessDenied] = useState(false);
-  const [accessChecked, setAccessChecked] = useState(false);
-
-  useEffect(() => {
-    const fireteamId = searchParams?.get("fireteamId");
-    if (!fireteamId || !isClientRole()) {
-      setAccessChecked(true);
-      return;
-    }
-    let cancelled = false;
-    isCurrentUserMemberOf(fireteamId).then((ok) => {
-      if (cancelled) return;
-      if (!ok) setAccessDenied(true);
-      setAccessChecked(true);
-    });
-    return () => { cancelled = true; };
-  }, [searchParams]);
 
   // UI State  (currentStep is now derived from useRoomState — see below)
   const [showSlide, setShowSlide] = useState(false);
@@ -611,35 +589,6 @@ export default function FireteamExperienceMeeting() {
   // RENDER
   // ============================================================================
 
-  // Block access for non-members
-  if (!accessChecked) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-[#f5f5f5]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400" />
-      </div>
-    );
-  }
-
-  if (accessDenied) {
-    return (
-      <div className="h-screen flex bg-[#f5f5f5] overflow-hidden">
-        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-        <main className="flex-1 min-w-0 flex items-center justify-center">
-          <div className="text-center px-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h2>
-            <p className="text-sm text-gray-500 mb-6">You are not a member of this fireteam.</p>
-            <button
-              onClick={() => router.push("/client/fireteam")}
-              className="px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors"
-            >
-              Back to FireTeam
-            </button>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="h-screen flex bg-[#f5f5f5] overflow-hidden">
 
@@ -848,12 +797,6 @@ export default function FireteamExperienceMeeting() {
 
           {/* ── RIGHT SIDEBAR ── */}
           <aside className="w-72 flex-shrink-0 bg-white border-l border-gray-100 flex flex-col overflow-hidden">
-
-            {/* Recording / transcript expectations */}
-            <div className="flex-shrink-0 px-3 py-2 text-[11px] leading-snug text-amber-900 bg-amber-50 border-b border-amber-100">
-              Session recording captures one mixed audio (and optional screen) track. The AI transcript does not
-              separate speakers; Session Results explain scores in that context.
-            </div>
 
             {/* Tab switcher */}
             <div className="flex-shrink-0 flex border-b border-gray-100">

@@ -12,7 +12,6 @@ export interface RegisterRequest {
   referralCode?: string;
   preferredContact?: string;
   profilePic?: string | null;
-  newsletter?: boolean;
 }
 
 export interface LoginRequest {
@@ -32,20 +31,12 @@ export interface ForgotPasswordRequest {
 }
 
 export interface AuthResponse {
-  /** Present for most successful auth responses; API may use access_token instead. */
-  token?: string;
-  access_token?: string;
-  message?: string;
-  user?: {
+  token: string;
+  user: {
     id: string;
     name: string;
     email: string;
     role: string;
-  };
-  data?: {
-    token?: string;
-    access_token?: string;
-    user?: AuthResponse["user"];
   };
 }
 
