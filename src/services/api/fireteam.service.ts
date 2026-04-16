@@ -13,8 +13,9 @@ function normalizeFireteamList(payload: any): any[] {
     if (Array.isArray(payload.fire_teams)) return payload.fire_teams;
     if (Array.isArray(payload.fire_teams?.data)) return payload.fire_teams.data;
     if (Array.isArray(payload.result)) return payload.result;
+    if (Array.isArray(payload.fireTeamMembers)) return payload.fireTeamMembers;
   }
-  
+
   // Return empty array if no valid array found
   return [];
 }
@@ -38,6 +39,24 @@ export const fireteamService = {
         if (Array.isArray(fireteamsData.fireTeams)) return fireteamsData.fireTeams;
         if (Array.isArray(fireteamsData.fireTeams?.data)) return fireteamsData.fireTeams.data;
         if (Array.isArray(fireteamsData.results)) return fireteamsData.results;
+
+        // Backend returns membership records for client users:
+        // { fireTeamMembers: [{ id, fire_team_id, client_id, ... }] }
+        // We need to fetch the full fireteam details for each membership.
+        if (Array.isArray(fireteamsData.fireTeamMembers) && fireteamsData.fireTeamMembers.length > 0) {
+          const memberships = fireteamsData.fireTeamMembers;
+          const uniqueFireteamIds = [...new Set(memberships.map((m: any) => m.fire_team_id))];
+          const fireteams = await Promise.all(
+            uniqueFireteamIds.map(async (id) => {
+              try {
+                return await fireteamService.getFireteam(id as string | number);
+              } catch {
+                return null;
+              }
+            })
+          );
+          return fireteams.filter(Boolean);
+        }
       }
 
       return [];
