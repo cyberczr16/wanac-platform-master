@@ -58,13 +58,14 @@ export function useLivekitMeeting() {
       roomRef.current = room;
 
       room
-        .on(RoomEvent.ParticipantConnected, () => {
-          updateParticipantsFromRoom(room);
-          setAttendanceLog((prev) => [...prev, { type: 'join', at: new Date().toISOString() }]);
+        .on(RoomEvent.ParticipantConnected, (participant) => {
+          // Small delay so LiveKit's internal participant map is fully updated
+          setTimeout(() => updateParticipantsFromRoom(room), 150);
+          setAttendanceLog((prev) => [...prev, { type: 'join', at: new Date().toISOString(), id: participant?.identity }]);
         })
-        .on(RoomEvent.ParticipantDisconnected, () => {
-          updateParticipantsFromRoom(room);
-          setAttendanceLog((prev) => [...prev, { type: 'leave', at: new Date().toISOString() }]);
+        .on(RoomEvent.ParticipantDisconnected, (participant) => {
+          setTimeout(() => updateParticipantsFromRoom(room), 150);
+          setAttendanceLog((prev) => [...prev, { type: 'leave', at: new Date().toISOString(), id: participant?.identity }]);
         })
         .on(RoomEvent.ActiveSpeakersChanged, () => {
           updateParticipantsFromRoom(room);

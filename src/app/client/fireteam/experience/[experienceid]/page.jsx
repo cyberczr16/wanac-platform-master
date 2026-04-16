@@ -895,7 +895,7 @@ export default function FireteamExperienceMeeting() {
                             key={idx}
                             onClick={() => {
                               if (!canNavigate) return;
-                              leaderSetStep(idx);
+                              advanceSlide(idx);
                             }}
                             disabled={!canNavigate}
                             className={`relative w-full flex items-start gap-3 py-2 text-left rounded-lg px-1 transition-colors
