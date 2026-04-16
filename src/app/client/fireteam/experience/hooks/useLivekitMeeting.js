@@ -32,12 +32,16 @@ export function useLivekitMeeting() {
     setParticipants(mapped);
   }, []);
 
-  const initializeMeeting = useCallback(async (_domain, roomName) => {
+  const initializeMeeting = useCallback(async (_domain, roomName, { userId, userName } = {}) => {
     setLoading(true);
     setError('');
     try {
+      const params = new URLSearchParams({ roomName });
+      if (userId)   params.set('userId',   userId);
+      if (userName)  params.set('userName', userName);
+
       const resp = await fetch(
-        `/api/livekit/token?roomName=${encodeURIComponent(roomName)}`,
+        `/api/livekit/token?${params.toString()}`,
         { cache: 'no-store' },
       );
       if (!resp.ok) {
@@ -68,6 +72,8 @@ export function useLivekitMeeting() {
         .on(RoomEvent.DataReceived, (payload, participant) => {
           try {
             const text = new TextDecoder().decode(payload);
+            // Skip JSON room-state messages (handled by useRoomState)
+            if (text.startsWith('{') || text.startsWith('[')) return;
             setChatMessages((prev) => [
               ...prev,
               {
