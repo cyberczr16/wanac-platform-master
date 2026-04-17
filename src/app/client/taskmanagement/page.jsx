@@ -8,7 +8,7 @@ import {
   TextField,
   MenuItem,
 } from "@mui/material";
-import { FaPlus, FaTimes, FaEdit, FaTrash } from "react-icons/fa";
+import { FaPlus, FaTimes, FaEdit, FaTrash, FaFire, FaCalendarAlt, FaShareSquare, FaTimesCircle } from "react-icons/fa";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import toast from "react-hot-toast";
 
@@ -38,7 +38,14 @@ export default function TaskManagementPage() {
   const [form, setForm] = useState(INITIAL_FORM_STATE);
   const [formError, setFormError] = useState("");
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileQuadrant, setMobileQuadrant] = useState("urgent-important");
 
+  const MOBILE_QUADRANT_TABS = [
+    { key: "urgent-important", label: "Do First", shortLabel: "Do First", icon: FaFire, color: "text-red-500", bg: "bg-red-50", border: "border-red-200", activeBg: "bg-red-500" },
+    { key: "not-urgent-important", label: "Schedule", shortLabel: "Schedule", icon: FaCalendarAlt, color: "text-blue-500", bg: "bg-blue-50", border: "border-blue-200", activeBg: "bg-blue-500" },
+    { key: "urgent-not-important", label: "Delegate", shortLabel: "Delegate", icon: FaShareSquare, color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-200", activeBg: "bg-amber-500" },
+    { key: "not-urgent-not-important", label: "Eliminate", shortLabel: "Eliminate", icon: FaTimesCircle, color: "text-gray-400", bg: "bg-gray-50", border: "border-gray-200", activeBg: "bg-gray-500" },
+  ];
 
   const getTasksByPriority = useCallback(
     (priority) => {
@@ -173,6 +180,100 @@ export default function TaskManagementPage() {
     [tasks, handleUpdateTaskPriority]
   );
 
+  // Shared task card renderer
+  const renderTaskCard = (task, idx, provided, snapshot) => (
+    <div
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      {...provided.dragHandleProps}
+      className={`p-2.5 rounded-lg border transition-all cursor-pointer group ${
+        snapshot.isDragging
+          ? "bg-blue-100 border-blue-300 shadow-lg"
+          : "bg-gray-50 border-gray-200 hover:bg-blue-50/50 hover:border-blue-200"
+      }`}
+      onClick={() => handleOpenDialog(task)}
+    >
+      <div className="flex justify-between items-start gap-2">
+        <span className="font-semibold text-[11px] text-gray-900 flex-1 line-clamp-2">
+          {task.title}
+        </span>
+        <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-700 font-medium whitespace-nowrap">
+          {task.status}
+        </span>
+      </div>
+      <div className="text-[9px] text-gray-500 mt-1.5 flex items-center gap-1">
+        <span className="font-medium">Due:</span>
+        {task.due_date}
+      </div>
+    </div>
+  );
+
+  // Shared modal renderer
+  const renderTaskModal = () => {
+    if (!dialogOpen) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="bg-white rounded-xl p-5 w-full max-w-2xl shadow-2xl relative mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className={`p-2 rounded-full ${editTask ? 'bg-blue-100' : 'bg-orange-100'}`}>
+                {editTask ? <FaEdit className="text-blue-600" size={14} /> : <FaPlus className="text-orange-600" size={14} />}
+              </div>
+              <h2 className="text-base font-bold text-[#002147]">
+                {editTask ? "Edit Task" : "Add Task"}
+              </h2>
+            </div>
+            <button onClick={handleCloseDialog} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+              <FaTimes className="text-gray-500" size={14} />
+            </button>
+          </div>
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <TextField label="Title" name="title" value={form.title} onChange={handleFormChange} fullWidth required size="small"
+                sx={{ '& .MuiInputLabel-root': { fontSize: '13px' }, '& .MuiInputBase-root': { fontSize: '13px' } }} />
+              <TextField label="Due Date" name="due_date" type="date" value={form.due_date} onChange={handleFormChange} fullWidth InputLabelProps={{ shrink: true }} required size="small"
+                sx={{ '& .MuiInputLabel-root': { fontSize: '13px' }, '& .MuiInputBase-root': { fontSize: '13px' } }} />
+              <TextField select label="Priority (Quadrant)" name="priority" value={form.priority} onChange={handleFormChange} fullWidth size="small"
+                sx={{ '& .MuiInputLabel-root': { fontSize: '13px' }, '& .MuiInputBase-root': { fontSize: '13px' } }}>
+                {PRIORITY_MATRIX.map((option) => (
+                  <MenuItem key={option.value} value={option.value} sx={{ fontSize: '13px' }}>{option.label}</MenuItem>
+                ))}
+              </TextField>
+              <TextField select label="Status" name="status" value={form.status} onChange={handleFormChange} fullWidth size="small"
+                sx={{ '& .MuiInputLabel-root': { fontSize: '13px' }, '& .MuiInputBase-root': { fontSize: '13px' } }}>
+                <MenuItem value="pending" sx={{ fontSize: '13px' }}>Pending</MenuItem>
+                <MenuItem value="in-progress" sx={{ fontSize: '13px' }}>In Progress</MenuItem>
+                <MenuItem value="completed" sx={{ fontSize: '13px' }}>Completed</MenuItem>
+              </TextField>
+            </div>
+            <TextField label="Description" name="description" value={form.description} onChange={handleFormChange} fullWidth multiline minRows={3} size="small"
+              sx={{ '& .MuiInputLabel-root': { fontSize: '13px' }, '& .MuiInputBase-root': { fontSize: '13px' } }} />
+            {formError && (
+              <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-[11px] flex items-center gap-2">
+                <span>⚠</span>{formError}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-between items-center mt-5 pt-4 border-t border-gray-200">
+            {editTask ? (
+              <button onClick={() => handleDeleteTask(editTask.id)} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold text-[11px] transition-all shadow-sm">
+                <FaTrash size={10} /> Delete
+              </button>
+            ) : (<div></div>)}
+            <div className="flex gap-2">
+              <button onClick={handleCloseDialog} className="px-3 py-1.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-semibold text-[11px] transition-all">Cancel</button>
+              <button onClick={handleSaveTask} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-[11px] transition-all shadow-sm ${editTask ? 'bg-[#002147] text-white hover:bg-[#003875]' : 'bg-orange-500 text-white hover:bg-orange-600'}`}>
+                {editTask ? "Update" : "Add"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const activeTab = MOBILE_QUADRANT_TABS.find(t => t.key === mobileQuadrant);
+
   return (
     <div className="h-screen flex bg-white font-body">
       <Sidebar
@@ -184,19 +285,115 @@ export default function TaskManagementPage() {
       <div className="flex-1 flex flex-col h-full transition-all duration-300">
         <ClientTopbar user={user} />
 
-        <main className="flex-1 h-0 overflow-y-auto px-4 md:px-6 py-3 bg-gray-50">
-          <div className="max-w-7xl mx-auto">
+        {/* ========== MOBILE LAYOUT ========== */}
+        <main className="md:hidden flex-1 flex flex-col h-0 bg-gray-50">
+          {/* Compact Header */}
+          <div className="flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-[#002147] to-[#003875]">
+            <div>
+              <h1 className="text-sm font-bold text-white leading-tight">Task Management</h1>
+              <p className="text-[9px] text-white/70">Eisenhower Matrix</p>
+            </div>
+            <button
+              onClick={() => handleOpenDialog()}
+              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-2.5 py-1.5 rounded-lg transition-all text-[10px] shadow-sm flex items-center gap-1"
+            >
+              <FaPlus size={9} /> Add Task
+            </button>
+          </div>
+
+          {/* Stats Strip */}
+          <div className="grid grid-cols-3 gap-2 px-3 py-2 bg-white border-b border-gray-100">
+            <div className="flex items-center justify-between px-2 py-1.5 bg-blue-50 rounded-lg">
+              <span className="text-[9px] font-medium text-gray-600">Total</span>
+              <span className="text-xs font-bold text-[#002147]">{tasks.length}</span>
+            </div>
+            <div className="flex items-center justify-between px-2 py-1.5 bg-green-50 rounded-lg">
+              <span className="text-[9px] font-medium text-gray-600">Done</span>
+              <span className="text-xs font-bold text-green-600">{tasks.filter(t => t.status === 'completed').length}</span>
+            </div>
+            <div className="flex items-center justify-between px-2 py-1.5 bg-orange-50 rounded-lg">
+              <span className="text-[9px] font-medium text-gray-600">Pending</span>
+              <span className="text-xs font-bold text-orange-600">{tasks.filter(t => t.status === 'pending').length}</span>
+            </div>
+          </div>
+
+          {/* Quadrant Tabs */}
+          <div className="grid grid-cols-4 bg-white border-b border-gray-200">
+            {MOBILE_QUADRANT_TABS.map((tab) => {
+              const isActive = mobileQuadrant === tab.key;
+              const count = getTasksByPriority(tab.key).length;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setMobileQuadrant(tab.key)}
+                  className={`flex flex-col items-center py-2 px-1 transition-all relative ${
+                    isActive ? 'bg-gray-50' : 'hover:bg-gray-50/50'
+                  }`}
+                >
+                  <div className={`relative ${isActive ? tab.color : 'text-gray-400'}`}>
+                    <tab.icon size={14} />
+                    {count > 0 && (
+                      <span className={`absolute -top-1.5 -right-2.5 text-[8px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center ${
+                        isActive ? `${tab.activeBg} text-white` : 'bg-gray-300 text-white'
+                      }`}>
+                        {count}
+                      </span>
+                    )}
+                  </div>
+                  <span className={`text-[9px] mt-1 font-medium ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                    {tab.shortLabel}
+                  </span>
+                  {isActive && (
+                    <div className={`absolute bottom-0 left-1 right-1 h-[2px] rounded-t ${tab.activeBg}`} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Active Quadrant Content — fills remaining viewport */}
+          <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable droppableId={mobileQuadrant}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={`space-y-2 min-h-full ${snapshot.isDraggingOver ? 'bg-blue-50/30 rounded-lg' : ''}`}
+                  >
+                    {getTasksByPriority(mobileQuadrant).length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                        {activeTab && <activeTab.icon size={28} className="mb-2 opacity-30" />}
+                        <p className="text-xs font-medium">No tasks here</p>
+                        <p className="text-[10px] mt-0.5">Tap "Add Task" to create one</p>
+                      </div>
+                    ) : (
+                      getTasksByPriority(mobileQuadrant).map((task, idx) => (
+                        <Draggable draggableId={task.id.toString()} index={idx} key={task.id}>
+                          {(provided, snapshot) => renderTaskCard(task, idx, provided, snapshot)}
+                        </Draggable>
+                      ))
+                    )}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          </div>
+
+          {renderTaskModal()}
+        </main>
+
+        {/* ========== DESKTOP LAYOUT ========== */}
+        <main className="hidden md:flex flex-1 h-0 overflow-y-auto px-4 md:px-6 py-3 bg-gray-50">
+          <div className="max-w-7xl mx-auto w-full">
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Main Content */}
               <div className="flex-1 space-y-3">
                 {/* Header Section */}
                 <section className="bg-gradient-to-br from-[#002147] to-[#003875] rounded-xl p-4 shadow-lg relative overflow-hidden">
                   <div className="absolute inset-0 opacity-10">
-                    <img 
-                      src="/veterancommunity.png" 
-                      alt="Background" 
-                      className="w-full h-full object-cover"
-                    />
+                    <img src="/veterancommunity.png" alt="Background" className="w-full h-full object-cover" />
                   </div>
                   <div className="relative z-10 flex items-center justify-between">
                     <div>
@@ -204,13 +401,12 @@ export default function TaskManagementPage() {
                       <p className="text-white/90 text-xs">Organize tasks using the Eisenhower Matrix</p>
                     </div>
                     <button
-                onClick={() => handleOpenDialog()}
+                      onClick={() => handleOpenDialog()}
                       className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-3 py-1.5 rounded-lg transition-all text-[11px] shadow-sm hover:shadow-md flex items-center gap-1.5"
-              >
-                      <FaPlus size={10} />
-                Add Task
+                    >
+                      <FaPlus size={10} /> Add Task
                     </button>
-            </div>
+                  </div>
                 </section>
 
                 {/* Info Section */}
@@ -222,99 +418,47 @@ export default function TaskManagementPage() {
 
                 {/* Matrix Grid */}
                 <section>
-              <DragDropContext onDragEnd={onDragEnd}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {PRIORITY_MATRIX.map((quadrant) => (
-                    <Droppable
-                      droppableId={quadrant.value}
-                      key={quadrant.value}
-                    >
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.droppableProps}
+                  <DragDropContext onDragEnd={onDragEnd}>
+                    <div className="grid grid-cols-2 gap-4">
+                      {PRIORITY_MATRIX.map((quadrant) => (
+                        <Droppable droppableId={quadrant.value} key={quadrant.value}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
                               className={`bg-white border border-gray-200 rounded-xl p-3 min-h-[280px] shadow-sm hover:shadow-md transition-shadow flex flex-col ${
                                 snapshot.isDraggingOver ? "bg-blue-50 border-blue-300" : ""
-                          }`}
-                        >
-                              <h3 className="text-sm font-bold text-[#002147] mb-3">
-                            {quadrant.label}
-                          </h3>
-
+                              }`}
+                            >
+                              <h3 className="text-sm font-bold text-[#002147] mb-3">{quadrant.label}</h3>
                               <div className="space-y-2 flex-1">
-                          {getTasksByPriority(quadrant.value).map(
-                            (task, idx) => (
-                              <Draggable
-                                draggableId={task.id.toString()}
-                                index={idx}
-                                key={task.id}
-                              >
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                          className={`p-2.5 rounded-lg border transition-all cursor-pointer group ${
-                                      snapshot.isDragging
-                                              ? "bg-blue-100 border-blue-300 shadow-lg"
-                                              : "bg-gray-50 border-gray-200 hover:bg-blue-50/50 hover:border-blue-200"
-                                          }`}
-                                    onClick={() => handleOpenDialog(task)}
-                                  >
-                                          <div className="flex justify-between items-start gap-2">
-                                            <span className="font-semibold text-[11px] text-gray-900 flex-1 line-clamp-2">
-                                        {task.title}
-                                      </span>
-                                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-700 font-medium whitespace-nowrap">
-                                        {task.status}
-                                      </span>
-                                    </div>
-                                          <div className="text-[9px] text-gray-500 mt-1.5 flex items-center gap-1">
-                                            <span className="font-medium">Due:</span>
-                                            {task.due_date}
-                                    </div>
-                                  </div>
-                                )}
-                              </Draggable>
-                            )
-                          )}
+                                {getTasksByPriority(quadrant.value).map((task, idx) => (
+                                  <Draggable draggableId={task.id.toString()} index={idx} key={task.id}>
+                                    {(provided, snapshot) => renderTaskCard(task, idx, provided, snapshot)}
+                                  </Draggable>
+                                ))}
                               </div>
-                          {provided.placeholder}
-                        </div>
-                      )}
-                    </Droppable>
-                  ))}
-                </div>
-              </DragDropContext>
-            </section>
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      ))}
+                    </div>
+                  </DragDropContext>
+                </section>
               </div>
-              
+
               {/* Right Sidebar */}
               <aside className="lg:w-64 space-y-3">
-                {/* Quick Tips Card */}
                 <div className="bg-gradient-to-br from-[#002147] to-[#003875] rounded-xl shadow-sm p-3 text-white">
                   <h3 className="text-sm font-semibold mb-2">Priority Guide</h3>
                   <ul className="space-y-2 text-[10px] text-white/90">
-                    <li className="flex items-start gap-2">
-                      <span className="text-orange-500 mt-0.5">•</span>
-                      <span><strong>Urgent & Important:</strong> Do first</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-orange-500 mt-0.5">•</span>
-                      <span><strong>Not Urgent & Important:</strong> Schedule</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-orange-500 mt-0.5">•</span>
-                      <span><strong>Urgent & Not Important:</strong> Delegate</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-orange-500 mt-0.5">•</span>
-                      <span><strong>Not Urgent & Not Important:</strong> Eliminate</span>
-                    </li>
+                    <li className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">•</span><span><strong>Urgent & Important:</strong> Do first</span></li>
+                    <li className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">•</span><span><strong>Not Urgent & Important:</strong> Schedule</span></li>
+                    <li className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">•</span><span><strong>Urgent & Not Important:</strong> Delegate</span></li>
+                    <li className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">•</span><span><strong>Not Urgent & Not Important:</strong> Eliminate</span></li>
                   </ul>
                 </div>
-
-                {/* Stats Card */}
                 <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow p-3">
                   <h3 className="text-sm font-semibold text-[#002147] mb-3">Task Overview</h3>
                   <div className="space-y-2">
@@ -324,15 +468,11 @@ export default function TaskManagementPage() {
                     </div>
                     <div className="flex items-center justify-between p-2 bg-green-50 rounded">
                       <span className="text-[10px] font-medium text-gray-700">Completed</span>
-                      <span className="text-sm font-bold text-green-600">
-                        {tasks.filter(t => t.status === 'completed').length}
-                      </span>
+                      <span className="text-sm font-bold text-green-600">{tasks.filter(t => t.status === 'completed').length}</span>
                     </div>
                     <div className="flex items-center justify-between p-2 bg-orange-50 rounded">
                       <span className="text-[10px] font-medium text-gray-700">Pending</span>
-                      <span className="text-sm font-bold text-orange-600">
-                        {tasks.filter(t => t.status === 'pending').length}
-                      </span>
+                      <span className="text-sm font-bold text-orange-600">{tasks.filter(t => t.status === 'pending').length}</span>
                     </div>
                   </div>
                 </div>
@@ -340,154 +480,7 @@ export default function TaskManagementPage() {
             </div>
           </div>
 
-
-          {/* Task Dialog Modal */}
-          {dialogOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-              <div className="bg-white rounded-xl p-5 w-full max-w-2xl shadow-2xl relative mx-4">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className={`p-2 rounded-full ${editTask ? 'bg-blue-100' : 'bg-orange-100'}`}>
-                      {editTask ? <FaEdit className="text-blue-600" size={14} /> : <FaPlus className="text-orange-600" size={14} />}
-                    </div>
-                    <h2 className="text-base font-bold text-[#002147]">
-                      {editTask ? "Edit Task" : "Add Task"}
-                    </h2>
-                  </div>
-                  <button
-                    onClick={handleCloseDialog}
-                    className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <FaTimes className="text-gray-500" size={14} />
-                  </button>
-                </div>
-
-                {/* Form */}
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <TextField
-                      label="Title"
-                      name="title"
-                      value={form.title}
-                      onChange={handleFormChange}
-                      fullWidth
-                      required
-                      size="small"
-                      sx={{
-                        '& .MuiInputLabel-root': { fontSize: '13px' },
-                        '& .MuiInputBase-root': { fontSize: '13px' }
-                      }}
-                    />
-                    <TextField
-                      label="Due Date"
-                      name="due_date"
-                      type="date"
-                      value={form.due_date}
-                      onChange={handleFormChange}
-                      fullWidth
-                      InputLabelProps={{ shrink: true }}
-                      required
-                      size="small"
-                      sx={{
-                        '& .MuiInputLabel-root': { fontSize: '13px' },
-                        '& .MuiInputBase-root': { fontSize: '13px' }
-                      }}
-                    />
-                    <TextField
-                      select
-                      label="Priority (Quadrant)"
-                      name="priority"
-                      value={form.priority}
-                      onChange={handleFormChange}
-                      fullWidth
-                      size="small"
-                      sx={{
-                        '& .MuiInputLabel-root': { fontSize: '13px' },
-                        '& .MuiInputBase-root': { fontSize: '13px' }
-                      }}
-                    >
-                      {PRIORITY_MATRIX.map((option) => (
-                        <MenuItem key={option.value} value={option.value} sx={{ fontSize: '13px' }}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                    <TextField
-                      select
-                      label="Status"
-                      name="status"
-                      value={form.status}
-                      onChange={handleFormChange}
-                      fullWidth
-                      size="small"
-                      sx={{
-                        '& .MuiInputLabel-root': { fontSize: '13px' },
-                        '& .MuiInputBase-root': { fontSize: '13px' }
-                      }}
-                    >
-                      <MenuItem value="pending" sx={{ fontSize: '13px' }}>Pending</MenuItem>
-                      <MenuItem value="in-progress" sx={{ fontSize: '13px' }}>In Progress</MenuItem>
-                      <MenuItem value="completed" sx={{ fontSize: '13px' }}>Completed</MenuItem>
-                    </TextField>
-                  </div>
-                  <TextField
-                    label="Description"
-                    name="description"
-                    value={form.description}
-                    onChange={handleFormChange}
-                    fullWidth
-                    multiline
-                    minRows={3}
-                    size="small"
-                    sx={{
-                      '& .MuiInputLabel-root': { fontSize: '13px' },
-                      '& .MuiInputBase-root': { fontSize: '13px' }
-                    }}
-                  />
-                  {formError && (
-                    <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-[11px] flex items-center gap-2">
-                      <span>⚠</span>
-                      {formError}
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div className="flex justify-between items-center mt-5 pt-4 border-t border-gray-200">
-                  {editTask ? (
-                    <button
-                      onClick={() => handleDeleteTask(editTask.id)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold text-[11px] transition-all shadow-sm"
-                    >
-                      <FaTrash size={10} />
-                      Delete
-                    </button>
-                  ) : (
-                    <div></div>
-                  )}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleCloseDialog}
-                      className="px-3 py-1.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-semibold text-[11px] transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleSaveTask}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-[11px] transition-all shadow-sm ${
-                        editTask
-                          ? 'bg-[#002147] text-white hover:bg-[#003875]'
-                          : 'bg-orange-500 text-white hover:bg-orange-600'
-                      }`}
-                    >
-                      {editTask ? "Update" : "Add"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {renderTaskModal()}
         </main>
       </div>
     </div>

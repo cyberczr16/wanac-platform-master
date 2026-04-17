@@ -260,6 +260,7 @@ export default function FireteamExperienceMeeting() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [wasRecording, setWasRecording] = useState(false);
   const [autoStartedRecording, setAutoStartedRecording] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState(null); // null | 'agenda' | 'exhibits'
 
   // Toast notifications
   const toast = useToast();
@@ -356,6 +357,7 @@ export default function FireteamExperienceMeeting() {
   const {
     isRecording,
     recordingBlob,
+    recordingBlobRef,
     processingRecording,
     meetingSummaries,
     toggleRecording,
@@ -471,9 +473,26 @@ export default function FireteamExperienceMeeting() {
         attendanceLog,
         startTime: meetingStartTime ? meetingStartTime.toISOString() : new Date().toISOString(),
       };
-      toast.info("Processing recording... This may take a minute.");
-      const result = await processRecording(meetingData, searchParams);
-      toast.success("AI summary generated successfully!");
+
+      // Progress toasts for each AI processing stage
+      const onProgress = (stage) => {
+        switch (stage) {
+          case 'transcribing':
+            toast.info("AI is transcribing your session recording...");
+            break;
+          case 'summarizing':
+            toast.info("AI is generating your Bloom's Taxonomy evaluation...");
+            break;
+          case 'uploading':
+            toast.info("Saving results to your session...");
+            break;
+          case 'done':
+            toast.success("AI summary generated successfully!");
+            break;
+        }
+      };
+
+      const result = await processRecording(meetingData, searchParams, onProgress);
       return result;
     } catch (err) {
       toast.error(err.message || "Failed to process recording");
@@ -542,16 +561,17 @@ export default function FireteamExperienceMeeting() {
       try {
         if (isRecording) {
           await handleToggleRecording();
+          // Poll the REF (not the stale state closure) so we see the blob
+          // as soon as mediaRecorder.onstop writes it.
           let waitCount = 0;
-          while (!recordingBlob && waitCount < 20 && !cancelled) {
+          while (!recordingBlobRef.current && waitCount < 20 && !cancelled) {
             await new Promise((resolve) => setTimeout(resolve, 250));
             waitCount++;
           }
         }
         await new Promise((resolve) => setTimeout(resolve, 500));
-        if ((wasRecording || recordingBlob) && !cancelled) {
-          const result = await handleProcessRecording();
-          if (result && !cancelled) toast.success("AI summary generated successfully!");
+        if ((wasRecording || recordingBlobRef.current) && !cancelled) {
+          await handleProcessRecording();
         } else if (!cancelled) {
           toast.info("No recording available to process");
         }
@@ -614,493 +634,396 @@ export default function FireteamExperienceMeeting() {
   // RENDER
   // ============================================================================
 
+  /* ── Shared slide/video content renderer ── */
+  const renderContentArea = (isMobileView = false) => (
+    <div className={`flex-1 min-w-0 bg-[#f5f5f5] flex flex-col relative ${isMobileView ? 'min-h-0' : ''}`}>
+      {stepPct > 0 && (
+        <div className="h-0.5 w-full bg-gray-200 flex-shrink-0">
+          <div className="h-full bg-blue-400 transition-all duration-1000" style={{ width: `${stepPct}%` }} />
+        </div>
+      )}
+      <div className={`flex-1 min-h-0 ${isMobileView ? 'p-2' : 'p-5'} flex items-center justify-center relative`}>
+        {showSlide && (
+          <div className="relative w-full h-full flex items-center justify-center" role="region"
+            aria-label={`Slide ${currentStep + 1}: ${currentStepTitle}`}>
+            <div className="w-full h-full max-w-4xl">
+              <Slide step={agenda[currentStep]} participants={participants} experienceTitle={experience?.title || ""}
+                onRatingSubmit={(stars) => {
+                  const expId = searchParams?.get("id");
+                  const userId = currentUserId;
+                  if (expId && userId) {
+                    fetch(`/api/v1/fireteams/experience/${expId}/rating`, {
+                      method: "POST", headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ stars, userId }),
+                    }).catch(() => {});
+                  }
+                }}
+                allSteps={agenda} currentStepIndex={currentStep} />
+            </div>
+          </div>
+        )}
+        <div className={`w-full h-full flex items-center justify-center ${showSlide ? "hidden" : ""}`}>
+          {livekitRoom ? (
+            <LiveKitRoom room={livekitRoom} data-lk-theme="default" style={{ width: "100%", height: "100%" }}>
+              <LivekitVideoContainer showSlide={showSlide} loading={meetingLoading} error={meetingError} />
+            </LiveKitRoom>
+          ) : (
+            <div className="w-full h-full rounded-2xl bg-gray-900 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-400" />
+                <p className="text-white text-sm">Connecting to session…</p>
+              </div>
+            </div>
+          )}
+        </div>
+        {isWaitingRoom && !showSlide && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-xl">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg px-6 py-5 flex flex-col items-center gap-2 text-center max-w-xs">
+              <p className="text-sm font-bold text-gray-800">Waiting for others…</p>
+              <p className="text-xs text-gray-400">
+                {participants.length > 0
+                  ? `${participants.length} participant${participants.length !== 1 ? "s" : ""} in the room`
+                  : "You'll start when your group is here"}
+              </p>
+            </div>
+          </div>
+        )}
+        <button onClick={() => setShowSlide(!showSlide)}
+          className={`absolute ${isMobileView ? 'top-1 right-1' : 'top-3 right-3'} flex items-center gap-1.5 text-xs px-2.5 py-1 bg-white border border-gray-200 rounded-full text-gray-600 font-medium hover:bg-gray-50 transition-colors shadow-sm`}>
+          {showSlide ? <><VideoIcon /> Video</> : <><SlidesIcon /> Slides</>}
+        </button>
+      </div>
+    </div>
+  );
+
+  /* ── Shared agenda timeline renderer ── */
+  const renderAgendaTimeline = () => (
+    <>
+      <div className="flex-shrink-0 px-4 pt-4 pb-3 border-b border-gray-100">
+        <div className="flex items-start gap-2.5">
+          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 text-sm font-black text-blue-500 border border-blue-100">
+            {(experience?.title ?? "F")[0]}
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-xs text-gray-900 leading-tight">{experience?.title || "Fireteam Experience"}</p>
+            <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-1">{experience?.description || "Interactive learning session"}</p>
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-3">
+        <div className="relative">
+          {agenda.length > 1 && <div className="absolute left-[6px] top-3 bottom-3 w-px bg-gray-100" />}
+          {agenda.length > 1 && currentStep > 0 && (
+            <div className="absolute left-[6px] top-3 w-px bg-gray-800 transition-all duration-500"
+              style={{ height: `${(currentStep / (agenda.length - 1)) * 100}%` }} />
+          )}
+          <div className="space-y-0.5">
+            {agenda.map((step, idx) => {
+              const done = idx < currentStep;
+              const curr = idx === currentStep;
+              return (
+                <button key={idx} onClick={() => { if (canNavigate) advanceSlide(idx); }} disabled={!canNavigate}
+                  className={`relative w-full flex items-start gap-2.5 py-1.5 text-left rounded-lg px-1 transition-colors
+                    ${canNavigate ? "hover:bg-gray-50 cursor-pointer" : "cursor-default"} ${curr ? "bg-gray-50" : ""}`}>
+                  <div className="flex-shrink-0 mt-0.5 z-10">
+                    {done ? (
+                      <div className="w-3.5 h-3.5 rounded-full bg-gray-800 flex items-center justify-center">
+                        <svg width="7" height="7" viewBox="0 0 10 10" fill="none">
+                          <polyline points="1.5 5 4 7.5 8.5 2.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                    ) : curr ? (
+                      <div className="w-3.5 h-3.5 rounded-full border-2 border-gray-900 bg-white flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 rounded-full bg-gray-900" />
+                      </div>
+                    ) : (
+                      <div className="w-3.5 h-3.5 rounded-full border-2 border-gray-200 bg-white" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 flex items-baseline justify-between gap-2">
+                    <p className={`text-[11px] leading-snug ${curr ? "font-semibold text-gray-900" : done ? "text-gray-400" : "text-gray-500"}`}>{step.title}</p>
+                    {step.duration && <span className="text-[9px] text-gray-300 flex-shrink-0 font-medium tabular-nums">{step.duration}</span>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      <div className="flex-shrink-0 border-t border-gray-100 px-4 py-3 flex items-end justify-between">
+        <div>
+          <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Time Left</p>
+          <p className="text-xl font-black text-gray-900 leading-none tabular-nums">{totalMinsLeft} <span className="text-xs font-semibold text-gray-400">min</span></p>
+        </div>
+        {stepTimer && (
+          <div className="text-right">
+            <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">This Slide</p>
+            <p className="text-base font-bold text-gray-700 tabular-nums leading-none">{stepTimer}</p>
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  /* ── Shared exhibits renderer ── */
+  const renderExhibits = () => (
+    <div className="flex-1 overflow-y-auto px-3 py-3">
+      {exhibits && exhibits.length > 0 ? (
+        <div className="space-y-2.5">
+          {isGroupLeader && <p className="text-[9px] text-gray-400 text-center">Tap an exhibit to show it to everyone</p>}
+          {exhibits.map((exhibit, idx) => {
+            const exhibitId = exhibit.id ?? idx;
+            const isActive = String(activeExhibitId) === String(exhibitId);
+            return (
+              <div key={exhibitId} onClick={() => isGroupLeader && changeExhibit(exhibitId)}
+                className={`rounded-xl border overflow-hidden transition-all ${isGroupLeader ? "cursor-pointer hover:shadow-sm" : "cursor-default"}
+                  ${isActive ? "border-[#E87722] ring-2 ring-[#E87722]/30 bg-orange-50" : "border-gray-100 bg-gray-50 hover:border-gray-200"}`}>
+                {exhibit.imageUrl || exhibit.exhibitURL ? (
+                  <img src={exhibit.imageUrl || exhibit.exhibitURL} alt={exhibit.title ?? `Exhibit ${idx + 1}`} className="w-full h-28 object-cover" />
+                ) : (
+                  <div className="w-full h-24 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+                    <span className="text-3xl font-black text-blue-100">{idx + 1}</span>
+                  </div>
+                )}
+                <div className="px-3 py-2">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[11px] font-semibold text-gray-700 truncate flex-1">{exhibit.title ?? `Exhibit ${idx + 1}`}</p>
+                    {isActive && <span className="text-[8px] font-bold text-[#E87722] bg-orange-100 px-1.5 py-0.5 rounded-full">LIVE</span>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center h-full text-center py-8">
+          <p className="text-xs font-semibold text-gray-400">No exhibits yet</p>
+          <p className="text-[10px] text-gray-300 mt-1">Exhibits will appear when added</p>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="h-screen flex bg-[#f5f5f5] overflow-hidden">
+      {isAdmin ? <AdminSidebar /> : <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
 
-      {/* ── Sidebar ── */}
-      {isAdmin
-        ? <AdminSidebar />
-        : <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      }
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
 
-      {/* ── Meeting canvas ── */}
-      <div className="flex-1 min-w-0 flex flex-col overflow-hidden bg-white m-3 rounded-2xl shadow-sm">
-
-        {/* Overlays */}
+        {/* Shared overlays */}
         <ToastContainer toasts={toast.toasts} onRemoveToast={toast.removeToast} />
-
         {showConfirmDialog && (
-          <ConfirmDialog
-            title="Generate AI Summary?"
-            message="Would you like to generate an AI summary of this meeting? This may take a minute."
-            confirmText="Generate Summary"
-            cancelText="Skip"
-            onConfirm={handleConfirmProcessRecording}
-            onCancel={handleCancelProcessRecording}
-          />
+          <ConfirmDialog title="Generate AI Summary?" message="Would you like to generate an AI summary of this meeting?"
+            confirmText="Generate Summary" cancelText="Skip"
+            onConfirm={handleConfirmProcessRecording} onCancel={handleCancelProcessRecording} />
         )}
 
-        {/* ── Progress bar (top of canvas) ── */}
-        <div className="h-0.5 w-full bg-gray-100 flex-shrink-0">
-          <div
-            className="h-full bg-gray-800 transition-all duration-500"
-            style={{ width: `${sessionProgress}%` }}
-          />
-        </div>
+        {/* ========== MOBILE LAYOUT ========== */}
+        <div className="md:hidden flex-1 flex flex-col h-0 overflow-hidden bg-white rounded-t-xl">
+          {/* Progress bar */}
+          <div className="h-0.5 w-full bg-gray-100 flex-shrink-0">
+            <div className="h-full bg-gray-800 transition-all duration-500" style={{ width: `${sessionProgress}%` }} />
+          </div>
 
-        {/* ── TOP BAR ── */}
-        <header className="flex-shrink-0 bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between gap-4">
+          {/* Compact Top Bar */}
+          <header className="flex-shrink-0 bg-white border-b border-gray-100 px-3 py-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <DiamondIcon />
+              <span className="text-[11px] font-bold text-gray-900 truncate">{currentStepTitle || "Session"}</span>
+              <span className="text-[10px] text-gray-400 shrink-0 tabular-nums">{currentStep + 1}/{agenda.length || 1}</span>
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              {currentStep > 0 && (
+                <button onClick={handlePrevious} disabled={!canNavigate}
+                  className="text-[10px] px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 font-medium disabled:opacity-30 transition-colors">
+                  ‹ Prev
+                </button>
+              )}
+              <button onClick={handleNext} disabled={!canNavigate || currentStep >= agenda.length - 1}
+                className="text-[10px] px-3 py-1 rounded-full bg-gray-900 text-white font-semibold disabled:opacity-30 transition-colors">
+                Next ›
+              </button>
+            </div>
+          </header>
 
-          {/* Left: diamond + slide title · instruction */}
-          <div className="flex items-center gap-2.5 min-w-0">
-            <DiamondIcon />
-            <div className="flex items-center gap-1.5 min-w-0">
-              {currentStepTitle && (
+          {/* Main content area */}
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            {renderContentArea(true)}
+          </div>
+
+          {/* Bottom Controls */}
+          <footer className="flex-shrink-0 bg-white border-t border-gray-100 px-3 py-2 flex items-center justify-between gap-2">
+            {/* Leave */}
+            <button onClick={handleLeaveMeeting}
+              className="w-9 h-9 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors shadow-sm shrink-0"
+              aria-label="Leave session">
+              <PhoneOffIcon />
+            </button>
+
+            {/* Center: Record + Panel toggles */}
+            <div className="flex items-center gap-1.5">
+              <button onClick={handleToggleRecording}
+                className={`flex items-center gap-1 px-2 py-1 rounded-full border text-[10px] font-semibold transition-colors ${
+                  isRecording ? "border-red-200 bg-red-50 text-red-500" : "border-gray-200 bg-gray-50 text-gray-400"
+                }`}>
+                <RecordDotIcon /> {isRecording ? "Rec" : "Rec"}
+              </button>
+              <button onClick={() => setMobilePanel(mobilePanel === 'agenda' ? null : 'agenda')}
+                className={`flex items-center gap-1 px-2 py-1 rounded-full border text-[10px] font-semibold transition-colors ${
+                  mobilePanel === 'agenda' ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-gray-50 text-gray-500"
+                }`}>
+                <SlidesIcon /> Agenda
+              </button>
+              {exhibits && exhibits.length > 0 && (
+                <button onClick={() => setMobilePanel(mobilePanel === 'exhibits' ? null : 'exhibits')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-full border text-[10px] font-semibold transition-colors ${
+                    mobilePanel === 'exhibits' ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-gray-50 text-gray-500"
+                  }`}>
+                  Exhibits
+                </button>
+              )}
+            </div>
+
+            {/* Right: Mic + Camera */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {livekitRoom && livekitReady ? (
+                <LiveKitRoom room={livekitRoom} data-lk-theme="default">
+                  <MicButton />
+                  <CameraButton />
+                </LiveKitRoom>
+              ) : (
                 <>
-                  <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
-                    {currentStepTitle}
-                  </span>
-                  <span className="text-gray-300 text-sm">·</span>
+                  <div className="w-8 h-8 rounded-full border border-gray-100 bg-gray-50 flex items-center justify-center text-gray-300"><MicIcon muted={false} /></div>
+                  <div className="w-8 h-8 rounded-full border border-gray-100 bg-gray-50 flex items-center justify-center text-gray-300"><CameraIcon off={false} /></div>
                 </>
               )}
-              <span className="text-sm text-gray-500 truncate">{instructionText}</span>
             </div>
-          </div>
+          </footer>
 
-          {/* Center: step counter */}
-          <span className="text-xs font-semibold text-gray-400 flex-shrink-0 tabular-nums">
-            {currentStep + 1} / {agenda.length || 1}
-          </span>
-
-          {/* Right: Prev + Next Slide */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {currentStep > 0 && (
-              <button
-                onClick={handlePrevious}
-                disabled={!canNavigate}
-                className="text-sm px-4 py-1.5 rounded-full border border-gray-200 text-gray-600
-                           hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors font-medium"
-              >
-                ‹ Prev
-              </button>
-            )}
-            <button
-              onClick={handleNext}
-              disabled={!canNavigate || currentStep >= agenda.length - 1}
-              className="text-sm px-5 py-1.5 rounded-full bg-gray-900 text-white font-semibold
-                         hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-              Next Slide ›
-            </button>
-          </div>
-        </header>
-
-        {/* ── BODY ── */}
-        <div className="flex-1 min-h-0 flex overflow-hidden">
-
-          {/* ── LEFT: content area ── */}
-          <div className="flex-1 min-w-0 bg-[#f5f5f5] flex flex-col relative">
-
-            {/* Step-level progress bar */}
-            {stepPct > 0 && (
-              <div className="h-0.5 w-full bg-gray-200 flex-shrink-0">
-                <div
-                  className="h-full bg-blue-400 transition-all duration-1000"
-                  style={{ width: `${stepPct}%` }}
-                />
-              </div>
-            )}
-
-            {/* Main content — video always mounts so the camera stays active */}
-            <div className="flex-1 min-h-0 p-5 flex items-center justify-center relative">
-
-              {/* ── Slide view ── */}
-              {showSlide && (
-                <div className="relative w-full h-full flex items-center justify-center"
-                  role="region"
-                  aria-label={`Slide ${currentStep + 1}: ${currentStepTitle}`}>
-                  <div className="w-full h-full max-w-4xl">
-                    <Slide
-                      step={agenda[currentStep]}
-                      participants={participants}
-                      experienceTitle={experience?.title || ""}
-                      onRatingSubmit={(stars) => {
-                        // POST rating to API (wired in Gap 6)
-                        const expId = searchParams?.get("id");
-                        const userId = currentUserId;
-                        if (expId && userId) {
-                          fetch(`/api/v1/fireteams/experience/${expId}/rating`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ stars, userId }),
-                          }).catch(() => {});
-                        }
-                      }}
-                      allSteps={agenda}
-                      currentStepIndex={currentStep}
-                    />
+          {/* Mobile Slide-up Panel */}
+          {mobilePanel && (
+            <div className="absolute inset-0 z-40 flex flex-col" onClick={() => setMobilePanel(null)}>
+              <div className="flex-1 bg-black/30" />
+              <div className="bg-white rounded-t-2xl shadow-2xl flex flex-col max-h-[60vh] border-t border-gray-200"
+                onClick={e => e.stopPropagation()}>
+                {/* Panel header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                  <div className="flex gap-2">
+                    <button onClick={() => setMobilePanel('agenda')}
+                      className={`text-xs font-semibold px-3 py-1 rounded-full transition-colors ${
+                        mobilePanel === 'agenda' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'
+                      }`}>Agenda</button>
+                    {exhibits && exhibits.length > 0 && (
+                      <button onClick={() => setMobilePanel('exhibits')}
+                        className={`text-xs font-semibold px-3 py-1 rounded-full transition-colors ${
+                          mobilePanel === 'exhibits' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'
+                        }`}>Exhibits</button>
+                    )}
                   </div>
-                  <button
-                    className="absolute bottom-3 right-3 w-8 h-8 bg-white rounded-lg shadow-sm border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
-                    title="Zoom slide"
-                  >
-                    <ZoomIcon />
+                  <button onClick={() => setMobilePanel(null)} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
                   </button>
                 </div>
-              )}
-
-              {/* ── Video view (always rendered so camera stays live) ── */}
-              <div className={`w-full h-full flex items-center justify-center ${showSlide ? "hidden" : ""}`}>
-                {livekitRoom ? (
-                  <LiveKitRoom
-                    room={livekitRoom}
-                    data-lk-theme="default"
-                    style={{ width: "100%", height: "100%" }}
-                  >
-                    <LivekitVideoContainer
-                      showSlide={showSlide}
-                      loading={meetingLoading}
-                      error={meetingError}
-                    />
-                  </LiveKitRoom>
-                ) : (
-                  <div className="w-full h-full rounded-2xl bg-gray-900 flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-400" />
-                      <p className="text-white text-sm">Connecting to session…</p>
-                      <p className="text-gray-400 text-xs">This should only take a moment</p>
-                    </div>
-                  </div>
-                )}
+                {/* Panel content */}
+                <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+                  {mobilePanel === 'agenda' && renderAgendaTimeline()}
+                  {mobilePanel === 'exhibits' && renderExhibits()}
+                </div>
               </div>
-
-              {/* ── Waiting room overlay (only on the actual waiting room step) ── */}
-              {isWaitingRoom && !showSlide && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-xl">
-                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg px-8 py-6 flex flex-col items-center gap-3 text-center max-w-xs">
-                    <div className="w-12 h-12 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-800">Waiting for others to join…</p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {participants.length > 0
-                          ? `${participants.length} participant${participants.length !== 1 ? "s" : ""} in the room`
-                          : "You'll start automatically when your group is here"}
-                      </p>
-                    </div>
-                    {participants.length > 0 && (
-                      <div className="flex items-center gap-1.5 flex-wrap justify-center">
-                        {participants.slice(0, 4).map((p, i) => (
-                          <div key={i} className="flex items-center gap-1 bg-white border border-gray-100 rounded-full px-2 py-0.5 shadow-sm">
-                            <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center text-[9px] font-bold text-blue-500">
-                              {(p.name ?? "?")[0].toUpperCase()}
-                            </div>
-                            <span className="text-[11px] text-gray-600 font-medium">{p.name ?? "Participant"}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Toggle pill — top-right corner of content */}
-              <button
-                onClick={() => setShowSlide(!showSlide)}
-                className="absolute top-3 right-3 flex items-center gap-1.5 text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-full text-gray-600 font-medium hover:bg-gray-50 transition-colors shadow-sm"
-              >
-                {showSlide ? <><VideoIcon /> Video</> : <><SlidesIcon /> Slides</>}
-              </button>
-
             </div>
-          </div>
-
-          {/* ── RIGHT SIDEBAR ── */}
-          <aside className="w-72 flex-shrink-0 bg-white border-l border-gray-100 flex flex-col overflow-hidden">
-
-            {/* Tab switcher */}
-            <div className="flex-shrink-0 flex border-b border-gray-100">
-              <button
-                onClick={() => setActiveTab("exhibits")}
-                className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${
-                  activeTab === "exhibits"
-                    ? "text-gray-900 border-b-2 border-gray-900"
-                    : "text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                Exhibits
-              </button>
-              <button
-                onClick={() => setActiveTab("agenda")}
-                className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${
-                  activeTab === "agenda"
-                    ? "text-gray-900 border-b-2 border-gray-900"
-                    : "text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                Agenda
-              </button>
-            </div>
-
-            {/* ── AGENDA TAB ── */}
-            {activeTab === "agenda" && (
-              <>
-                {/* Experience header */}
-                <div className="flex-shrink-0 px-5 pt-5 pb-4 border-b border-gray-100">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 text-base font-black text-blue-500 border border-blue-100">
-                      {(experience?.title ?? "F")[0]}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm text-gray-900 leading-tight">
-                        {experience?.title || "Fireteam Experience"}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
-                        {experience?.description || experience?.experience ||
-                          "In this module, you will explore key concepts and engage with your fireteam."}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Vertical timeline */}
-                <div className="flex-1 overflow-y-auto px-5 py-4">
-                  <div className="relative">
-                    {/* Background line (full height) */}
-                    {agenda.length > 1 && (
-                      <div className="absolute left-[6px] top-3 bottom-3 w-px bg-gray-100" />
-                    )}
-                    {/* Filled progress line */}
-                    {agenda.length > 1 && currentStep > 0 && (
-                      <div
-                        className="absolute left-[6px] top-3 w-px bg-gray-800 transition-all duration-500"
-                        style={{
-                          height: `${(currentStep / (agenda.length - 1)) * 100}%`,
-                        }}
-                      />
-                    )}
-
-                    <div className="space-y-0.5">
-                      {agenda.map((step, idx) => {
-                        const isCompleted = idx < currentStep;
-                        const isCurrent = idx === currentStep;
-
-                        return (
-                          <button
-                            key={idx}
-                            onClick={() => {
-                              if (!canNavigate) return;
-                              advanceSlide(idx);
-                            }}
-                            disabled={!canNavigate}
-                            className={`relative w-full flex items-start gap-3 py-2 text-left rounded-lg px-1 transition-colors
-                              ${canNavigate ? "hover:bg-gray-50 cursor-pointer" : "cursor-default"}
-                              ${isCurrent ? "bg-gray-50" : ""}`}
-                          >
-                            {/* Circle indicator */}
-                            <div className="flex-shrink-0 mt-0.5 z-10">
-                              {isCompleted ? (
-                                <div className="w-3.5 h-3.5 rounded-full bg-gray-800 flex items-center justify-center">
-                                  <svg width="7" height="7" viewBox="0 0 10 10" fill="none">
-                                    <polyline points="1.5 5 4 7.5 8.5 2.5" stroke="white" strokeWidth="1.8"
-                                      strokeLinecap="round" strokeLinejoin="round" />
-                                  </svg>
-                                </div>
-                              ) : isCurrent ? (
-                                <div className="w-3.5 h-3.5 rounded-full border-2 border-gray-900 bg-white flex items-center justify-center">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-gray-900" />
-                                </div>
-                              ) : (
-                                <div className="w-3.5 h-3.5 rounded-full border-2 border-gray-200 bg-white" />
-                              )}
-                            </div>
-
-                            {/* Step info */}
-                            <div className="flex-1 min-w-0 flex items-baseline justify-between gap-2">
-                              <p className={`text-xs leading-snug ${
-                                isCurrent ? "font-semibold text-gray-900" :
-                                isCompleted ? "text-gray-400" :
-                                "text-gray-500"
-                              }`}>
-                                {step.title}
-                              </p>
-                              {step.duration && (
-                                <span className="text-[10px] text-gray-300 flex-shrink-0 font-medium tabular-nums">
-                                  {step.duration}
-                                </span>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Time Left In Session */}
-                <div className="flex-shrink-0 border-t border-gray-100 px-5 py-4 flex items-end justify-between">
-                  <div>
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                      Time Left In Session
-                    </p>
-                    <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">
-                      {totalMinsLeft}{" "}
-                      <span className="text-sm font-semibold text-gray-400">min</span>
-                    </p>
-                  </div>
-                  {/* Per-step countdown */}
-                  {stepTimer && (
-                    <div className="text-right">
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                        This Slide
-                      </p>
-                      <p className="text-lg font-bold text-gray-700 tabular-nums leading-none">
-                        {stepTimer}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* ── EXHIBITS TAB ── */}
-            {activeTab === "exhibits" && (
-              <div className="flex-1 overflow-y-auto px-4 py-4">
-                {exhibits && exhibits.length > 0 ? (
-                  <div className="space-y-3">
-                    {/* Leader hint */}
-                    {isGroupLeader && (
-                      <p className="text-[10px] text-gray-400 text-center mb-1">
-                        Tap an exhibit to show it to everyone
-                      </p>
-                    )}
-                    {exhibits.map((exhibit, idx) => {
-                      const exhibitId = exhibit.id ?? idx;
-                      const isActive  = String(activeExhibitId) === String(exhibitId);
-                      return (
-                      <div
-                        key={exhibitId}
-                        onClick={() => isGroupLeader && changeExhibit(exhibitId)}
-                        className={`rounded-xl border overflow-hidden transition-all
-                          ${isGroupLeader ? "cursor-pointer hover:shadow-sm" : "cursor-default"}
-                          ${isActive
-                            ? "border-[#E87722] ring-2 ring-[#E87722]/30 bg-orange-50"
-                            : "border-gray-100 bg-gray-50 hover:border-gray-200"
-                          }`}
-                      >
-                        {exhibit.imageUrl || exhibit.exhibitURL ? (
-                          <img
-                            src={exhibit.imageUrl || exhibit.exhibitURL}
-                            alt={exhibit.title ?? exhibit.exhibitAltText ?? `Exhibit ${idx + 1}`}
-                            className="w-full h-32 object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-28 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-                            <span className="text-4xl font-black text-blue-100">{idx + 1}</span>
-                          </div>
-                        )}
-                        <div className="px-3 py-2.5">
-                          <div className="flex items-center gap-1.5">
-                            <p className="text-xs font-semibold text-gray-700 truncate flex-1">
-                              {exhibit.title ?? exhibit.exhibitCaption ?? `Exhibit ${idx + 1}`}
-                            </p>
-                            {isActive && (
-                              <span className="text-[9px] font-bold text-[#E87722] bg-orange-100 px-1.5 py-0.5 rounded-full flex-shrink-0">
-                                LIVE
-                              </span>
-                            )}
-                          </div>
-                          {(exhibit.description || exhibit.exhibitCaption) && (
-                            <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
-                              {exhibit.description || exhibit.exhibitCaption}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )})}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-center py-10">
-                    <div className="w-12 h-12 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center mb-3">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        strokeWidth="1.5" className="text-gray-300">
-                        <rect x="3" y="3" width="18" height="18" rx="2" />
-                        <circle cx="8.5" cy="8.5" r="1.5" />
-                        <polyline points="21 15 16 10 5 21" />
-                      </svg>
-                    </div>
-                    <p className="text-sm font-semibold text-gray-400">No exhibits yet</p>
-                    <p className="text-xs text-gray-300 mt-1">Exhibits will appear here when added</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-          </aside>
+          )}
         </div>
 
-        {/* ── BOTTOM BAR ── */}
-        <footer className="flex-shrink-0 bg-white border-t border-gray-100 px-6 py-3 flex items-center justify-between">
-
-          {/* Left: Hang up */}
-          <button
-            onClick={handleLeaveMeeting}
-            className="w-11 h-11 rounded-full bg-red-500 hover:bg-red-600 active:bg-red-700 flex items-center justify-center transition-colors shadow-sm"
-            title="Leave session"
-            aria-label="Leave session"
-          >
-            <PhoneOffIcon />
-          </button>
-
-          {/* Center: recording pill */}
-          <button
-            onClick={handleToggleRecording}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors ${
-              isRecording
-                ? "border-red-200 bg-red-50 text-red-500 hover:bg-red-100"
-                : "border-gray-200 bg-gray-50 text-gray-400 hover:bg-gray-100"
-            }`}
-            title={isRecording ? "Stop recording" : "Start recording"}
-          >
-            <RecordDotIcon />
-            {isRecording ? "Recording" : "Record"}
-          </button>
-
-          {/* Right: Mic + Camera + audio bars */}
-          <div className="flex items-center gap-2">
-            {livekitRoom && livekitReady ? (
-              <LiveKitRoom room={livekitRoom} data-lk-theme="default">
-                <MicButton />
-                <CameraButton />
-              </LiveKitRoom>
-            ) : (
-              <>
-                <div className="w-9 h-9 rounded-full border border-gray-100 bg-gray-50 flex items-center justify-center text-gray-300">
-                  <MicIcon muted={false} />
-                </div>
-                <div className="w-9 h-9 rounded-full border border-gray-100 bg-gray-50 flex items-center justify-center text-gray-300">
-                  <CameraIcon off={false} />
-                </div>
-              </>
-            )}
-            <AudioBarsIcon />
+        {/* ========== DESKTOP LAYOUT ========== */}
+        <div className="hidden md:flex flex-1 flex-col overflow-hidden bg-white m-3 rounded-2xl shadow-sm">
+          {/* Progress bar */}
+          <div className="h-0.5 w-full bg-gray-100 flex-shrink-0">
+            <div className="h-full bg-gray-800 transition-all duration-500" style={{ width: `${sessionProgress}%` }} />
           </div>
-        </footer>
 
-        {/* Meeting Summary Modal */}
+          {/* Top bar */}
+          <header className="flex-shrink-0 bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <DiamondIcon />
+              <div className="flex items-center gap-1.5 min-w-0">
+                {currentStepTitle && (
+                  <>
+                    <span className="text-sm font-bold text-gray-900 whitespace-nowrap">{currentStepTitle}</span>
+                    <span className="text-gray-300 text-sm">·</span>
+                  </>
+                )}
+                <span className="text-sm text-gray-500 truncate">{instructionText}</span>
+              </div>
+            </div>
+            <span className="text-xs font-semibold text-gray-400 flex-shrink-0 tabular-nums">{currentStep + 1} / {agenda.length || 1}</span>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {currentStep > 0 && (
+                <button onClick={handlePrevious} disabled={!canNavigate}
+                  className="text-sm px-4 py-1.5 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30 transition-colors font-medium">
+                  ‹ Prev
+                </button>
+              )}
+              <button onClick={handleNext} disabled={!canNavigate || currentStep >= agenda.length - 1}
+                className="text-sm px-5 py-1.5 rounded-full bg-gray-900 text-white font-semibold hover:bg-gray-800 disabled:opacity-30 transition-colors">
+                Next Slide ›
+              </button>
+            </div>
+          </header>
+
+          {/* Body */}
+          <div className="flex-1 min-h-0 flex overflow-hidden">
+            {renderContentArea(false)}
+
+            {/* Right sidebar */}
+            <aside className="w-72 flex-shrink-0 bg-white border-l border-gray-100 flex flex-col overflow-hidden">
+              <div className="flex-shrink-0 flex border-b border-gray-100">
+                <button onClick={() => setActiveTab("exhibits")}
+                  className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${activeTab === "exhibits" ? "text-gray-900 border-b-2 border-gray-900" : "text-gray-400 hover:text-gray-600"}`}>
+                  Exhibits
+                </button>
+                <button onClick={() => setActiveTab("agenda")}
+                  className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${activeTab === "agenda" ? "text-gray-900 border-b-2 border-gray-900" : "text-gray-400 hover:text-gray-600"}`}>
+                  Agenda
+                </button>
+              </div>
+              {activeTab === "agenda" && renderAgendaTimeline()}
+              {activeTab === "exhibits" && renderExhibits()}
+            </aside>
+          </div>
+
+          {/* Bottom bar */}
+          <footer className="flex-shrink-0 bg-white border-t border-gray-100 px-6 py-3 flex items-center justify-between">
+            <button onClick={handleLeaveMeeting}
+              className="w-11 h-11 rounded-full bg-red-500 hover:bg-red-600 active:bg-red-700 flex items-center justify-center transition-colors shadow-sm"
+              aria-label="Leave session">
+              <PhoneOffIcon />
+            </button>
+            <button onClick={handleToggleRecording}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors ${
+                isRecording ? "border-red-200 bg-red-50 text-red-500 hover:bg-red-100" : "border-gray-200 bg-gray-50 text-gray-400 hover:bg-gray-100"
+              }`}>
+              <RecordDotIcon /> {isRecording ? "Recording" : "Record"}
+            </button>
+            <div className="flex items-center gap-2">
+              {livekitRoom && livekitReady ? (
+                <LiveKitRoom room={livekitRoom} data-lk-theme="default">
+                  <MicButton />
+                  <CameraButton />
+                </LiveKitRoom>
+              ) : (
+                <>
+                  <div className="w-9 h-9 rounded-full border border-gray-100 bg-gray-50 flex items-center justify-center text-gray-300"><MicIcon muted={false} /></div>
+                  <div className="w-9 h-9 rounded-full border border-gray-100 bg-gray-50 flex items-center justify-center text-gray-300"><CameraIcon off={false} /></div>
+                </>
+              )}
+              <AudioBarsIcon />
+            </div>
+          </footer>
+        </div>
+
         {showSummaryModal && meetingSummaries && (
-          <MeetingSummaryModal
-            summaries={meetingSummaries}
-            onClose={() => setShowSummaryModal(false)}
-            userRole={isAdmin ? "admin" : "participant"}
-          />
+          <MeetingSummaryModal summaries={meetingSummaries} onClose={() => setShowSummaryModal(false)} userRole={isAdmin ? "admin" : "participant"} />
         )}
-
       </div>
     </div>
   );
