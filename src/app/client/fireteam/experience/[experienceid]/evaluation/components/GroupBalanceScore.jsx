@@ -1,116 +1,59 @@
-import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import React from "react";
 
 export default function GroupBalanceScore({ groupBalanceScore }) {
   if (!groupBalanceScore) return null;
 
-  // Prepare data for the chart
-  const chartData = groupBalanceScore.participants.map(participant => ({
-    name: participant.name,
-    talkTime: participant.talkTimeMinutes,
-    color: participant.color
-  }));
-
-  // Custom tooltip component
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-white p-2 border border-gray-200 rounded shadow-lg">
-          <p className="font-semibold text-sm">{data.name}</p>
-          <p className="text-sm text-gray-600">{data.talkTime.toFixed(1)} mins</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  // Custom bar component to use participant colors
-  const CustomBar = (props) => {
-    const { payload, fill, ...rest } = props;
-    return <Bar {...rest} fill={payload?.color || fill} />;
-  };
+  const { participants, averageTalkTime, isBalanced, message } = groupBalanceScore;
+  const maxTime = Math.max(...participants.map((p) => p.talkTimeMinutes), 1);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Group Balance Score</h3>
-        <p className={`text-sm ${groupBalanceScore.isBalanced ? 'text-green-600' : 'text-orange-600'}`}>
-          {groupBalanceScore.message}
+    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+      {/* Header */}
+      <div className="mb-5">
+        <h3 className="text-sm font-bold text-gray-900 mb-0.5">Group Balance</h3>
+        <p className={`text-xs font-medium ${isBalanced ? "text-green-500" : "text-amber-500"}`}>
+          {message}
         </p>
       </div>
 
-      {/* Chart */}
-      <div className="h-48">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={chartData}
-            layout="horizontal"
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              type="number"
-              domain={[0, 'dataMax + 5']}
-              tickFormatter={(value) => `${value}m`}
-            />
-            <YAxis 
-              dataKey="name" 
-              type="category"
-              width={80}
-              fontSize={12}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <ReferenceLine 
-              x={groupBalanceScore.averageTalkTime} 
-              stroke="#666" 
-              strokeDasharray="5 5"
-              label={{ value: "Average", position: "topRight" }}
-            />
-            <Bar 
-              dataKey="talkTime" 
-              shape={<CustomBar />}
-              radius={[0, 4, 4, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Statistics */}
-      <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <p className="text-gray-600">Average Talk Time</p>
-          <p className="font-semibold">{groupBalanceScore.averageTalkTime.toFixed(1)} mins</p>
-        </div>
-        <div>
-          <p className="text-gray-600">Total Participants</p>
-          <p className="font-semibold">{groupBalanceScore.participants.length}</p>
-        </div>
-      </div>
-
-      {/* Participant details */}
-      <div className="mt-4">
-        <h4 className="text-sm font-medium text-gray-900 mb-2">Individual Talk Time</h4>
-        <div className="space-y-1">
-          {groupBalanceScore.participants.map((participant) => (
-            <div key={participant.id} className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: participant.color }}
-                />
-                <span className="text-gray-700">{participant.name}</span>
+      {/* Horizontal bar chart (pure Tailwind — no Recharts) */}
+      <div className="space-y-3 mb-5">
+        {participants.map((p) => {
+          const pct = (p.talkTimeMinutes / maxTime) * 100;
+          return (
+            <div key={p.id}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
+                  <span className="text-xs font-medium text-gray-700">{p.name}</span>
+                </div>
+                <span className="text-xs font-bold text-gray-900 tabular-nums">
+                  {p.talkTimeMinutes.toFixed(1)}m
+                </span>
               </div>
-              <span className="font-medium text-gray-900">
-                {participant.talkTimeMinutes.toFixed(1)}m
-              </span>
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${pct}%`, backgroundColor: p.color }}
+                />
+              </div>
             </div>
-          ))}
+          );
+        })}
+      </div>
+
+      {/* Average reference line */}
+      <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+        <div className="flex-1">
+          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Avg Talk Time</p>
+          <p className="text-lg font-black text-gray-900 tabular-nums">
+            {averageTalkTime.toFixed(1)}
+            <span className="text-xs font-medium text-gray-400 ml-0.5">min</span>
+          </p>
+        </div>
+        <div className="flex-1 text-right">
+          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Participants</p>
+          <p className="text-lg font-black text-gray-900">{participants.length}</p>
         </div>
       </div>
     </div>

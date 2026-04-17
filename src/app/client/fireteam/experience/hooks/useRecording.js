@@ -55,28 +55,28 @@ export function useRecording(meetingRef, meetingReady) {
         // START RECORDING (local MediaRecorder only)
         console.log('🔴 Starting recording...');
 
-        // Start local media recorder
+        // Start local media recorder — audio only (for Groq Whisper transcription)
         try {
-          // Get display media (screen + audio) for better quality
-          let stream;
-          try {
-            // Try to get screen + audio
-            stream = await navigator.mediaDevices.getDisplayMedia({ 
-              audio: true,
-              video: true 
-            });
-            console.log('✅ Screen capture with audio enabled');
-          } catch (err) {
-            // Fallback to just microphone audio
-            console.log('⚠️ Screen capture unavailable, using microphone only');
-            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.warn('⚠️ MediaDevices API unavailable (requires HTTPS on mobile). Skipping recording.');
+            // Still mark as "recording" so the session flow continues, but no audio will be captured
+            setIsRecording(true);
+            const tempRecordingId = `rec_${Date.now()}_nomic`;
+            setCurrentRecordingId(tempRecordingId);
+            return;
           }
-          
-          const mediaRecorder = new MediaRecorder(stream, {
-            mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
-              ? 'video/webm;codecs=vp9'
-              : 'video/webm'
-          });
+
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          console.log('✅ Microphone audio captured for transcription');
+
+          // Pick an audio-only mimeType that Groq Whisper accepts
+          const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+            ? 'audio/webm;codecs=opus'
+            : MediaRecorder.isTypeSupported('audio/webm')
+              ? 'audio/webm'
+              : ''; // browser default
+
+          const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
           mediaRecorderRef.current = mediaRecorder;
           recordedChunksRef.current = [];
 
@@ -89,7 +89,7 @@ export function useRecording(meetingRef, meetingReady) {
 
           mediaRecorder.onstop = async () => {
             const blob = new Blob(recordedChunksRef.current, {
-              type: stream.getVideoTracks().length > 0 ? 'video/webm' : 'audio/webm'
+              type: mimeType || 'audio/webm'
             });
             recordingBlobRef.current = blob;
             setRecordingBlob(blob);
