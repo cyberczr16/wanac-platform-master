@@ -43,19 +43,28 @@ const FEATURES = [
     id: 'session-booking',
     icon: 'https://cdn.lordicon.com/uoljexdg.json',
     title: 'Session Booking',
-    description: 'Easily book your sessions with a simple, intuitive interface that guarantees a smooth user experience.'
+    description: 'Book 1-on-1 coaching sessions in seconds with our smart scheduling system.',
+    highlights: ['Calendar sync', 'Auto-reminders', 'Flexible rescheduling'],
+    stat: '500+',
+    statLabel: 'Sessions booked monthly'
   },
   {
     id: 'ai-assistant',
     icon: 'https://cdn.lordicon.com/qvbrkejx.json',
     title: 'AI Assistant',
-    description: 'Get personalized assistance with our AI-driven assistant, designed to streamline your tasks and improve productivity.'
+    description: 'Your personal transition companion — get instant guidance on benefits, careers, and next steps.',
+    highlights: ['24/7 availability', 'VA benefits guidance', 'Resume building'],
+    stat: '24/7',
+    statLabel: 'Always available'
   },
   {
-    id: 'Fire Team Experience',
-      icon: 'https://cdn.lordicon.com/thtrcqvk.json',
+    id: 'fireteams',
+    icon: 'https://cdn.lordicon.com/thtrcqvk.json',
     title: 'Fireteams',
-    description: 'Connect with fellow veterans in small support and discussion groups, fostering teamwork and camaraderie in your transition journey.'
+    description: 'Live, small-group learning sessions where 3-6 veterans tackle real-world scenarios together — guided by a coach and scored by AI on how deeply you engage.',
+    highlights: ['Live discussions', 'AI-scored feedback', 'Coach-facilitated'],
+    stat: '3-6',
+    statLabel: 'Veterans per fireteam'
   }
 ];
 
@@ -65,22 +74,28 @@ const MANAGEMENT_CARDS = [
     id: 'coaching-preferences',
     icon: 'https://cdn.lordicon.com/dqxvvqzi.json',
     title: 'Coaching Preferences',
-    description: 'Customize your coaching experience and set your learning goals',
+    description: 'Choose your plan, set notification preferences, and tailor your coaching sessions to match your transition goals.',
+    highlights: ['Basic, Pro & Premium plans', 'Session reminders & alerts', 'Profile customization'],
+    link: '/client/accountsettings',
     ariaLabel: 'Coaching Preferences - Customize your coaching experience'
   },
   {
-    id: 'Journaling and Task Management',
+    id: 'journaling-task-management',
     icon: 'https://cdn.lordicon.com/kbtmbyzy.json',
-    title: 'Journaling and Task Management',
-      description: 'Track your progress with smart journaling and task management tools',
-      ariaLabel: 'Journaling and Task Management - Track your progress and manage tasks'
+    title: 'Journaling & Task Management',
+    description: 'Reflect daily with guided journals, track weekly actions, and prioritize tasks using an Eisenhower Matrix built for your goals.',
+    highlights: ['3 journal types with daily prompts', 'Drag-and-drop task prioritization', 'Streak tracking & progress stats'],
+    link: '/client/taskmanagement',
+    ariaLabel: 'Journaling and Task Management - Reflect and prioritize your goals'
   },
   {
-    id: 'Career and Education Compass',
-     icon: 'https://cdn.lordicon.com/zhiiqoue.json',
-    title: 'Career and Education Compass',
-    description: 'Get personalized guidance on your career and education goals',
-    ariaLabel: 'Career and Education Compass - Get personalized guidance on your career and education goals'
+    id: 'career-education-compass',
+    icon: 'https://cdn.lordicon.com/zhiiqoue.json',
+    title: 'Career & Education Compass',
+    description: 'Track job applications, manage your network, monitor your GPA and coursework — all from one dashboard.',
+    highlights: ['Application & interview tracker', 'Salary research & employer targeting', 'GPA tracking & course modules'],
+    link: '/client/mycareercompass',
+    ariaLabel: 'Career and Education Compass - Track career and education progress'
   }
 ];
 
@@ -151,7 +166,7 @@ export default function Homepage() {
       {/* Hero Section */}
       <section
         ref={heroRef}
-        className="min-h-[70vh] md:min-h-[75vh] lg:min-h-[80vh] bg-[#002147] text-white py-16 sm:py-20 md:py-24 lg:py-32 relative overflow-hidden"
+        className="min-h-[70vh] md:min-h-[75vh] lg:min-h-[80vh] bg-[#002147] text-white py-16 sm:py-20 md:py-24 lg:py-32 relative overflow-hidden flex items-center"
         aria-label="Hero section with main call to action"
       >
         {/* Background (parallax: moves slower than scroll) */}
@@ -170,7 +185,7 @@ export default function Homepage() {
 
         <div className="absolute top-1/4 right-0 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-l from-orange-500/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ zIndex: Z_INDEX.background }} />
 
-        <motion.div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative" style={{ zIndex: Z_INDEX.content, scale: heroContentScale }}>
+        <motion.div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative w-full" style={{ zIndex: Z_INDEX.content, scale: heroContentScale }}>
     <div className="max-w-3xl mx-auto lg:mx-0 text-center lg:text-left">
       <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-4">
         Empowering Veterans to <span className="block sm:inline">Thrive After Service</span>{' '}
@@ -286,16 +301,17 @@ export default function Homepage() {
           </div>
       </section>
 
-      <section 
+      <section
         ref={featuresRef}
-        className="py-16 sm:py-20 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 bg-[#002147] text-white relative overflow-hidden"
+        className="py-16 sm:py-20 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+        style={{ background: 'linear-gradient(160deg, #002147 0%, #001a3a 40%, #002147 100%)' }}
         aria-labelledby="features-heading"
       >
-        {/* background with cleaner gradient */}
-        <div 
+        {/* Background image overlay */}
+        <div
           className="absolute inset-0 w-full h-full"
           style={{
-            backgroundImage: `linear-gradient(135deg, rgba(0,33,71,0.92) 0%, rgba(0,33,71,0.88) 60%, rgba(255,94,26,0.25) 100%), url('/aIandfeatires.jpg')`,
+            backgroundImage: `linear-gradient(135deg, rgba(0,33,71,0.95) 0%, rgba(0,26,58,0.92) 50%, rgba(0,33,71,0.95) 100%), url('/aIandfeatires.jpg')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
@@ -303,70 +319,98 @@ export default function Homepage() {
           }}
           aria-hidden="true"
         />
-        {/* Subtle accent gradient */}
-        <div className="absolute top-0 right-0 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-l from-orange-400/10 to-transparent rounded-full blur-3xl" style={{ zIndex: Z_INDEX.background }} />
-        
-        <div className="max-w-6xl mx-auto text-center relative" style={{ zIndex: Z_INDEX.content }}>
+
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-72 md:w-[500px] h-72 md:h-[500px] bg-gradient-to-l from-orange-500/8 to-transparent rounded-full blur-3xl" style={{ zIndex: Z_INDEX.background }} />
+        <div className="absolute bottom-0 left-0 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-r from-blue-400/5 to-transparent rounded-full blur-3xl" style={{ zIndex: Z_INDEX.background }} />
+
+        <div className="max-w-6xl mx-auto relative" style={{ zIndex: Z_INDEX.content }}>
           {/* Section Header */}
-          <div className="mb-10 md:mb-12">
-            <h2 id="features-heading" className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-bold mb-3 uppercase">
-              Key Web App Features
+          <div className="mb-12 md:mb-16 text-center">
+            <span className="inline-block px-4 py-1.5 bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-semibold uppercase tracking-widest mb-4">
+              Platform Features
+            </span>
+            <h2 id="features-heading" className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-white leading-tight">
+              Built for Your <span className="text-orange-500">Transition</span>
             </h2>
-            <div className="w-12 h-1 bg-orange-500 mx-auto rounded-full mb-3" aria-hidden="true"/>
-            <p className="text-xs sm:text-sm md:text-base text-gray-200 max-w-xl mx-auto leading-relaxed">
-              Discover the powerful features that make our platform the best choice for veteran success
+            <p className="text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Every feature is designed with veterans in mind — simple to use, powerful when you need it.
             </p>
           </div>
 
-          {/* Glassmorphism Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {FEATURES.map((feature) => (
-              <div 
-                key={feature.id} 
-                className="group relative bg-white/5 backdrop-blur-md p-5 sm:p-6 border border-white/20 hover:bg-white/10 hover:border-white/40 transition-all duration-500 hover:scale-105"
+          {/* Feature Cards — Alternating layout on desktop, stacked on mobile */}
+          <div className="space-y-6 md:space-y-8">
+            {FEATURES.map((feature, index) => (
+              <div
+                key={feature.id}
+                className={`group relative flex flex-col ${index % 2 === 1 ? 'md:flex-row-reverse' : 'md:flex-row'} items-stretch gap-0 md:gap-0 bg-white/[0.03] backdrop-blur-sm border border-white/10 hover:border-orange-500/30 transition-all duration-500 overflow-hidden`}
               >
-                {/* Gradient glow on hover */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-blue-500 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500" />
-                
-                <div className="relative">
-                  {/* Icon container */}
-                  <div className="mb-4 flex justify-center">
-                    <div className="p-2.5 sm:p-3 bg-gradient-to-br from-orange-500/20 to-orange-600/10 backdrop-blur-sm transform group-hover:scale-110 transition-transform duration-300">
-                  <lord-icon
-                    src={feature.icon}
-                    trigger="hover"
-                    colors="primary:#ee8220,secondary:#ffffff"
-                        style={{ width: '48px', height: '48px' }}
-                        class="sm:w-14 sm:h-14"
-                  />
+                {/* Hover glow */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/0 via-orange-500/10 to-blue-500/0 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-700" aria-hidden="true" />
+
+                {/* Stat highlight side panel */}
+                <div className={`relative flex-shrink-0 w-full md:w-48 lg:w-56 bg-gradient-to-br from-orange-500 to-orange-600 flex flex-row md:flex-col items-center justify-center gap-2 md:gap-1 py-4 md:py-0 px-6 md:px-4`}>
+                  <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-none">{feature.stat}</span>
+                  <span className="text-xs sm:text-sm text-white/80 font-medium md:text-center">{feature.statLabel}</span>
                 </div>
+
+                {/* Content area */}
+                <div className="relative flex-1 p-5 sm:p-6 md:p-8 flex flex-col justify-center">
+                  <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
+                    {/* Icon */}
+                    <div className="flex-shrink-0 p-2 sm:p-2.5 bg-white/10 border border-white/10 group-hover:border-orange-500/30 transition-colors duration-300">
+                      <lord-icon
+                        src={feature.icon}
+                        trigger="hover"
+                        colors="primary:#ee8220,secondary:#ffffff"
+                        style={{ width: '36px', height: '36px' }}
+                        class="sm:w-10 sm:h-10"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white group-hover:text-orange-400 transition-colors duration-300">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm sm:text-base text-gray-300 leading-relaxed mt-1">
+                        {feature.description}
+                      </p>
+                    </div>
                   </div>
-                  
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold mb-2 text-white group-hover:text-orange-400 transition-colors">
-                    {feature.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-200 leading-relaxed">
-                  {feature.description}
-                </p>
+
+                  {/* Highlight pills */}
+                  <div className="flex flex-wrap gap-2 mt-1 ml-0 sm:ml-[52px] md:ml-[56px]">
+                    {feature.highlights.map((item) => (
+                      <span
+                        key={item}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 text-gray-300 text-xs sm:text-sm font-medium group-hover:border-orange-500/20 group-hover:text-white transition-all duration-300"
+                      >
+                        <svg className="w-3 h-3 text-orange-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* CTA Button */}
-          <div className="mt-10 md:mt-12 flex justify-center">
-      <Link
-        href="/signup"
-              className="group relative px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-2xl hover:shadow-orange-500/50 transition-all duration-300 overflow-hidden text-sm"
-      >
+          {/* CTA */}
+          <div className="mt-12 md:mt-16 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/signup"
+              className="group relative px-6 sm:px-8 py-3 sm:py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-2xl hover:shadow-orange-500/40 transition-all duration-300 overflow-hidden text-sm sm:text-base"
+            >
               <span className="relative z-10 flex items-center justify-center gap-2">
-        Start Free Trial Now
+                Start Free Trial Now
                 <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-      </Link>
+            </Link>
+            <p className="text-xs text-gray-400">No credit card required</p>
           </div>
         </div>
       </section>
@@ -497,90 +541,114 @@ export default function Homepage() {
       </section>
 
       {/* Manage Experience Section */}
-<section 
-  ref={manageRef}
-  className="py-16 sm:py-20 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 text-center relative overflow-hidden bg-[#002147] text-white"
-  aria-labelledby="manage-experience-heading"
->
-  {/* Simplified background with cleaner gradient */}
-  <div 
-    className="absolute inset-0 w-full h-full"
-    style={{
-      backgroundImage: `linear-gradient(135deg, rgba(0,33,71,0.93) 0%, rgba(0,33,71,0.88) 60%, rgba(255,94,26,0.30) 100%), url('/pexels-rdne-7467965.jpg')`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center 20%',
-      backgroundRepeat: 'no-repeat',
-      zIndex: Z_INDEX.background
-    }}
-    aria-hidden="true"
-  />
-  
-  {/* Subtle accent gradient */}
-  <div className="absolute top-0 left-0 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-r from-orange-400/10 to-transparent rounded-full blur-3xl" style={{ zIndex: Z_INDEX.background }} />
-  
-  <div className="max-w-5xl mx-auto relative" style={{ zIndex: Z_INDEX.content }}>
-    {/* Section Header */}
-    <div className="mb-10 md:mb-12">
-      <h2 id="manage-experience-heading" className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-bold mb-3 uppercase text-white">
-    Manage Your Experience
-  </h2>
-      <div className="w-12 h-1 bg-orange-500 mx-auto rounded-full mb-3" aria-hidden="true"/>
-      <p className="text-xs sm:text-sm md:text-base text-gray-200 max-w-xl mx-auto leading-relaxed">
-        Take control of your coaching journey with powerful management tools
-      </p>
-    </div>
-
-    {/* M Management Cards */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-    {MANAGEMENT_CARDS.map((card) => (
-      <div 
-        key={card.id}
-          className="group relative bg-white/5 backdrop-blur-md p-5 sm:p-6 transition-all duration-500 hover:bg-white/10 hover:scale-105 cursor-pointer border border-white/20 hover:border-orange-500/50"
-        role="button"
-        tabIndex={0}
-        aria-label={card.ariaLabel}
-        onClick={() => handleCardInteraction(card.id)}
-        onKeyDown={(e) => handleCardKeyDown(e, card.id)}
+      <section
+        ref={manageRef}
+        className="py-16 sm:py-20 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+        style={{ background: 'linear-gradient(180deg, #002147 0%, #001530 50%, #002147 100%)' }}
+        aria-labelledby="manage-experience-heading"
       >
-          {/* Gradient glow on hover */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-orange-600 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500" />
-          
-          <div className="relative flex flex-col items-center text-white">
-            {/* Icon with container */}
-            <div className="mb-4 sm:mb-5">
-              <div className="p-2.5 sm:p-3 bg-gradient-to-br from-orange-500/20 to-orange-600/10 backdrop-blur-sm transform group-hover:scale-110 transition-transform duration-300">
-            <lord-icon
-              src={card.icon}
-              trigger="hover"
-              colors="primary:#ee8220,secondary:#ffffff"
-                  style={{ width: '40px', height: '40px' }}
-                  class="sm:w-14 sm:h-14"
-            />
-          </div>
-            </div>
-            
-            <h3 className="text-base sm:text-lg md:text-xl font-bold mb-2 sm:mb-3 group-hover:text-orange-400 transition-colors duration-300">
-              {card.title}
-            </h3>
-            <p className="text-gray-300 text-center leading-relaxed text-xs sm:text-sm group-hover:text-white transition-colors duration-300">
-            {card.description}
-          </p>
-            
-            {/* Animated "Learn More" indicator */}
-            <div className="mt-4 sm:mt-5 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-              <span className="text-orange-400 flex items-center gap-2 text-xs font-medium">
-              Learn More 
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
+        {/* Background */}
+        <div
+          className="absolute inset-0 w-full h-full"
+          style={{
+            backgroundImage: `linear-gradient(135deg, rgba(0,33,71,0.96) 0%, rgba(0,21,48,0.94) 50%, rgba(0,33,71,0.96) 100%), url('/pexels-rdne-7467965.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center 20%',
+            backgroundRepeat: 'no-repeat',
+            zIndex: Z_INDEX.background
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Decorative gradients */}
+        <div className="absolute top-0 left-0 w-72 md:w-[500px] h-72 md:h-[500px] bg-gradient-to-br from-orange-500/6 to-transparent rounded-full blur-3xl" style={{ zIndex: Z_INDEX.background }} />
+        <div className="absolute bottom-0 right-0 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-tl from-blue-400/5 to-transparent rounded-full blur-3xl" style={{ zIndex: Z_INDEX.background }} />
+
+        <div className="max-w-6xl mx-auto relative" style={{ zIndex: Z_INDEX.content }}>
+          {/* Section Header */}
+          <div className="mb-12 md:mb-16 text-center">
+            <span className="inline-block px-4 py-1.5 bg-white/5 border border-white/15 text-gray-300 text-xs font-semibold uppercase tracking-widest mb-4">
+              Your Dashboard
             </span>
+            <h2 id="manage-experience-heading" className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-white leading-tight">
+              Manage Your <span className="text-orange-500">Experience</span>
+            </h2>
+            <p className="text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Your coaching journey, journals, career progress, and goals — organized in one place.
+            </p>
+          </div>
+
+          {/* Cards — numbered, left-aligned content, with highlights */}
+          <div className="space-y-4 sm:space-y-5 md:space-y-6">
+            {MANAGEMENT_CARDS.map((card, index) => (
+              <Link
+                key={card.id}
+                href={card.link}
+                className="group relative flex flex-col sm:flex-row items-stretch bg-white/[0.03] backdrop-blur-sm border border-white/10 hover:border-orange-500/30 transition-all duration-500 overflow-hidden"
+                aria-label={card.ariaLabel}
+              >
+                {/* Hover glow */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/0 via-orange-500/8 to-blue-500/0 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-700" aria-hidden="true" />
+
+                {/* Number badge — side strip */}
+                <div className="relative flex-shrink-0 w-full sm:w-20 md:w-24 bg-gradient-to-br from-white/[0.06] to-white/[0.02] flex items-center justify-center py-3 sm:py-0 border-b sm:border-b-0 sm:border-r border-white/10">
+                  <span className="text-3xl sm:text-4xl md:text-5xl font-black text-orange-500/30 group-hover:text-orange-500/50 transition-colors duration-300 select-none">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                </div>
+
+                {/* Content */}
+                <div className="relative flex-1 p-5 sm:p-6 md:p-8">
+                  <div className="flex items-start gap-3 sm:gap-4 mb-3">
+                    {/* Icon */}
+                    <div className="flex-shrink-0 p-2 sm:p-2.5 bg-gradient-to-br from-orange-500/15 to-orange-600/5 border border-orange-500/20 group-hover:border-orange-500/40 transition-colors duration-300">
+                      <lord-icon
+                        src={card.icon}
+                        trigger="hover"
+                        colors="primary:#ee8220,secondary:#ffffff"
+                        style={{ width: '32px', height: '32px' }}
+                        class="sm:w-9 sm:h-9"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white group-hover:text-orange-400 transition-colors duration-300 leading-snug">
+                        {card.title}
+                      </h3>
+                      <p className="text-sm sm:text-base text-gray-400 leading-relaxed mt-1.5 group-hover:text-gray-300 transition-colors duration-300">
+                        {card.description}
+                      </p>
+                    </div>
+
+                    {/* Arrow — desktop only */}
+                    <div className="hidden md:flex items-center self-center flex-shrink-0 ml-4">
+                      <div className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 group-hover:bg-orange-500 group-hover:border-orange-500 transition-all duration-300">
+                        <svg className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Highlight pills */}
+                  <div className="flex flex-wrap gap-2 ml-0 sm:ml-[48px] md:ml-[52px]">
+                    {card.highlights.map((item) => (
+                      <span
+                        key={item}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/5 border border-white/10 text-gray-400 text-xs sm:text-sm font-medium group-hover:border-orange-500/20 group-hover:text-gray-200 transition-all duration-300"
+                      >
+                        <svg className="w-3 h-3 text-orange-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
-      </div>
-    ))}
-    </div>
-  </div>
-</section>
+      </section>
 
     </div>
   );

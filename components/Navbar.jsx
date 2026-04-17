@@ -195,6 +195,16 @@ export default function Navbar({ hideNavbar = false }) {
     }
   }, [isMobileMenuOpen]);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isMobileMenuOpen]);
+
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add("dark");
@@ -320,7 +330,7 @@ export default function Navbar({ hideNavbar = false }) {
             </div>
 
             {/* Desktop Menu */}
-            <div className="flex items-center justify-end gap-6 xl:gap-8 flex-1" ref={dropdownRef}>
+            <div className="hidden lg:flex items-center justify-end gap-6 xl:gap-8 flex-1" ref={dropdownRef}>
               {Object.entries(navigation).map(([key, section]) => (
                 <div key={key} className="relative">
                   <button
@@ -368,7 +378,7 @@ export default function Navbar({ hideNavbar = false }) {
 
             {/* Dropdown Menu - Positioned relative to nav */}
             {activeDropdown && (
-              <div className="absolute top-full left-0 w-full bg-gradient-to-r from-[#002147] to-[#003368] text-white py-6 z-50 shadow-xl border-t border-orange-500/20 animate-fadeIn">
+              <div className="hidden lg:flex absolute top-full left-0 w-full bg-gradient-to-r from-[#002147] to-[#003368] text-white py-6 z-50 shadow-xl border-t border-orange-500/20 animate-fadeIn">
                 <div className="max-w-7xl mx-auto flex items-center justify-center flex-wrap gap-x-8 gap-y-3 px-8">
                   {navigation[activeDropdown]?.items.map((item, index) => (
                     <React.Fragment key={index}>
@@ -432,7 +442,7 @@ export default function Navbar({ hideNavbar = false }) {
               />
               
               {/* Menu Panel - 3/4 screen height, full width edge to edge, 90° corners */}
-              <div className="fixed top-0 right-0 left-0 z-[9999] w-full h-[75vh] max-h-[75vh] bg-white shadow-2xl overflow-hidden flex flex-col lg:hidden animate-slideInRight">
+              <div className="fixed top-0 right-0 left-0 z-[9999] w-full h-[75vh] max-h-[75vh] bg-white shadow-2xl overflow-hidden flex flex-col lg:hidden animate-fadeIn">
                 {/* Header - full width, 90° edges, content scrolls underneath */}
                 <div className="flex-shrink-0 z-10 w-full bg-gradient-to-r from-[#002147] to-[#003368] text-white px-6 py-4 flex justify-between items-center">
                   <h2 className="text-lg font-bold">Menu</h2>

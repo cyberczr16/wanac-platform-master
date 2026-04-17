@@ -217,13 +217,14 @@ function ExperienceIcon({ title }) {
 /* ─────────────────────────────────────────────────────────────────────────────
    Main HomePage component
    ───────────────────────────────────────────────────────────────────────────── */
-export default function HomePage({ assignments = [], loading = false, error = "", onRetry }) {
+export default function HomePage({ assignments = [], loading = false, error = "", onRetry, isMobile = false }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("Current Assignments");
   const [sortKey, setSortKey] = useState("dueDate");
   const [sortAsc, setSortAsc] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatExp, setChatExp] = useState(null);
+  const [mobileFilter, setMobileFilter] = useState("current");
   const router = useRouter();
 
   /* ── Filter ── */
@@ -283,6 +284,180 @@ export default function HomePage({ assignments = [], loading = false, error = ""
     </th>
   );
 
+  /* ── Mobile filtered list ── */
+  const mobileFiltered = assignments.filter(a => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || a.experience.title.toLowerCase().includes(q)
+      || a.course.toLowerCase().includes(q)
+      || a.instructor.toLowerCase().includes(q);
+    const matchFilter =
+      mobileFilter === "all" ||
+      (mobileFilter === "current" && a.status === "Upcoming") ||
+      (mobileFilter === "completed" && a.status === "Completed");
+    return matchSearch && matchFilter;
+  });
+
+  const MOBILE_FILTER_TABS = [
+    { key: "current", label: "Current", count: assignments.filter(a => a.status === "Upcoming").length },
+    { key: "completed", label: "Completed", count: assignments.filter(a => a.status === "Completed").length },
+    { key: "all", label: "All", count: assignments.length },
+  ];
+
+  /* ── MOBILE LAYOUT ── */
+  if (isMobile) {
+    return (
+      <>
+        {/* Error banner */}
+        {error && (
+          <div className="mx-3 mt-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center justify-between text-[11px]">
+            <span>⚠ {error}</span>
+            <button onClick={onRetry} className="ml-2 underline font-semibold text-red-600">Retry</button>
+          </div>
+        )}
+
+        {/* Search Bar */}
+        <div className="px-3 pt-2 pb-1">
+          <div className="relative">
+            <SearchIcon />
+            <input
+              type="text"
+              placeholder="Search experiences..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full h-9 pl-9 pr-3 rounded-lg border border-gray-200 bg-white text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex gap-1 px-3 py-1.5">
+          {MOBILE_FILTER_TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setMobileFilter(tab.key)}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                mobileFilter === tab.key
+                  ? 'bg-[#002147] text-white'
+                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {tab.label}
+              <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${
+                mobileFilter === tab.key ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Card List */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-3 pb-3 space-y-2">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+              <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-gray-400 mb-2" />
+              <p className="text-xs">Loading experiences...</p>
+            </div>
+          ) : mobileFiltered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
+                  <path d="M21 21l-4.486-4.494M19 10.5a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0z" />
+                </svg>
+              </div>
+              <p className="text-xs font-bold text-gray-700 mb-0.5">
+                {assignments.length === 0 ? "No assignments yet" : "No matching experiences"}
+              </p>
+              <p className="text-[10px] text-gray-400">
+                {assignments.length === 0 ? "Assignments appear when assigned by your coach." : "Try adjusting your search or filter."}
+              </p>
+            </div>
+          ) : (
+            mobileFiltered.map(a => {
+              const url = buildUrl(a);
+              return (
+                <div
+                  key={a.id}
+                  onClick={() => router.push(url)}
+                  className="bg-white border border-gray-200 rounded-xl p-3 active:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  {/* Top row: icon + title + status badge */}
+                  <div className="flex items-start gap-2.5 mb-2">
+                    <ExperienceIcon title={a.experience.title} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-[12px] text-gray-900 leading-tight truncate">{a.experience.title}</p>
+                      <p className="text-[10px] text-gray-400 truncate mt-0.5">{a.experience.subtitle}</p>
+                    </div>
+                    <span className={`shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                      a.status === "Completed"
+                        ? "bg-green-50 text-green-600 border border-green-200"
+                        : "bg-amber-50 text-amber-600 border border-amber-200"
+                    }`}>
+                      {a.status}
+                    </span>
+                  </div>
+
+                  {/* Course + Instructor */}
+                  <div className="flex items-center gap-1 mb-2">
+                    <span className="text-[10px] font-semibold text-[#002147]">{a.course}</span>
+                    <span className="text-[10px] text-gray-300">·</span>
+                    <span className="text-[10px] text-gray-500">{a.instructor}</span>
+                  </div>
+
+                  {/* Date row */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-400">
+                        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                      <span className="text-[10px] text-gray-600">Due: <span className="font-semibold text-gray-800">{a.dueDate}</span></span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-400">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      <span className="text-[10px] text-gray-600">Session: <span className="font-semibold text-gray-800">{a.sessionDate}</span></span>
+                    </div>
+                  </div>
+
+                  {/* Bottom action row */}
+                  <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-gray-100">
+                    {a.chat ? (
+                      <button
+                        onClick={e => { e.stopPropagation(); setChatExp(a); setChatOpen(true); }}
+                        className="flex items-center gap-1 text-[10px] font-semibold text-gray-500 hover:text-gray-800 transition-colors"
+                      >
+                        <ChatBubbleIcon /> Chat
+                      </button>
+                    ) : (
+                      <span />
+                    )}
+                    <button
+                      onClick={e => { e.stopPropagation(); router.push(url); }}
+                      className="flex items-center gap-1 text-[11px] font-bold text-[#002147] hover:text-orange-500 transition-colors"
+                    >
+                      {a.action}
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <ChatModal
+          isOpen={chatOpen}
+          onClose={() => { setChatOpen(false); setChatExp(null); }}
+          experience={chatExp?.experience}
+        />
+      </>
+    );
+  }
+
+  /* ── DESKTOP LAYOUT (unchanged) ── */
   return (
     <>
       {/* ── Error banner ── */}
@@ -295,7 +470,6 @@ export default function HomePage({ assignments = [], loading = false, error = ""
 
       {/* ── Search + Filter row ── */}
       <div className="flex items-center gap-3 mb-4">
-        {/* Search — Breakout style: white, subtle border, full-width */}
         <div className="relative flex-1">
           <SearchIcon />
           <input
@@ -308,8 +482,6 @@ export default function HomePage({ assignments = [], loading = false, error = ""
                        focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all"
           />
         </div>
-
-        {/* Filter dropdown — matches Breakout's "Filter: Current Assignments" button */}
         <FilterDropdown value={filter} onChange={setFilter} />
       </div>
 
@@ -323,7 +495,6 @@ export default function HomePage({ assignments = [], loading = false, error = ""
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-left">
-              {/* ── Table header — gray background like Breakout ── */}
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <Th label="Course" k="course" />
@@ -331,7 +502,6 @@ export default function HomePage({ assignments = [], loading = false, error = ""
                   <Th label="Experience" k="experience" />
                   <Th label="Due Date" k="dueDate" cls="w-32" />
                   <Th label="Session Date" k="sessionDate" cls="w-32" />
-                  {/* Static columns */}
                   <th scope="col" className="px-4 py-3 text-center w-16">
                     <span className="text-sm font-semibold text-gray-400">Chat</span>
                   </th>
@@ -340,10 +510,8 @@ export default function HomePage({ assignments = [], loading = false, error = ""
                   </th>
                 </tr>
               </thead>
-
               <tbody className="divide-y divide-gray-100">
                 {sorted.length === 0 ? (
-                  /* ── Empty state — exact Breakout wording ── */
                   <tr>
                     <td colSpan={7}>
                       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -373,51 +541,35 @@ export default function HomePage({ assignments = [], loading = false, error = ""
                         onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } }}
                         className="hover:bg-gray-50 transition-colors cursor-pointer"
                       >
-                        {/* Course */}
                         <td className="px-4 py-4 align-middle">
                           <p className="font-semibold text-sm text-gray-900">{a.course}</p>
                           <p className="text-xs text-gray-400 mt-0.5">{a.courseNum}</p>
                         </td>
-
-                        {/* Instructor */}
                         <td className="px-4 py-4 align-middle">
                           <p className="text-sm text-gray-700">{a.instructor}</p>
                         </td>
-
-                        {/* Experience — with icon like Breakout */}
                         <td className="px-4 py-4 align-middle">
                           <div className="flex items-center gap-2.5">
                             <ExperienceIcon title={a.experience.title} />
                             <div className="min-w-0">
-                              <p className="font-semibold text-sm text-gray-900 truncate max-w-[200px]">
-                                {a.experience.title}
-                              </p>
-                              <p className="text-xs text-gray-400 truncate max-w-[200px]">
-                                {a.experience.subtitle}
-                              </p>
+                              <p className="font-semibold text-sm text-gray-900 truncate max-w-[200px]">{a.experience.title}</p>
+                              <p className="text-xs text-gray-400 truncate max-w-[200px]">{a.experience.subtitle}</p>
                             </div>
                           </div>
                         </td>
-
-                        {/* Due Date */}
                         <td className="px-4 py-4 align-middle w-32">
                           <p className="text-sm font-medium text-gray-800">{a.dueDate}</p>
                           <p className="text-xs text-gray-400 mt-0.5">{a.dueTime}</p>
                         </td>
-
-                        {/* Session Date */}
                         <td className="px-4 py-4 align-middle w-32">
                           <p className="text-sm font-medium text-gray-800">{a.sessionDate}</p>
                           <p className="text-xs text-gray-400 mt-0.5">{a.sessionTime}</p>
                         </td>
-
-                        {/* Chat — Breakout uses an outline speech bubble */}
                         <td className="px-4 py-4 align-middle text-center w-16">
                           {a.chat ? (
                             <button
                               onClick={e => { e.stopPropagation(); setChatExp(a); setChatOpen(true); }}
-                              className="inline-flex items-center justify-center w-9 h-9 rounded-full
-                                         hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-800"
+                              className="inline-flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-800"
                               title="Open chat"
                               aria-label={`Chat for ${a.experience?.title}`}
                             >
@@ -427,13 +579,10 @@ export default function HomePage({ assignments = [], loading = false, error = ""
                             <span className="inline-block w-5 h-5 border-2 border-gray-200 rounded-full opacity-40" />
                           )}
                         </td>
-
-                        {/* Action — Breakout uses plain text link */}
                         <td className="px-4 py-4 align-middle text-center w-28">
                           <button
                             onClick={e => { e.stopPropagation(); router.push(url); }}
-                            className="text-sm font-semibold text-gray-800 hover:text-gray-500
-                                       flex items-center gap-1 mx-auto transition-colors"
+                            className="text-sm font-semibold text-gray-800 hover:text-gray-500 flex items-center gap-1 mx-auto transition-colors"
                             aria-label={`${a.action} — ${a.experience?.title}`}
                           >
                             {a.action}

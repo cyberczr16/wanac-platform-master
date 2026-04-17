@@ -27,6 +27,7 @@ export function useRecording(meetingRef, meetingReady) {
 
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
+  const recordingBlobRef = useRef(null);
 
   /**
    * Toggle recording on/off
@@ -87,9 +88,10 @@ export function useRecording(meetingRef, meetingReady) {
           };
 
           mediaRecorder.onstop = async () => {
-            const blob = new Blob(recordedChunksRef.current, { 
-              type: stream.getVideoTracks().length > 0 ? 'video/webm' : 'audio/webm' 
+            const blob = new Blob(recordedChunksRef.current, {
+              type: stream.getVideoTracks().length > 0 ? 'video/webm' : 'audio/webm'
             });
+            recordingBlobRef.current = blob;
             setRecordingBlob(blob);
             console.log('✅ Recording saved locally, size:', (blob.size / 1024 / 1024).toFixed(2), 'MB');
 
@@ -123,12 +125,23 @@ export function useRecording(meetingRef, meetingReady) {
   /**
    * Process recording with AI transcription and summaries
    */
-  const processRecording = async (meetingData, searchParams) => {
-    if (!recordingBlob || !currentRecordingId) {
+  /**
+   * Process recording with AI transcription and summaries.
+   * @param {object}   meetingData   - Experience / agenda / participant context
+   * @param {object}   searchParams  - URL search params (id, fireteamId)
+   * @param {function} [onProgress]  - Optional callback: onProgress(stage) where
+   *                                   stage is 'transcribing' | 'summarizing' | 'uploading' | 'done'
+   */
+  const processRecording = async (meetingData, searchParams, onProgress) => {
+    // Use the ref as fallback so async callers that captured a stale
+    // closure still get the blob that was saved by mediaRecorder.onstop.
+    const blob = recordingBlob || recordingBlobRef.current;
+    if (!blob || !currentRecordingId) {
       throw new Error('No recording available to process');
     }
 
     setProcessingRecording(true);
+    const notify = typeof onProgress === 'function' ? onProgress : () => {};
 
     try {
       const userId = localStorage.getItem('user_id') || 'unknown';
@@ -137,19 +150,22 @@ export function useRecording(meetingRef, meetingReady) {
       const ftId = searchParams?.get('fireteamId');
 
       console.log('🎙️ Starting transcription (Groq Whisper via /api/groq/transcribe)...');
+      notify('transcribing');
 
       // Step 1: Transcribe audio — Groq Whisper (server-side route)
-      const transcriptionResult = await groqService.transcribeAudio(recordingBlob);
+      const transcriptionResult = await groqService.transcribeAudio(blob);
       const transcript = transcriptionResult.text || '';
 
       console.log('✅ Transcription complete, length:', transcript.length);
       console.log('🤖 Generating AI summaries (Groq via /api/groq/summarize)...');
+      notify('summarizing');
 
       // Step 2: Participant + coach + admin summaries (single full request)
       const summaries = await groqService.generateMeetingSummaries(transcript, meetingData);
 
       console.log('✅ AI summaries generated');
       console.log('📤 Uploading to backend...');
+      notify('uploading');
 
       // Step 3: Upload recording with metadata
       const metadata = {
@@ -167,11 +183,12 @@ export function useRecording(meetingRef, meetingReady) {
       const uploaded = await meetingService.uploadRecording(
         Number(ftId),
         Number(expId),
-        recordingBlob,
+        blob,
         metadata
       );
 
       console.log('✅ Recording uploaded successfully');
+      notify('done');
 
       const serverRecordingId = extractServerRecordingId(uploaded);
       const recordingIdForApp = serverRecordingId != null ? serverRecordingId : currentRecordingId;
@@ -203,6 +220,7 @@ export function useRecording(meetingRef, meetingReady) {
   return {
     isRecording,
     recordingBlob,
+    recordingBlobRef,
     processingRecording,
     meetingSummaries,
     toggleRecording,

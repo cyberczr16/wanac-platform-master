@@ -127,6 +127,14 @@ export default function AIInsightsPage() {
   const [sessions, setSessions] = useState([]);
   const [wholeLifeHistory, setWholeLifeHistory] = useState([]);
   const [todayHabits, setTodayHabits] = useState(null);
+  const [mobileTab, setMobileTab] = useState('coach');
+
+  const MOBILE_TABS = [
+    { key: 'coach', label: 'AI Coach', icon: Ic.Bot, color: 'text-[#002147]', activeBg: 'bg-[#002147]' },
+    { key: 'scores', label: 'Scores', icon: Ic.Chart, color: 'text-indigo-500', activeBg: 'bg-indigo-500' },
+    { key: 'activity', label: 'Activity', icon: Ic.Bolt, color: 'text-amber-500', activeBg: 'bg-amber-500' },
+    { key: 'stats', label: 'Stats', icon: Ic.Target, color: 'text-green-500', activeBg: 'bg-green-500' },
+  ];
 
   // Load user
   useEffect(() => {
@@ -215,7 +223,264 @@ export default function AIInsightsPage() {
       <div className="flex-1 flex flex-col h-full">
         <ClientTopbar user={user} />
 
-        <main className="flex-1 h-0 overflow-y-auto px-4 md:px-6 py-4 bg-gray-50">
+        {/* ========== MOBILE LAYOUT ========== */}
+        <main className="md:hidden flex-1 flex flex-col h-0 bg-gray-50">
+          {/* Compact Header */}
+          <div className="flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-[#002147] to-[#003875]">
+            <div className="flex items-center gap-2">
+              <div className="p-1 bg-white/20 rounded-lg text-white"><Ic.Brain /></div>
+              <div>
+                <h1 className="text-sm font-bold text-white leading-tight">
+                  {firstName ? `Hi, ${firstName}` : 'AI Insights'}
+                </h1>
+                <p className="text-[9px] text-white/60">Your AI life coach</p>
+              </div>
+            </div>
+            {!loading && (
+              <div className="flex gap-2">
+                <div className="bg-white/10 rounded-lg px-2.5 py-1.5 text-center">
+                  <p className={`text-sm font-bold ${scoreColor}`}>{overallScore != null ? overallScore.toFixed(1) : '—'}</p>
+                  <p className="text-[8px] text-white/60">Score</p>
+                </div>
+                <div className="bg-white/10 rounded-lg px-2.5 py-1.5 text-center">
+                  <p className="text-sm font-bold text-white">{stats.completed}</p>
+                  <p className="text-[8px] text-white/60">Sessions</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Tab Bar */}
+          <div className="grid grid-cols-4 bg-white border-b border-gray-200">
+            {MOBILE_TABS.map((tab) => {
+              const isActive = mobileTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setMobileTab(tab.key)}
+                  className={`flex flex-col items-center py-2 px-1 transition-all relative ${isActive ? 'bg-gray-50' : 'hover:bg-gray-50/50'}`}
+                >
+                  <div className={isActive ? tab.color : 'text-gray-400'}>
+                    <tab.icon />
+                  </div>
+                  <span className={`text-[9px] mt-0.5 font-medium ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                    {tab.label}
+                  </span>
+                  {isActive && <div className={`absolute bottom-0 left-1 right-1 h-[2px] rounded-t ${tab.activeBg}`} />}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Tab Content — fills remaining viewport */}
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+
+            {/* AI Coach Tab */}
+            {mobileTab === 'coach' && (
+              <div className="flex-1 flex flex-col min-h-0 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1 bg-[#002147]/10 rounded-lg text-[#002147]"><Ic.Bot /></div>
+                  <div>
+                    <h3 className="text-xs font-bold text-gray-900">AI Life Coach</h3>
+                    <p className="text-[9px] text-gray-400">Ask anything about your growth</p>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  <AIChatbot lifeScoreContext={lifeScoreContext} />
+                </div>
+              </div>
+            )}
+
+            {/* Life Scores Tab */}
+            {mobileTab === 'scores' && (
+              <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
+                {/* Overall Score Card */}
+                {overallScore != null && (
+                  <div className="flex items-center justify-between bg-white border border-gray-100 rounded-xl p-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600"><Ic.Chart /></div>
+                      <span className="text-xs font-bold text-gray-900">Overall Life Score</span>
+                    </div>
+                    <span className={`text-lg font-bold ${overallScore >= 7 ? 'text-green-600' : overallScore >= 4 ? 'text-amber-600' : 'text-red-500'}`}>
+                      {overallScore.toFixed(1)}<span className="text-gray-400 text-xs font-normal">/10</span>
+                    </span>
+                  </div>
+                )}
+
+                {/* Score Bars */}
+                {loading ? (
+                  <div className="space-y-3">
+                    {[1,2,3,4].map(i => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-3 bg-gray-100 rounded w-1/3 mb-1.5" />
+                        <div className="h-2 bg-gray-100 rounded-full" />
+                      </div>
+                    ))}
+                  </div>
+                ) : lifeScoreEntry && Object.keys(lifeScoreEntry).length > 0 ? (
+                  <div className="bg-white border border-gray-100 rounded-xl p-3 space-y-3">
+                    {Object.entries(lifeScoreEntry).map(([cat, val]) => (
+                      <ScoreBar key={cat} category={cat} score={val} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center mx-auto mb-3 text-indigo-400"><Ic.Chart /></div>
+                    <p className="text-sm font-semibold text-gray-700 mb-1">No life scores yet</p>
+                    <p className="text-[11px] text-gray-400 mb-3">Track your balance across health, career, relationships, and more.</p>
+                    <button
+                      onClick={() => router.push('/client/lifescores')}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#002147] text-white rounded-xl text-xs font-semibold hover:bg-[#003875] transition-colors"
+                    >
+                      Add your first Life Score <Ic.ArrowRight />
+                    </button>
+                  </div>
+                )}
+
+                {lifeScoreEntry && (
+                  <button
+                    onClick={() => router.push('/client/lifescores')}
+                    className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-[#002147] text-white rounded-xl text-xs font-semibold hover:bg-[#003875] transition-colors"
+                  >
+                    View full Life Scores <Ic.ArrowRight />
+                  </button>
+                )}
+
+                {/* Today's Habits */}
+                {!loading && (
+                  <div className="bg-white border border-gray-100 rounded-xl p-3">
+                    <h5 className="text-xs font-bold text-gray-900 mb-2 flex items-center gap-1.5">
+                      <Ic.Check /> Today&apos;s habits
+                    </h5>
+                    {todayHabits && Object.keys(todayHabits).length > 0 ? (
+                      <div className="space-y-1.5">
+                        {Object.entries(todayHabits)
+                          .filter(([k]) => !['id','user_id','created_at','updated_at','date'].includes(k))
+                          .slice(0, 5)
+                          .map(([k, v]) => (
+                            <div key={k} className="flex items-center justify-between">
+                              <span className="text-[11px] text-gray-600 capitalize">{k.replace(/_/g, ' ')}</span>
+                              <span className="text-[11px] font-bold text-[#002147]">{v}</span>
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-gray-400 text-center py-2">No habits logged today.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Activity Tab */}
+            {mobileTab === 'activity' && (
+              <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
+                {loading ? (
+                  <div className="space-y-2">
+                    {[1,2].map(i => <div key={i} className="h-20 bg-gray-50 rounded-xl animate-pulse" />)}
+                  </div>
+                ) : (
+                  activityInsights.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`border-l-4 rounded-xl p-3 ${ACTIVITY_COLORS[item.id] || 'border-gray-200 bg-gray-50'}`}
+                    >
+                      <div className="flex items-center gap-1.5 mb-1 text-gray-600">
+                        {ACTIVITY_ICONS[item.id]}
+                        <span className="text-[11px] font-bold text-gray-800">{item.title}</span>
+                      </div>
+                      <p className="text-[11px] text-gray-600 leading-relaxed">{item.description}</p>
+                    </div>
+                  ))
+                )}
+
+                {/* Quick Tips */}
+                <div className="bg-gradient-to-br from-[#002147] to-[#003875] rounded-xl p-3 mt-1">
+                  <h5 className="text-[11px] font-bold text-white mb-2 flex items-center gap-1.5">
+                    <Ic.Lightbulb /> Quick tips
+                  </h5>
+                  <ul className="space-y-2">
+                    {QUICK_TIPS.map((t, i) => (
+                      <li key={i} className="flex gap-2 items-start">
+                        <span className="text-white/60 mt-0.5 shrink-0">{t.icon}</span>
+                        <span className="text-[10px] text-white/80 leading-relaxed">{t.tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Stats Tab */}
+            {mobileTab === 'stats' && (
+              <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
+                {loading ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {[1,2,3,4].map(i => <div key={i} className="h-16 bg-gray-50 rounded-xl animate-pulse" />)}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <StatCard label="Sessions done" value={stats.completed} color="text-[#002147]" />
+                    <StatCard label="Upcoming" value={stats.upcoming} color="text-amber-600" />
+                    <StatCard label="Score updates" value={stats.scoresThisWeek} sub="this week" color="text-indigo-600" />
+                    <StatCard label="Last active" value={stats.lastActive} color="text-green-600" />
+                  </div>
+                )}
+
+                {/* Upcoming sessions count */}
+                <div className="bg-white border border-gray-100 rounded-xl p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5"><Ic.Calendar /> Sessions</span>
+                    <span className="text-xs font-bold text-[#002147]">{sessions.length} total</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="text-center p-2 bg-green-50 rounded-lg">
+                      <p className="text-sm font-bold text-green-600">{stats.completed}</p>
+                      <p className="text-[9px] text-gray-500">Completed</p>
+                    </div>
+                    <div className="text-center p-2 bg-amber-50 rounded-lg">
+                      <p className="text-sm font-bold text-amber-600">{stats.upcoming}</p>
+                      <p className="text-[9px] text-gray-500">Upcoming</p>
+                    </div>
+                    <div className="text-center p-2 bg-blue-50 rounded-lg">
+                      <p className="text-sm font-bold text-blue-600">{stats.scoresThisWeek}</p>
+                      <p className="text-[9px] text-gray-500">Scores/wk</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Priority Guide */}
+                <div className="bg-gradient-to-br from-[#002147] to-[#003875] rounded-xl p-3">
+                  <h5 className="text-[11px] font-bold text-white mb-2 flex items-center gap-1.5">
+                    <Ic.Star /> Growth priorities
+                  </h5>
+                  {lifeScoreEntry ? (
+                    <div className="space-y-1.5">
+                      {Object.entries(lifeScoreEntry)
+                        .sort(([,a], [,b]) => a - b)
+                        .slice(0, 3)
+                        .map(([cat, val]) => {
+                          const cfg = CATEGORY_CONFIG[cat] || { label: cat };
+                          return (
+                            <div key={cat} className="flex items-center justify-between">
+                              <span className="text-[10px] text-white/80 capitalize">{cfg.label}</span>
+                              <span className={`text-[10px] font-bold ${val >= 7 ? 'text-green-300' : val >= 4 ? 'text-amber-300' : 'text-red-300'}`}>{val.toFixed(1)}/10</span>
+                            </div>
+                          );
+                        })}
+                      <p className="text-[9px] text-white/50 mt-1">Your 3 lowest-scoring areas to focus on</p>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-white/60">Complete a Life Score to see your growth priorities.</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+
+        {/* ========== DESKTOP LAYOUT ========== */}
+        <main className="hidden md:block flex-1 h-0 overflow-y-auto px-4 md:px-6 py-4 bg-gray-50">
           <div className="max-w-6xl mx-auto space-y-4">
 
             {/* ── Hero ──────────────────────────────────────────────────── */}
@@ -235,14 +500,10 @@ export default function AIInsightsPage() {
                   </h1>
                   <p className="text-white/80 text-sm">Your personal AI life coach is ready to help you grow.</p>
                 </div>
-
-                {/* Quick stats strip */}
                 {!loading && (
                   <div className="flex gap-3 flex-wrap">
                     <div className="bg-white/10 rounded-xl px-4 py-2.5 text-center min-w-[80px]">
-                      <p className={`text-xl font-bold ${scoreColor}`}>
-                        {overallScore != null ? overallScore.toFixed(1) : '—'}
-                      </p>
+                      <p className={`text-xl font-bold ${scoreColor}`}>{overallScore != null ? overallScore.toFixed(1) : '—'}</p>
                       <p className="text-white/70 text-[10px] font-medium">Life Score</p>
                     </div>
                     <div className="bg-white/10 rounded-xl px-4 py-2.5 text-center min-w-[80px]">
@@ -278,7 +539,6 @@ export default function AIInsightsPage() {
                       </div>
                     )}
                   </div>
-
                   {loading ? (
                     <div className="space-y-3">
                       {[1,2,3,4].map(i => (
@@ -340,10 +600,7 @@ export default function AIInsightsPage() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {activityInsights.map((item) => (
-                        <div
-                          key={item.id}
-                          className={`border-l-4 rounded-xl p-4 ${ACTIVITY_COLORS[item.id] || 'border-gray-200 bg-gray-50'}`}
-                        >
+                        <div key={item.id} className={`border-l-4 rounded-xl p-4 ${ACTIVITY_COLORS[item.id] || 'border-gray-200 bg-gray-50'}`}>
                           <div className="flex items-center gap-1.5 mb-1.5 text-gray-600">
                             {ACTIVITY_ICONS[item.id]}
                             <span className="text-[11px] font-bold text-gray-800">{item.title}</span>
@@ -358,8 +615,6 @@ export default function AIInsightsPage() {
 
               {/* ── Sidebar ─────────────────────────────────────────────── */}
               <aside className="w-full lg:w-64 shrink-0 space-y-4">
-
-                {/* Stats grid */}
                 <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
                   <h5 className="text-xs font-bold text-gray-900 mb-3 flex items-center gap-1.5">
                     <Ic.Target /> Your stats
@@ -370,19 +625,17 @@ export default function AIInsightsPage() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
-                      <StatCard label="Sessions done"     value={stats.completed}      color="text-[#002147]" />
-                      <StatCard label="Upcoming"          value={stats.upcoming}        color="text-amber-600" />
-                      <StatCard label="Score updates"     value={stats.scoresThisWeek} sub="this week" color="text-indigo-600" />
-                      <StatCard label="Last active"       value={stats.lastActive}      color="text-green-600" />
+                      <StatCard label="Sessions done" value={stats.completed} color="text-[#002147]" />
+                      <StatCard label="Upcoming" value={stats.upcoming} color="text-amber-600" />
+                      <StatCard label="Score updates" value={stats.scoresThisWeek} sub="this week" color="text-indigo-600" />
+                      <StatCard label="Last active" value={stats.lastActive} color="text-green-600" />
                     </div>
                   )}
                 </div>
-
-                {/* Today's habits */}
                 {!loading && (
                   <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
                     <h5 className="text-xs font-bold text-gray-900 mb-3 flex items-center gap-1.5">
-                      <Ic.Check /> Today's habits
+                      <Ic.Check /> Today&apos;s habits
                     </h5>
                     {todayHabits && Object.keys(todayHabits).length > 0 ? (
                       <div className="space-y-2">
@@ -395,28 +648,20 @@ export default function AIInsightsPage() {
                               <span className="text-[11px] font-bold text-[#002147]">{v}</span>
                             </div>
                           ))}
-                        <button
-                          onClick={() => router.push('/client/lifescores')}
-                          className="mt-1 text-[10px] text-[#002147] hover:text-orange-500 font-semibold transition-colors"
-                        >
+                        <button onClick={() => router.push('/client/lifescores')} className="mt-1 text-[10px] text-[#002147] hover:text-orange-500 font-semibold transition-colors">
                           Update habits →
                         </button>
                       </div>
                     ) : (
                       <div className="text-center py-2">
                         <p className="text-[11px] text-gray-400 mb-2">No habits logged today.</p>
-                        <button
-                          onClick={() => router.push('/client/lifescores')}
-                          className="text-[10px] font-semibold text-[#002147] hover:text-orange-500 transition-colors"
-                        >
-                          Log today's habits →
+                        <button onClick={() => router.push('/client/lifescores')} className="text-[10px] font-semibold text-[#002147] hover:text-orange-500 transition-colors">
+                          Log today&apos;s habits →
                         </button>
                       </div>
                     )}
                   </div>
                 )}
-
-                {/* Quick tips */}
                 <div className="bg-gradient-to-br from-[#002147] to-[#003875] rounded-2xl p-4 shadow-sm">
                   <h5 className="text-xs font-bold text-white mb-3 flex items-center gap-1.5">
                     <Ic.Lightbulb /> Quick tips
@@ -430,7 +675,6 @@ export default function AIInsightsPage() {
                     ))}
                   </ul>
                 </div>
-
               </aside>
             </div>
           </div>
