@@ -240,6 +240,13 @@ function useStepTimer(durationMinutes) {
 
 export default function FireteamExperienceMeeting() {
   const sessionProcessedRef = useRef(false);
+  const isRecordingRef = useRef(false);
+  const wasRecordingRef = useRef(false);
+  // Stable callback refs — the async processSession reads these so it's immune
+  // to re-renders that change callback identity mid-flight.
+  const handleProcessRecordingRef = useRef(null);
+  const handleToggleRecordingRef = useRef(null);
+  const advanceSlideRef = useRef(null);
   const mobileCtx = useDashboardMobile();
 
   // ============================================================================
@@ -261,6 +268,8 @@ export default function FireteamExperienceMeeting() {
   const [wasRecording, setWasRecording] = useState(false);
   const [autoStartedRecording, setAutoStartedRecording] = useState(false);
   const [mobilePanel, setMobilePanel] = useState(null); // null | 'agenda' | 'exhibits'
+  const [processingStage, setProcessingStage] = useState(null); // 'transcribing' | 'summarizing' | 'uploading' | 'done' | null
+  const [processResult, setProcessResult] = useState(null);     // { recordingId, summaries }
 
   // Toast notifications
   const toast = useToast();
@@ -364,6 +373,10 @@ export default function FireteamExperienceMeeting() {
     processRecording,
   } = useRecording(roomRef, livekitReady);
 
+  // Keep refs in sync so async processSession always reads the live value
+  useEffect(() => { isRecordingRef.current = isRecording; }, [isRecording]);
+  useEffect(() => { wasRecordingRef.current = wasRecording; }, [wasRecording]);
+
   // ============================================================================
   // MEETING INITIALIZATION
   // ============================================================================
@@ -451,7 +464,10 @@ export default function FireteamExperienceMeeting() {
   const handleToggleRecording = useCallback(async () => {
     try {
       await toggleRecording();
-      if (!isRecording) setWasRecording(true);
+      if (!isRecording) {
+        setWasRecording(true);
+        wasRecordingRef.current = true;
+      }
       toast.success(isRecording ? "Recording stopped" : "Recording started");
     } catch (err) {
       toast.error(err.message || "Failed to toggle recording");
@@ -474,37 +490,44 @@ export default function FireteamExperienceMeeting() {
         startTime: meetingStartTime ? meetingStartTime.toISOString() : new Date().toISOString(),
       };
 
-      // Progress toasts for each AI processing stage
-      const onProgress = (stage) => {
-        switch (stage) {
-          case 'transcribing':
-            toast.info("AI is transcribing your session recording...");
-            break;
-          case 'summarizing':
-            toast.info("AI is generating your Bloom's Taxonomy evaluation...");
-            break;
-          case 'uploading':
-            toast.info("Saving results to your session...");
-            break;
-          case 'done':
-            toast.success("AI summary generated successfully!");
-            break;
-        }
-      };
+      // Drive the processing slide's stage indicator in real time
+      const onProgress = (stage) => setProcessingStage(stage);
 
       const result = await processRecording(meetingData, searchParams, onProgress);
+      setProcessResult(result);
       return result;
     } catch (err) {
       toast.error(err.message || "Failed to process recording");
     }
   }, [experience, agenda, participants, calculateTotalTime, attendanceLog, meetingStartTime, processRecording, searchParams, toast]);
 
+  /** Navigate to the full evaluation page (used by the Summary slide redirect + button) */
+  const handleViewResults = useCallback(() => {
+    leaveMeeting();
+    const expId = searchParams?.get("id");
+    const ftId = searchParams?.get("fireteamId");
+    const recordingId = processResult?.recordingId || "unknown";
+    const hasAI = processResult ? "true" : "false";
+    window.location.href = `/client/fireteam/experience/${expId}/evaluation?fireteamId=${ftId}&recordingId=${recordingId}&hasAI=${hasAI}`;
+  }, [leaveMeeting, searchParams, processResult]);
+
+  // Keep callback refs in sync so the async processSession always calls the latest version
+  useEffect(() => { handleProcessRecordingRef.current = handleProcessRecording; }, [handleProcessRecording]);
+  useEffect(() => { handleToggleRecordingRef.current = handleToggleRecording; }, [handleToggleRecording]);
+  useEffect(() => { advanceSlideRef.current = advanceSlide; }, [advanceSlide]);
+
   const handleLeaveMeeting = useCallback(async () => {
     if (isRecording) {
       await handleToggleRecording();
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
-    if (recordingBlob && !processingRecording) {
+    // If we already have results, go straight to evaluation
+    if (processResult) {
+      handleViewResults();
+      return;
+    }
+    // If there's an unprocessed recording, ask before leaving
+    if ((recordingBlob || recordingBlobRef.current) && !processingRecording) {
       setShowConfirmDialog(true);
       return;
     }
@@ -514,17 +537,14 @@ export default function FireteamExperienceMeeting() {
     }
     leaveMeeting();
     router.push("/client/fireteam");
-  }, [isRecording, recordingBlob, processingRecording, wasRecording, handleToggleRecording, leaveMeeting, router]);
+  }, [isRecording, recordingBlob, recordingBlobRef, processingRecording, wasRecording, processResult, handleToggleRecording, handleViewResults, leaveMeeting, router]);
 
   const handleConfirmProcessRecording = useCallback(async () => {
     setShowConfirmDialog(false);
-    const result = await handleProcessRecording();
-    leaveMeeting();
-    const expId = searchParams?.get("id");
-    const ftId = searchParams?.get("fireteamId");
-    const recordingId = result?.recordingId || "unknown";
-    window.location.href = `/client/fireteam/experience/${expId}/evaluation?fireteamId=${ftId}&recordingId=${recordingId}&hasAI=true`;
-  }, [handleProcessRecording, leaveMeeting, searchParams]);
+    await handleProcessRecording();
+    // After processing, the processResult state will be set and handleViewResults will use it
+    handleViewResults();
+  }, [handleProcessRecording, handleViewResults]);
 
   const handleCancelProcessRecording = useCallback(() => {
     setShowConfirmDialog(false);
@@ -538,18 +558,39 @@ export default function FireteamExperienceMeeting() {
   // AUTOMATIC RECORDING
   // ============================================================================
 
+  // Auto-start recording on the first slide after the waiting room
   useEffect(() => {
+    const currentItem = agenda[currentStep];
+    const prevItem = currentStep > 0 ? agenda[currentStep - 1] : null;
+    const justLeftWaitingRoom = prevItem?.isWaitingRoom || (prevItem?.title || "").toLowerCase() === "waiting room";
+    const isContentSlide = currentItem && !currentItem.isWaitingRoom && !currentItem.isProcessing && !currentItem.isSummary;
+
     if (
-      agenda[currentStep]?.title === "Learning Objectives" &&
+      justLeftWaitingRoom &&
+      isContentSlide &&
       !isRecording &&
       livekitReady &&
       !autoStartedRecording
     ) {
       setAutoStartedRecording(true);
       setWasRecording(true);
-      handleToggleRecording().catch(() => toast.error("Failed to start recording automatically"));
+      wasRecordingRef.current = true;
+      handleToggleRecordingRef.current?.().catch(() => toast.error("Failed to start recording automatically"));
     }
-  }, [currentStep, agenda, isRecording, livekitReady, handleToggleRecording, toast, autoStartedRecording]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, agenda, isRecording, livekitReady, autoStartedRecording]);
+
+  // Auto-stop recording when we reach Session Processing
+  useEffect(() => {
+    const isProcessingSlide =
+      agenda[currentStep]?.isProcessing ||
+      (agenda[currentStep]?.title || "").toLowerCase().includes("session processing");
+
+    if (isProcessingSlide && isRecordingRef.current) {
+      handleToggleRecordingRef.current?.().catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, agenda]);
 
   useEffect(() => {
     let cancelled = false;
@@ -559,21 +600,22 @@ export default function FireteamExperienceMeeting() {
       sessionProcessedRef.current = true;
       setProcessingSession(true);
       try {
-        if (isRecording) {
-          await handleToggleRecording();
-          // Poll the REF (not the stale state closure) so we see the blob
-          // as soon as mediaRecorder.onstop writes it.
-          let waitCount = 0;
-          while (!recordingBlobRef.current && waitCount < 20 && !cancelled) {
-            await new Promise((resolve) => setTimeout(resolve, 250));
-            waitCount++;
-          }
+        // Wait for the recording blob to be ready (stop was triggered above)
+        let waitCount = 0;
+        while (!recordingBlobRef.current && waitCount < 30 && !cancelled) {
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          waitCount++;
         }
         await new Promise((resolve) => setTimeout(resolve, 500));
-        if ((wasRecording || recordingBlobRef.current) && !cancelled) {
-          await handleProcessRecording();
+        if ((wasRecordingRef.current || recordingBlobRef.current) && !cancelled) {
+          await handleProcessRecordingRef.current?.();
         } else if (!cancelled) {
           toast.info("No recording available to process");
+        }
+        // Auto-advance to the Summary slide (next step)
+        if (!cancelled && currentStep < agenda.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          if (!cancelled) advanceSlideRef.current?.(currentStep + 1);
         }
       } catch (err) {
         if (!cancelled) toast.error("Failed to generate AI summary: " + (err.message || "Unknown error"));
@@ -590,7 +632,13 @@ export default function FireteamExperienceMeeting() {
     }
 
     return () => { cancelled = true; };
-  }, [currentStep, agenda, isRecording, wasRecording, recordingBlob, handleToggleRecording, handleProcessRecording, toast]);
+    // NOTE: All callbacks (handleProcessRecording, advanceSlide, toast) and state
+    // values (isRecording, wasRecording, recordingBlob) are deliberately excluded.
+    // We read state via refs and call callbacks via refs so the closure never goes
+    // stale. Including them would cause the effect to re-run (and cancel the
+    // in-flight processSession) every time a re-render creates new references.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, agenda]);
 
   // ============================================================================
   // DERIVED VALUES
@@ -648,6 +696,8 @@ export default function FireteamExperienceMeeting() {
             aria-label={`Slide ${currentStep + 1}: ${currentStepTitle}`}>
             <div className="w-full h-full max-w-4xl">
               <Slide step={agenda[currentStep]} participants={participants} experienceTitle={experience?.title || ""}
+                processingStage={processingStage}
+                onViewResults={handleViewResults}
                 onRatingSubmit={(stars) => {
                   const expId = searchParams?.get("id");
                   const userId = currentUserId;

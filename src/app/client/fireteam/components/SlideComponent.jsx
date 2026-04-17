@@ -9,7 +9,9 @@
  *   step            — agenda step object from useMeetingData / breakoutDeckParser
  *   participants    — LiveKit participant list
  *   experienceTitle — display name of the experience
- *   onRatingSubmit  — callback(stars: number) for slideType 11 (Processing)
+ *   onRatingSubmit  — callback(stars: number) for the Summary slide rating
+ *   onViewResults   — callback() to navigate to the full evaluation page
+ *   processingStage — 'transcribing' | 'summarizing' | 'uploading' | 'done' | null
  *   exhibits        — array of exhibit objects for slideType 6 (Discussion)
  *   activeExhibitId — currently selected exhibit id
  */
@@ -299,98 +301,204 @@ function AgendaSlide({ step, allSteps = [], currentStepIndex = 0 }) {
   );
 }
 
-// ─── slideType 11 — Session Processing ───────────────────────────────────────
-function ProcessingSlide({ onRatingSubmit }) {
-  const [rating, setRating] = useState(0);
-  const [hovered, setHovered] = useState(0);
-  const [submitted, setSubmitted] = useState(false);
+// ─── slideType 11 — Session Processing (multi-stage progress tracker) ───────
+const PROCESSING_STAGES = [
+  { key: "transcribing", label: "Transcribing", desc: "Converting your recording to text" },
+  { key: "summarizing",  label: "Analyzing",    desc: "Evaluating with Bloom's Taxonomy" },
+  { key: "uploading",    label: "Saving",       desc: "Storing your session results" },
+];
 
-  const handleSubmit = () => {
-    if (!rating) return;
-    setSubmitted(true);
-    onRatingSubmit?.(rating);
-  };
+function ProcessingSlide({ processingStage = null }) {
+  // Derive which stages are done / active / pending
+  const activeIdx = PROCESSING_STAGES.findIndex((s) => s.key === processingStage);
+  const isDone = processingStage === "done";
 
   return (
     <SlideShell>
-      <div className="bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl shadow-lg p-10 text-center w-full h-full flex flex-col justify-center text-white">
-        <div className="mb-6">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-4">
-            <svg className="w-10 h-10 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-black mb-3">Processing Session Data</h1>
-          <p className="text-white/80 text-sm mb-6">
-            Our AI is analyzing your discussion and generating your Bloom&apos;s Taxonomy evaluation…
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 w-full h-full flex flex-col justify-center items-center px-8 py-10">
+        {/* Header */}
+        <div className="text-center mb-10">
+          {!isDone ? (
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-900 mb-5">
+              <svg className="w-7 h-7 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                <path className="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+            </div>
+          ) : (
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500 mb-5">
+              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          )}
+          <h1 className="text-2xl font-black text-gray-900 mb-1">
+            {isDone ? "Processing Complete" : "Analyzing Your Session"}
+          </h1>
+          <p className="text-sm text-gray-400">
+            {isDone ? "Moving to your results..." : "This usually takes about a minute"}
           </p>
         </div>
 
-        {/* 5-star rating — required by blueprint */}
-        {!submitted ? (
-          <div className="bg-white/10 rounded-2xl p-6 max-w-sm mx-auto w-full">
-            <p className="text-sm font-semibold mb-4">How would you rate this session?</p>
-            <div className="flex justify-center gap-2 mb-4">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onMouseEnter={() => setHovered(star)}
-                  onMouseLeave={() => setHovered(0)}
-                  onClick={() => setRating(star)}
-                  className="text-3xl transition-transform hover:scale-110 focus:outline-none"
-                  aria-label={`${star} star${star !== 1 ? "s" : ""}`}
-                >
-                  <span className={star <= (hovered || rating) ? "text-[#FFCA00]" : "text-white/30"}>
-                    ★
-                  </span>
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={handleSubmit}
-              disabled={!rating}
-              className="w-full py-2.5 bg-white text-purple-700 rounded-xl font-bold text-sm
-                         disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/90 transition-colors"
-            >
-              Submit Rating
-            </button>
-          </div>
-        ) : (
-          <div className="bg-white/10 rounded-2xl p-6 max-w-sm mx-auto w-full">
-            <p className="text-2xl mb-2">{"★".repeat(rating)}</p>
-            <p className="text-sm text-white/80">Thank you for your feedback!</p>
-            <p className="text-xs text-white/50 mt-2">Results will appear shortly…</p>
-          </div>
-        )}
+        {/* 3-step progress tracker */}
+        <div className="w-full max-w-md space-y-3">
+          {PROCESSING_STAGES.map((stage, idx) => {
+            const isActive = idx === activeIdx;
+            const isComplete = isDone || (activeIdx >= 0 && idx < activeIdx);
+
+            return (
+              <div
+                key={stage.key}
+                className={`flex items-center gap-4 px-5 py-3.5 rounded-xl border transition-all duration-500 ${
+                  isComplete
+                    ? "bg-green-50 border-green-200"
+                    : isActive
+                    ? "bg-gray-50 border-gray-300 shadow-sm"
+                    : "bg-gray-50/50 border-gray-100"
+                }`}
+              >
+                {/* Step indicator */}
+                <div className="flex-shrink-0">
+                  {isComplete ? (
+                    <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  ) : isActive ? (
+                    <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center">
+                      <span className="text-xs font-bold text-gray-300">{idx + 1}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Step text */}
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-semibold leading-tight ${
+                    isComplete ? "text-green-700" : isActive ? "text-gray-900" : "text-gray-400"
+                  }`}>
+                    {stage.label}
+                  </p>
+                  <p className={`text-xs mt-0.5 ${
+                    isComplete ? "text-green-500" : isActive ? "text-gray-500" : "text-gray-300"
+                  }`}>
+                    {isComplete ? "Done" : stage.desc}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </SlideShell>
   );
 }
 
-// ─── slideType 12 — End of Session ───────────────────────────────────────────
-function EndOfSessionSlide({ experienceTitle }) {
+// ─── slideType 12 — AI Summary / End of Session ────────────────────────────
+function EndOfSessionSlide({ experienceTitle, onRatingSubmit, onViewResults, autoRedirectSecs = 10 }) {
+  const [rating, setRating] = useState(0);
+  const [hovered, setHovered] = useState(0);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [countdown, setCountdown] = useState(autoRedirectSecs);
+  const [paused, setPaused] = useState(false);
+
+  const handleRatingSubmit = () => {
+    if (!rating) return;
+    setRatingSubmitted(true);
+    onRatingSubmit?.(rating);
+  };
+
+  // Auto-redirect countdown
+  React.useEffect(() => {
+    if (paused || countdown <= 0) return;
+    const t = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          onViewResults?.();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [paused, countdown, onViewResults]);
+
   return (
     <SlideShell>
-      <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-2xl shadow-lg p-10 text-center w-full h-full flex flex-col justify-center text-white">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6 mx-auto">
-          <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 w-full h-full flex flex-col justify-center items-center px-8 py-10">
+        {/* Success icon */}
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500 mb-5">
+          <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-3xl font-black mb-3">Session Complete!</h1>
+
+        <h1 className="text-2xl font-black text-gray-900 mb-1">Session Complete!</h1>
         {experienceTitle && (
-          <p className="text-white/80 text-lg mb-6">{experienceTitle}</p>
+          <p className="text-sm text-gray-400 mb-8">{experienceTitle}</p>
         )}
-        <div className="space-y-2 text-sm text-white/70">
-          <p>✓ Session transcribed</p>
-          <p>✓ AI insights generated</p>
-          <p>✓ Bloom&apos;s evaluation complete</p>
+
+        {/* Star rating */}
+        <div className="w-full max-w-sm mb-8">
+          {!ratingSubmitted ? (
+            <div className="bg-gray-50 rounded-2xl border border-gray-100 p-6 text-center">
+              <p className="text-sm font-semibold text-gray-700 mb-4">How would you rate this session?</p>
+              <div className="flex justify-center gap-2 mb-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onMouseEnter={() => { setHovered(star); setPaused(true); }}
+                    onMouseLeave={() => { setHovered(0); setPaused(false); }}
+                    onClick={() => { setRating(star); setPaused(true); }}
+                    className="text-3xl transition-transform hover:scale-110 focus:outline-none"
+                    aria-label={`${star} star${star !== 1 ? "s" : ""}`}
+                  >
+                    <span className={star <= (hovered || rating) ? "text-[#FFCA00]" : "text-gray-200"}>
+                      ★
+                    </span>
+                  </button>
+                ))}
+              </div>
+              {rating > 0 && (
+                <button
+                  onClick={handleRatingSubmit}
+                  className="w-full py-2.5 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-colors"
+                >
+                  Submit Rating
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="bg-green-50 rounded-2xl border border-green-100 p-5 text-center">
+              <p className="text-lg mb-1">{"★".repeat(rating)}<span className="text-gray-200">{"★".repeat(5 - rating)}</span></p>
+              <p className="text-sm text-green-700 font-medium">Thanks for your feedback!</p>
+            </div>
+          )}
         </div>
-        <p className="mt-6 text-xs text-white/50">
-          Your detailed results will be available on the evaluation page.
-        </p>
+
+        {/* View results button + countdown */}
+        <button
+          onClick={() => onViewResults?.()}
+          className="px-8 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-colors shadow-sm"
+        >
+          View Full Results
+        </button>
+        {countdown > 0 && !paused && (
+          <button
+            onClick={() => setPaused(true)}
+            className="mt-3 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            Redirecting in {countdown}s — click to stay
+          </button>
+        )}
+        {paused && countdown > 0 && (
+          <p className="mt-3 text-xs text-gray-300">Auto-redirect paused</p>
+        )}
       </div>
     </SlideShell>
   );
@@ -570,6 +678,8 @@ export default function Slide({
   participants = [],
   experienceTitle = "",
   onRatingSubmit,
+  onViewResults,
+  processingStage,
   allSteps = [],
   currentStepIndex = 0,
 }) {
@@ -595,9 +705,9 @@ export default function Slide({
     case 8:
       return <AgendaSlide step={step} allSteps={allSteps} currentStepIndex={currentStepIndex} />;
     case 11:
-      return <ProcessingSlide onRatingSubmit={onRatingSubmit} />;
+      return <ProcessingSlide processingStage={processingStage} />;
     case 12:
-      return <EndOfSessionSlide experienceTitle={experienceTitle} />;
+      return <EndOfSessionSlide experienceTitle={experienceTitle} onRatingSubmit={onRatingSubmit} onViewResults={onViewResults} />;
     case 17:
       return <QuizTimerSlide step={step} />;
     case 18:
@@ -616,10 +726,10 @@ export default function Slide({
     return <WaitingRoomSlide participants={participants} experienceTitle={experienceTitle} />;
 
   if (step.isProcessing || title.includes("session processing") || title.includes("processing"))
-    return <ProcessingSlide onRatingSubmit={onRatingSubmit} />;
+    return <ProcessingSlide processingStage={processingStage} />;
 
-  if (title.includes("ai-generated results") || title.includes("ai summary"))
-    return <EndOfSessionSlide experienceTitle={experienceTitle} />;
+  if (step.isSummary || title.includes("ai-generated results") || title.includes("ai summary"))
+    return <EndOfSessionSlide experienceTitle={experienceTitle} onRatingSubmit={onRatingSubmit} onViewResults={onViewResults} />;
 
   if (title.includes("learning objectives"))
     return <LearningObjectivesSlide step={step} />;
