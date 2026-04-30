@@ -508,6 +508,20 @@ export default function FireteamExperienceMeeting() {
     const ftId = searchParams?.get("fireteamId");
     const recordingId = processResult?.recordingId || "unknown";
     const hasAI = processResult ? "true" : "false";
+
+    // Persist summaries so the evaluation page can use them
+    // without depending on the backend summary endpoints
+    if (processResult?.summaries && recordingId !== "unknown") {
+      try {
+        sessionStorage.setItem(
+          `recording_summaries_${recordingId}`,
+          JSON.stringify(processResult.summaries)
+        );
+      } catch (e) {
+        console.warn("Could not save summaries to sessionStorage:", e);
+      }
+    }
+
     window.location.href = `/client/fireteam/experience/${expId}/evaluation?fireteamId=${ftId}&recordingId=${recordingId}&hasAI=${hasAI}`;
   }, [leaveMeeting, searchParams, processResult]);
 
