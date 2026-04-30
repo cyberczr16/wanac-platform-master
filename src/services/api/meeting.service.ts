@@ -194,9 +194,6 @@ export const meetingService = {
         '/api/v1/fireteams/recordings/add',
         formData,
         {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
           timeout: 300000, // 5 minutes for large files
         }
       );

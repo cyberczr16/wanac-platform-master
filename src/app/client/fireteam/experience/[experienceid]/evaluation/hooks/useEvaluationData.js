@@ -17,8 +17,27 @@ export function useEvaluationData(recordingId, _fireteamId, hasAI, userRole = 'c
         setError(null);
 
         if (hasAI && recordingId) {
-          // Fetch AI-generated evaluation data from API
-          console.log('Fetching AI evaluation data for recording:', recordingId);
+          // Check sessionStorage first — summaries are saved there immediately
+          // after a session ends so we don't depend on the backend summary endpoints
+          const cachedRaw =
+            typeof window !== 'undefined'
+              ? sessionStorage.getItem(`recording_summaries_${recordingId}`)
+              : null;
+
+          if (cachedRaw) {
+            try {
+              console.log('Using cached summaries from sessionStorage for recording:', recordingId);
+              const cached = JSON.parse(cachedRaw);
+              const transformedData = transformApiDataToEvaluationFormat(cached);
+              setEvaluationData(transformedData);
+              return;
+            } catch (parseError) {
+              console.warn('Failed to parse cached summaries, falling back to API:', parseError);
+            }
+          }
+
+          // No cache — fall back to backend summary endpoints
+          console.log('Fetching AI evaluation data from API for recording:', recordingId);
 
           // Client summary endpoint is GET .../summary/client/{recordingId}/{clientId}
           const clientId =
@@ -36,7 +55,7 @@ export function useEvaluationData(recordingId, _fireteamId, hasAI, userRole = 'c
               userRole,
               userRole === 'client' ? clientId : undefined
             );
-            
+
             // Transform API data to our evaluation format
             const transformedData = transformApiDataToEvaluationFormat(apiData);
             setEvaluationData(transformedData);
