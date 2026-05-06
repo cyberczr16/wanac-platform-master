@@ -20,6 +20,14 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { RoomEvent } from 'livekit-client';
+import { 
+  createFireteamError, 
+  withErrorHandling, 
+  FireteamLogger,
+  ERROR_TYPES,
+  isRecoverableError,
+  getRecoveryAction 
+} from '../../../../../utils/fireteamErrors';
 
 // ─── Message type constants ────────────────────────────────────────────────────
 const MSG_SLIDE_CHANGE  = 'FIRETEAM_SLIDE_CHANGE';
@@ -50,6 +58,8 @@ export function useRoomState({
   const [activeSlide, setActiveSlide]         = useState(initialSlide);
   const [activeExhibitId, setActiveExhibitId] = useState(null);
   const [resolvedLeaderId, setResolvedLeaderId] = useState(leaderUserId);
+  const [error, setError] = useState(null);
+  const [isRecovering, setIsRecovering] = useState(false);
 
   // Keep a ref so callbacks always see latest values without re-subscribing
   const activeSlideRef    = useRef(initialSlide);
@@ -163,23 +173,88 @@ export function useRoomState({
   }, [livekitReady, currentUserId, leaderUserId, roomRef]);
 
   // ─── advanceSlide: only the group leader can call this ────────────────────────
-  const advanceSlide = useCallback((nextStep) => {
-    if (!isGroupLeader) {
-      console.warn('[useRoomState] advanceSlide called by non-leader — ignored');
-      return;
+  const advanceSlide = useCallback(async (nextStep) => {
+    try {
+      if (!isGroupLeader) {
+        const error = createFireteamError(
+          ERROR_TYPES.PERMISSION,
+          new Error('Non-leader attempted to advance slide'),
+          { userId: currentUserId, attemptedSlide: nextStep }
+        );
+        FireteamLogger.log(error);
+        setError(error);
+        return;
+      }
+
+      setActiveSlide(nextStep);
+      const room = roomRef?.current;
+      
+      if (!room) {
+        throw new Error('LiveKit room not available');
+      }
+
+      publishRoomMessage(room, { type: MSG_SLIDE_CHANGE, step: nextStep });
+      FireteamLogger.debug('Slide advanced', { nextStep, userId: currentUserId });
+      
+      // Clear any previous errors on success
+      setError(null);
+      
+    } catch (err) {
+      const error = createFireteamError(
+        ERROR_TYPES.SLIDE_ADVANCE,
+        err,
+        { userId: currentUserId, attemptedSlide: nextStep }
+      );
+      FireteamLogger.log(error);
+      setError(error);
     }
-    setActiveSlide(nextStep);
-    const room = roomRef?.current;
-    publishRoomMessage(room, { type: MSG_SLIDE_CHANGE, step: nextStep });
-  }, [isGroupLeader, roomRef]);
+  }, [isGroupLeader, roomRef, currentUserId]);
 
   // ─── changeExhibit: only the group leader can call this ───────────────────────
-  const changeExhibit = useCallback((exhibitId) => {
-    if (!isGroupLeader) return;
-    setActiveExhibitId(exhibitId ?? null);
-    const room = roomRef?.current;
-    publishRoomMessage(room, { type: MSG_EXHIBIT_CHANGE, exhibitId: exhibitId ?? null });
-  }, [isGroupLeader, roomRef]);
+  const changeExhibit = useCallback(async (exhibitId) => {
+    try {
+      if (!isGroupLeader) {
+        const error = createFireteamError(
+          ERROR_TYPES.PERMISSION,
+          new Error('Non-leader attempted to change exhibit'),
+          { userId: currentUserId, attemptedExhibit: exhibitId }
+        );
+        FireteamLogger.log(error);
+        setError(error);
+        return;
+      }
+
+      setActiveExhibitId(exhibitId ?? null);
+      const room = roomRef?.current;
+      
+      if (!room) {
+        throw new Error('LiveKit room not available');
+      }
+
+      publishRoomMessage(room, { type: MSG_EXHIBIT_CHANGE, exhibitId: exhibitId ?? null });
+      FireteamLogger.debug('Exhibit changed', { exhibitId, userId: currentUserId });
+      
+      // Clear any previous errors on success
+      setError(null);
+      
+    } catch (err) {
+      const error = createFireteamError(
+        ERROR_TYPES.EXHIBIT_CHANGE,
+        err,
+        { userId: currentUserId, attemptedExhibit: exhibitId }
+      );
+      FireteamLogger.log(error);
+      setError(error);
+    }
+  }, [isGroupLeader, roomRef, currentUserId]);
+
+  // Error recovery function
+  const retryLastAction = useCallback(() => {
+    setIsRecovering(true);
+    setError(null);
+    // Implementation would depend on what action failed
+    setTimeout(() => setIsRecovering(false), 1000);
+  }, []);
 
   return {
     activeSlide,
@@ -188,5 +263,9 @@ export function useRoomState({
     isGroupLeader,
     advanceSlide,
     changeExhibit,
+    error,
+    isRecovering,
+    retryLastAction,
+    clearError: () => setError(null),
   };
 }

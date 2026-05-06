@@ -10,14 +10,15 @@ import RoleTabView from "./components/RoleTabView";
 import Sidebar from "../../../../../../../components/dashboardcomponents/sidebar";
 import AdminSidebar from "../../../../../../../components/dashboardcomponents/adminsidebar";
 
-/* ── Bloom's Taxonomy color + label map ───────────────────────────────────── */
+/* ── Bloom's Taxonomy color + label map (exact colors from blueprint) ────── */
 const BLOOMS = [
-  { score: 1, label: "Remembering", color: "#06B6D4" },
-  { score: 2, label: "Understanding", color: "#3B82F6" },
-  { score: 3, label: "Applying", color: "#FCD34D" },
-  { score: 4, label: "Analyzing", color: "#F59E0B" },
+  { score: 0, label: "Did Not Discuss", color: "#efefef" },
+  { score: 1, label: "Remembering", color: "#AEF4FF" },
+  { score: 2, label: "Understanding", color: "#3BB5C8" },
+  { score: 3, label: "Applying", color: "#BC9906" },
+  { score: 4, label: "Analyzing", color: "#FFCA00" },
   { score: 5, label: "Evaluating", color: "#D15924" },
-  { score: 6, label: "Creating", color: "#10B981" },
+  { score: 6, label: "Creating", color: "#282828" },
 ];
 
 /* ── Compute an average Bloom score across all rubrics for the student ───── */

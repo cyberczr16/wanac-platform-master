@@ -449,9 +449,18 @@ export default function FireteamExperienceMeeting() {
   // EVENT HANDLERS
   // ============================================================================
 
-  const handleNext = useCallback(() => {
+  const handleNext = useCallback(async () => {
     if (currentStep < agenda.length - 1 && canNavigate) {
-      advanceSlide(currentStep + 1);
+      const nextStep = currentStep + 1;
+      const nextSlide = agenda[nextStep];
+      
+      // Check if advancing to slideType 11 (Processing) and trigger automatic evaluation
+      if (nextSlide?.breakout?.slideType === 11 || nextSlide?.isProcessing) {
+        console.log('🤖 Advancing to Processing slide - triggering automatic evaluation');
+        await triggerAutomaticEvaluation();
+      }
+      
+      advanceSlide(nextStep);
     }
   }, [currentStep, agenda.length, canNavigate, advanceSlide]);
 
@@ -473,6 +482,93 @@ export default function FireteamExperienceMeeting() {
       toast.error(err.message || "Failed to toggle recording");
     }
   }, [toggleRecording, isRecording, toast]);
+
+  const triggerAutomaticEvaluation = useCallback(async () => {
+    try {
+      if (!experience?.id) {
+        console.warn('No experience ID available for evaluation');
+        return;
+      }
+
+      // Stop recording if it's active
+      if (isRecording) {
+        await handleToggleRecording();
+      }
+
+      // Prepare participants data
+      const participantsData = participants.map(p => ({
+        id: p.identity || p.id,
+        name: p.name || 'Participant'
+      }));
+
+      // Get recording ID (use current timestamp as mock ID)
+      const recordingId = `rec_${experience.id}_${Date.now()}`;
+
+      console.log(`🚀 Triggering automatic evaluation for experience ${experience.id}`);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/fireteams/experience/${experience.id}/evaluation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          recording_id: recordingId,
+          trigger_type: 'auto-slide-11',
+          participants: participantsData,
+          user_id: currentUserId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to trigger evaluation: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Evaluation triggered successfully:', result);
+
+      // Update processing stage to show evaluation is running
+      setProcessingSession(true);
+      setProcessingStage('transcribing');
+
+      toast.success('AI evaluation started - processing your session...');
+
+      // Poll for evaluation completion
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/fireteams/experience/${experience.id}/evaluation/status`);
+          if (statusResponse.ok) {
+            const status = await statusResponse.json();
+            
+            if (status.status === 'completed') {
+              clearInterval(pollInterval);
+              setProcessingStage('done');
+              setProcessingSession(false);
+              toast.success('AI evaluation completed! View your results.');
+              console.log('✅ Evaluation completed successfully');
+            } else if (status.status === 'failed') {
+              clearInterval(pollInterval);
+              setProcessingSession(false);
+              toast.error('Evaluation failed. Please try again.');
+              console.error('❌ Evaluation failed');
+            }
+          }
+        } catch (error) {
+          console.error('Error polling evaluation status:', error);
+        }
+      }, 5000); // Poll every 5 seconds
+
+      // Clean up polling after 10 minutes max
+      setTimeout(() => {
+        clearInterval(pollInterval);
+      }, 600000);
+
+    } catch (error) {
+      console.error('❌ Failed to trigger automatic evaluation:', error);
+      toast.error('Failed to start evaluation. Please try manual evaluation.');
+      setProcessingSession(false);
+    }
+  }, [experience, participants, isRecording, handleToggleRecording, currentUserId]);
 
   const handleProcessRecording = useCallback(async () => {
     try {

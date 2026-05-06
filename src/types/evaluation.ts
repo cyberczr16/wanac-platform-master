@@ -208,11 +208,50 @@ export const mockEvaluationData: EvaluationData = {
   }
 };
 
-export const bloomTaxonomyColors = {
-  'Creating': '#10B981', // emerald
-  'Evaluating': '#F59E0B', // amber
-  'Analyzing': '#FCD34D', // yellow
-  'Applying': '#FCD34D', // yellow
-  'Understanding': '#3B82F6', // blue
-  'Remembering': '#06B6D4' // cyan
+// Bloom's Taxonomy color map (exact colors from the blueprint)
+type BloomColors = {
+  readonly 0: string;
+  readonly 1: string;
+  readonly 2: string;
+  readonly 3: string;
+  readonly 4: string;
+  readonly 5: string;
+  readonly 6: string;
+  readonly 'Remembering': string;
+  readonly 'Understanding': string;
+  readonly 'Applying': string;
+  readonly 'Analyzing': string;
+  readonly 'Evaluating': string;
+  readonly 'Creating': string;
+  readonly 'Did Not Discuss': string;
+  readonly [key: string]: string; // Allow string indexing
+  readonly [key: number]: string; // Allow number indexing
 };
+
+export const bloomTaxonomyColors: BloomColors = {
+  0: '#efefef', // Did Not Discuss
+  1: '#AEF4FF', // Remembering
+  2: '#3BB5C8', // Understanding
+  3: '#BC9906', // Applying
+  4: '#FFCA00', // Analyzing
+  5: '#D15924', // Evaluating
+  6: '#282828', // Creating
+  // Legacy string keys for backward compatibility
+  'Remembering': '#AEF4FF',
+  'Understanding': '#3BB5C8',
+  'Applying': '#BC9906',
+  'Analyzing': '#FFCA00',
+  'Evaluating': '#D15924',
+  'Creating': '#282828',
+  'Did Not Discuss': '#efefef',
+};
+
+// Helper function to get color by score or level
+export function getBloomColor(scoreOrLevel: number | string): string {
+  if (typeof scoreOrLevel === 'number') {
+    // Ensure the number is within valid range (0-6)
+    const validScore = Math.max(0, Math.min(6, scoreOrLevel));
+    return bloomTaxonomyColors[validScore] || bloomTaxonomyColors[0];
+  }
+  return bloomTaxonomyColors[scoreOrLevel] || bloomTaxonomyColors['Did Not Discuss'];
+}

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { bloomTaxonomyColors } from "../../../../../../../types/evaluation";
+import { bloomTaxonomyColors, getBloomColor } from "../../../../../../../types/evaluation";
 
 /* ── Bloom's score label ──────────────────────────────────────────────────── */
-const BLOOM_LEVELS = ["Remembering", "Understanding", "Applying", "Analyzing", "Evaluating", "Creating"];
+const BLOOM_LEVELS = ["Did Not Discuss", "Remembering", "Understanding", "Applying", "Analyzing", "Evaluating", "Creating"];
 
 export default function IndividualEvaluation({ individualEvaluations, userRole = "client" }) {
   const [expandedId, setExpandedId] = useState(null);
@@ -42,7 +42,7 @@ export default function IndividualEvaluation({ individualEvaluations, userRole =
           <div className="space-y-3">
             {evaluation.evaluations.map((rubric) => {
               const isOpen = expandedId === `${evaluation.participantId}-${rubric.rubricId}`;
-              const bloomColor = bloomTaxonomyColors[rubric.bloomLevel.level] || "#9ca3af";
+              const bloomColor = getBloomColor(rubric.bloomLevel.score) || "#9ca3af";
               const scorePct = (rubric.bloomLevel.score / 6) * 100;
 
               return (
